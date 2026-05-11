@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git init *)",
+      "Bash(del C:\\\\Users\\\\12ans\\\\virtual-gifts\\\\package-lock.json)",
+      "Bash(npm install *)",
+      "Bash(dir *)",
+      "PowerShell(npx husky init)",
+      "PowerShell(npm install *)",
+      "PowerShell($env:PORT = \"3000\"; npx next dev 2>&1)",
+      "PowerShell(npx next dev --port 3001 2>&1)",
+      "PowerShell(npx next dev --port 3099 2>&1)",
+      "PowerShell(Invoke-WebRequest -Uri \"http://localhost:3099\" -UseBasicParsing | Select-Object StatusCode, @{N='Length';E={$_.Content.Length}})",
+      "PowerShell(Invoke-WebRequest -Uri \"http://localhost:3099/gift/test\" -UseBasicParsing | Select-Object StatusCode, @{N='Length';E={$_.Content.Length}})",
+      "PowerShell(Invoke-WebRequest -Uri \"http://localhost:3099/create/test\" -UseBasicParsing | Select-Object StatusCode, @{N='Length';E={$_.Content.Length}})",
+      "PowerShell(Invoke-WebRequest -Uri \"http://localhost:3099/g/abc123\" -UseBasicParsing | Select-Object StatusCode, @{N='Length';E={$_.Content.Length}})",
+      "PowerShell($urls = @\\(\"/\", \"/gift/test\", \"/create/test\", \"/g/abc123\", \"/dashboard\", \"/pricing\", \"/privacy\", \"/terms\"\\); foreach \\($url in $urls\\) { try { $r = Invoke-WebRequest -Uri \"http://localhost:3099$url\" -UseBasicParsing; Write-Output \"$url -> $\\($r.StatusCode\\) \\(len=$\\($r.Content.Length\\)\\)\" } catch { Write-Output \"$url -> ERROR: $\\($_.Exception.Message\\)\" } })",
+      "PowerShell($r = Invoke-WebRequest -Uri \"http://localhost:3099\" -UseBasicParsing; if \\($r.Content -match \"HoneyHearts\"\\) { \"Brand: HoneyHearts found\" } else { \"WARNING: HoneyHearts NOT found\" }; if \\($r.Content -match \"DearlyMade\"\\) { \"WARNING: DearlyMade still present\" } else { \"DearlyMade removed - good\" })",
+      "PowerShell($r = Invoke-WebRequest -Uri \"http://localhost:3099\" -UseBasicParsing; if \\($r.Content -match \"HoneyHearts\"\\) { \"HoneyHearts found\" } else { \"HoneyHearts NOT found\" }; if \\($r.Content -match \"DearlyMade\"\\) { \"DearlyMade still present\" } else { \"DearlyMade gone\" })",
+      "PowerShell(npx next lint 2>&1 | Select-Object -First 5)",
+      "Bash(npx tsc *)",
+      "Bash(grep -E \"\\\\.md$|docs|design\")",
+      "Bash(del *)",
+      "PowerShell(Remove-Item *)",
+      "Bash(npm run *)",
+      "WebFetch(domain:localhost)",
+      "WebFetch(domain:127.0.0.1)",
+      "Bash(curl -s http://localhost:3004)",
+      "Bash(curl -s http://localhost:3004/_next/static/css/app/layout.css)",
+      "Bash(git add *)"
+    ]
+  }
+}

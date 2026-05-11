@@ -1,0 +1,15 @@
+{
+  "common": {
+    "brandName": "HoneyHearts",
+    "tagline": "Craft unforgettable interactive surprises",
+    "tryFree": "Try free",
+    "seeHowItWorks": "See how it works",
+    "sendOneBack": "Want to send one back?",
+    "madeWith": "Made with {brandName}",
+    "comingSoon": "Coming Soon",
+    "dashboard": "Dashboard",
+    "pricing": "Pricing",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service"
+  }
+}

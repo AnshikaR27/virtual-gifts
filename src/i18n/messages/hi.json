@@ -1,0 +1,15 @@
+{
+  "common": {
+    "brandName": "HoneyHearts",
+    "tagline": "अविस्मरणीय इंटरैक्टिव सरप्राइज बनाएं",
+    "tryFree": "मुफ्त में आज़माएं",
+    "seeHowItWorks": "देखें कैसे काम करता है",
+    "sendOneBack": "एक वापस भेजना चाहते हैं?",
+    "madeWith": "{brandName} से बनाया गया",
+    "comingSoon": "जल्द आ रहा है",
+    "dashboard": "डैशबोर्ड",
+    "pricing": "मूल्य",
+    "privacy": "गोपनीयता नीति",
+    "terms": "सेवा की शर्तें"
+  }
+}
