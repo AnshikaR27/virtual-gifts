@@ -1,0 +1,3 @@
+-- Phase 0.2: Initial schema
+-- This migration will be applied when Supabase is configured
+-- See plan.md Section 0.2 for full table definitions
