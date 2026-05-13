@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 import { Taskbar } from '@/components/layout/taskbar';
 import { Footer } from '@/components/layout/footer';
+import { RetroSounds } from '@/components/retro-sounds';
 import { BRAND_NAME, BRAND_TAGLINE } from '@/lib/constants';
 import './globals.css';
 
@@ -57,6 +58,7 @@ export default async function RootLayout({
       <body className="font-body antialiased">
         <div className="scanline-overlay" aria-hidden />
         <NextIntlClientProvider messages={messages}>
+          <RetroSounds />
           <Taskbar />
           <main className="min-h-screen">{children}</main>
           <Footer />
