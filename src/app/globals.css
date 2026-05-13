@@ -327,6 +327,28 @@
   animation: float-gentle 6s ease-in-out infinite;
 }
 
+/* ── Mobile popup windows (bouncy scale-in) ── */
+@keyframes win98-popup {
+  0% {
+    transform: scale(0) rotate(var(--popup-rotate, 0deg));
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.08) rotate(var(--popup-rotate, 0deg));
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(var(--popup-rotate, 0deg));
+    opacity: 1;
+  }
+}
+
+.animate-popup {
+  opacity: 0;
+  transform: scale(0) rotate(var(--popup-rotate, 0deg));
+  animation: win98-popup 0.3s ease-out forwards;
+}
+
 html {
   scroll-behavior: smooth;
 }

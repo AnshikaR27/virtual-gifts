@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 const headlines = [
   'Loading ROMANCE.exe...',
@@ -30,6 +30,118 @@ function TitlebarButtons() {
       <button className="win98-titlebar-btn" aria-label="Close">
         <span className="text-[10px] font-bold leading-none text-black">✕</span>
       </button>
+    </div>
+  );
+}
+
+function MobilePopupWindows() {
+  const played = useRef(false);
+
+  useEffect(() => {
+    if (played.current) return;
+    played.current = true;
+    const delays = [800, 1600, 2200];
+    const timeouts = delays.map((delay) =>
+      setTimeout(() => {
+        const audio = new Audio('/sounds/click.wav');
+        audio.volume = 0.3;
+        audio.play().catch(() => {});
+      }, delay),
+    );
+    return () => timeouts.forEach(clearTimeout);
+  }, []);
+
+  return (
+    <div className="mt-6 flex flex-col gap-4 md:hidden">
+      <div
+        className="win98-window animate-popup"
+        style={
+          {
+            '--popup-rotate': '-2deg',
+            animationDelay: '0.8s',
+            width: '85%',
+            marginLeft: '4%',
+          } as React.CSSProperties
+        }
+      >
+        <div className="win98-titlebar">
+          <span>⚠️ WARNING</span>
+          <TitlebarButtons />
+        </div>
+        <div className="win98-body">
+          <p className="font-pixel text-[13px] leading-snug text-black">
+            Your love life is running low on memory. Please delete some bad
+            decisions.
+          </p>
+          <div className="mt-3 flex justify-end">
+            <span className="win98-btn text-[12px]">OK</span>
+          </div>
+        </div>
+      </div>
+
+      <div
+        className="win98-window animate-popup"
+        style={
+          {
+            '--popup-rotate': '1.5deg',
+            animationDelay: '1.6s',
+            width: '78%',
+            marginLeft: '18%',
+          } as React.CSSProperties
+        }
+      >
+        <div className="win98-titlebar">
+          <span>💕 ROMANCE.exe</span>
+          <TitlebarButtons />
+        </div>
+        <div className="win98-body">
+          <p className="mb-2 font-pixel text-[12px] text-black">
+            Loading ROMANCE.exe...
+          </p>
+          <div
+            className="h-[18px] border-2"
+            style={{
+              borderColor:
+                'var(--win-chrome-dark) var(--win-chrome-light) var(--win-chrome-light) var(--win-chrome-dark)',
+            }}
+          >
+            <div
+              className="animate-progress h-full"
+              style={{
+                background: 'linear-gradient(90deg, #FF69B4, #BA55D3)',
+              }}
+            />
+          </div>
+          <p className="mt-1 font-pixel text-[11px] text-black/60">
+            78% complete
+          </p>
+        </div>
+      </div>
+
+      <div
+        className="win98-window animate-popup"
+        style={
+          {
+            '--popup-rotate': '-1deg',
+            animationDelay: '2.2s',
+            width: '72%',
+            marginLeft: '8%',
+          } as React.CSSProperties
+        }
+      >
+        <div className="win98-titlebar">
+          <span>💓 SYSTEM</span>
+          <TitlebarButtons />
+        </div>
+        <div className="win98-body text-center">
+          <p className="font-pixel text-[13px] text-black">
+            Heart rate increasing...
+          </p>
+          <div className="mt-3 flex justify-center">
+            <span className="win98-btn text-[12px]">[OK]</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -203,17 +315,10 @@ export function HeroSection() {
                   See Gifts
                 </a>
               </div>
-
-              {/* Mobile-only: system log lines */}
-              <div className="mt-5 border-t border-black/20 pt-4 md:hidden">
-                <div className="flex flex-col gap-2 font-pixel text-[14px] leading-snug text-black/70">
-                  <p>⚠️ WARNING: Love life running low on memory</p>
-                  <p>████████░░░ Loading ROMANCE.exe… 78%</p>
-                  <p>💕 SYSTEM: Heart rate increasing…</p>
-                </div>
-              </div>
             </div>
           </div>
+
+          <MobilePopupWindows />
         </div>
       </div>
     </section>
