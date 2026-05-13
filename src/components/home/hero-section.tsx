@@ -136,101 +136,6 @@ function FloatingWindows() {
   );
 }
 
-export function MobileDecorativeWindows() {
-  return (
-    <div className="py-2 md:hidden">
-      {/* Warning dialog — leans left, wide */}
-      <div
-        className="win98-window"
-        style={{
-          width: '72%',
-          marginLeft: '5%',
-          transform: 'rotate(-2.5deg)',
-          marginBottom: 14,
-        }}
-      >
-        <div className="win98-titlebar">
-          <span className="text-[12px]">⚠️ WARNING</span>
-          <TitlebarButtons />
-        </div>
-        <div className="win98-body !p-2">
-          <p className="font-pixel text-[11px] leading-snug text-black">
-            Your love life is running low on memory. Please delete some bad
-            decisions.
-          </p>
-          <div className="mt-2 flex justify-end">
-            <span className="win98-btn !min-h-0 !px-3 !py-1 text-[10px]">
-              OK
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Progress bar window — sits right, narrower */}
-      <div
-        className="win98-window"
-        style={{
-          width: '60%',
-          marginLeft: '30%',
-          transform: 'rotate(1.5deg)',
-          marginBottom: 14,
-        }}
-      >
-        <div className="win98-titlebar">
-          <span className="text-[12px]">💕 ROMANCE.exe</span>
-          <TitlebarButtons />
-        </div>
-        <div className="win98-body !p-2">
-          <p className="mb-1 font-pixel text-[10px] text-black">
-            Loading ROMANCE.exe...
-          </p>
-          <div
-            className="h-[14px] border-2"
-            style={{
-              borderColor:
-                'var(--win-chrome-dark) var(--win-chrome-light) var(--win-chrome-light) var(--win-chrome-dark)',
-            }}
-          >
-            <div
-              className="animate-progress h-full"
-              style={{ background: 'linear-gradient(90deg, #FF69B4, #BA55D3)' }}
-            />
-          </div>
-          <p className="mt-1 font-pixel text-[9px] text-black/60">
-            78% complete
-          </p>
-        </div>
-      </div>
-
-      {/* System dialog — back toward center-left, smallest */}
-      <div
-        className="win98-window"
-        style={{
-          width: '55%',
-          marginLeft: '12%',
-          transform: 'rotate(-1deg)',
-          marginBottom: 14,
-        }}
-      >
-        <div className="win98-titlebar">
-          <span className="text-[12px]">💓 SYSTEM</span>
-          <TitlebarButtons />
-        </div>
-        <div className="win98-body !p-2 text-center">
-          <p className="font-pixel text-[11px] text-black">
-            Heart rate increasing...
-          </p>
-          <div className="mt-2 flex justify-center">
-            <span className="win98-btn !min-h-0 !px-3 !py-1 text-[10px]">
-              [OK]
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export function HeroSection() {
   const [index, setIndex] = useState(0);
   const [fading, setFading] = useState(false);
@@ -297,6 +202,15 @@ export function HeroSection() {
                 <a href="#make-them-melt" className="win98-btn text-[16px]">
                   See Gifts
                 </a>
+              </div>
+
+              {/* Mobile-only: system log lines */}
+              <div className="mt-5 border-t border-black/20 pt-4 md:hidden">
+                <div className="flex flex-col gap-2 font-pixel text-[14px] leading-snug text-black/70">
+                  <p>⚠️ WARNING: Love life running low on memory</p>
+                  <p>████████░░░ Loading ROMANCE.exe… 78%</p>
+                  <p>💕 SYSTEM: Heart rate increasing…</p>
+                </div>
               </div>
             </div>
           </div>
