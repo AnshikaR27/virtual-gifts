@@ -266,37 +266,42 @@ commit fully.
 
 ### 3.2 Typography
 
-The typographic scale relies on the interplay between a classic serif and two modern sans-serifs. Editorial moments use the serif's high-contrast strokes; body text stays airy and friendly; UI labels feel systematic.
+Two fonts do the bulk of the work. The serif carries emotion and brand voice. The sans handles everything functional. This 2-font system is intentionally simpler than a 3-font hierarchy — fewer decisions per component, lighter bundle, more cohesive feel.
 
 **Type families:**
 
-- **Playfair Display** — serif. Hero headlines, gift titles, editorial moments. The luxury/tradition voice.
-- **Plus Jakarta Sans** — sans. Body copy, descriptions, longer-form reading. Friendly, optimistic, highly readable.
-- **Inter** — sans. UI labels, micro-copy, buttons, form fields. Clarity and systematic feel.
-- **Caveat** — script. Reserved for Handwriting Mode, signatures, hand-written sticky notes within gifts. Used sparingly.
-- **JetBrains Mono** — monospace. Loading Screen, Terms & Conditions, Crime Board, Love Receipt — gifts where the wildcard format calls for it.
+- **Fraunces** — serif. Hero headlines, gift titles, recipient names on anticipation screens, editorial moments. Contemporary serif with optical sizing and a romantic, handcrafted character. Pairs surprisingly well with the cool Artisanal Elegance palette — the warmth of Fraunces softens the editorial coolness of the magenta/lavender, creating tension that reads as "thoughtful indie brand" rather than "luxury magazine."
+- **Inter** — sans. Body copy, UI labels, buttons, form fields, micro-copy, badges. Does double duty: editorial body AND functional UI. Inter handles this gracefully because its design intent is screen-readability at any size.
+- **Caveat** — script. Reserved for Handwriting Mode, signatures, hand-written sticky notes within gifts. Decorative only — never for primary information the user has to read.
+- **JetBrains Mono** — monospace. Loading Screen of Love, Terms & Conditions, Crime Board, Love Receipt — wildcard gifts where the format calls for mono. Lazy-loaded per-gift to keep the core bundle small.
 
 **Type scale:**
 
-| Style                          | Font              | Size | Weight | Line height | Letter spacing |
-| ------------------------------ | ----------------- | ---- | ------ | ----------- | -------------- |
-| Headline XL (hero desktop)     | Playfair Display  | 48px | 700    | 56px        | -0.02em        |
-| Headline LG (section, desktop) | Playfair Display  | 32px | 700    | 40px        | normal         |
-| Headline LG (section, mobile)  | Playfair Display  | 28px | 700    | 36px        | normal         |
-| Headline MD (card title)       | Playfair Display  | 24px | 600    | 32px        | normal         |
-| Body LG (intro paragraph)      | Plus Jakarta Sans | 18px | 400    | 28px        | normal         |
-| Body MD (body copy)            | Plus Jakarta Sans | 16px | 400    | 24px        | normal         |
-| Label MD (UI labels)           | Inter             | 14px | 500    | 20px        | 0.01em         |
-| Label SM (micro-copy, badges)  | Inter             | 12px | 600    | 16px        | normal         |
+| Style                                      | Font     | Size            | Weight | Line height | Letter spacing |
+| ------------------------------------------ | -------- | --------------- | ------ | ----------- | -------------- |
+| Headline XL (hero desktop)                 | Fraunces | 48px            | 600    | 56px        | -0.02em        |
+| Headline LG (section, desktop)             | Fraunces | 32px            | 600    | 40px        | -0.01em        |
+| Headline LG (section, mobile)              | Fraunces | 28px            | 600    | 36px        | -0.01em        |
+| Headline MD (card title)                   | Fraunces | 24px            | 500    | 32px        | normal         |
+| Headline SM (recipient name, anticipation) | Fraunces | 36–44px         | 500    | 1.1         | -0.01em        |
+| Body LG (intro paragraph)                  | Inter    | 18px            | 400    | 28px        | normal         |
+| Body MD (body copy)                        | Inter    | 16px            | 400    | 24px        | normal         |
+| Body SM (secondary text)                   | Inter    | 14px            | 400    | 20px        | normal         |
+| Label MD (UI labels, buttons)              | Inter    | 14px            | 500    | 20px        | 0.01em         |
+| Label SM (micro-copy, badges)              | Inter    | 12px            | 600    | 16px        | 0.02em         |
+| Script accent                              | Caveat   | varies per gift | 500    | varies      | normal         |
 
 **Usage rules:**
 
-- Headlines use **tighter letter-spacing** to emphasize Playfair's high-contrast strokes.
-- Body text stays **airy** (line-height ≥ 1.5×) to support comfortable reading rhythm.
-- Inter is reserved for **functional UI** — never use it for editorial content. Conversely, never use Playfair for buttons or form labels.
-- Caveat is **decorative only** — never used for primary information the user has to read.
+- Fraunces uses **slightly tighter letter-spacing** at large sizes (-0.01 to -0.02em) to keep the warm serif from feeling sprawling.
+- Inter body text stays **airy** (line-height ≥ 1.5×) for comfortable reading rhythm.
+- Inter handles both body AND UI — the distinction is in size + weight, not font family.
+- Fraunces should never appear in buttons, form labels, or small UI text — it loses character below 18px.
+- Caveat is **decorative only**.
 
-**Font loading:** Load via `next/font` in `src/app/layout.tsx` with `display: 'swap'` for all four. Playfair Display weight 700 is critical-path (hero). Plus Jakarta Sans 400 + Inter 500 should also be preloaded. Caveat and JetBrains Mono are lazy-loaded per-gift to keep the core bundle small.
+**Font loading:** Load Fraunces (weights 500, 600) and Inter (weights 400, 500, 600) via `next/font` in `src/app/layout.tsx` with `display: 'swap'`. Fraunces 600 and Inter 400 are critical-path (hero + body). Caveat and JetBrains Mono are lazy-loaded per-gift to keep the core bundle small.
+
+**Why this pairing over Playfair Display + Plus Jakarta + Inter:** Fraunces is warmer and more emotionally resonant — fits the HoneyHearts brand name. Two-font systems are simpler to maintain across 87 gifts. The slight tension between warm-Fraunces and cool-Artisanal-palette is _interesting design_, not a problem. (For reference: Playfair Display + Plus Jakarta + Inter was the previous direction. Documented in commit history.)
 
 ### 3.3 Home Screen UX (per Bible Part 13)
 

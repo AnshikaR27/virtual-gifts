@@ -116,10 +116,11 @@ const config: Config = {
         ring: 'hsl(var(--ring))',
       },
       fontFamily: {
-        display: ['var(--font-playfair-display)', 'serif'],
-        body: ['var(--font-plus-jakarta-sans)', 'sans-serif'],
-        ui: ['var(--font-inter)', 'sans-serif'],
+        display: ['var(--font-fraunces)', 'serif'],
+        body: ['var(--font-outfit)', 'sans-serif'],
+        ui: ['var(--font-outfit)', 'sans-serif'],
         handwritten: ['var(--font-caveat)', 'cursive'],
+        pixel: ['var(--font-vt323)', 'monospace'],
         mono: ['var(--font-jetbrains-mono)', 'monospace'],
       },
       borderRadius: {

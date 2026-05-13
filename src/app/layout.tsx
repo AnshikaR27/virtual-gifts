@@ -1,39 +1,35 @@
 import type { Metadata } from 'next';
-import {
-  Playfair_Display,
-  Plus_Jakarta_Sans,
-  Inter,
-  Caveat,
-} from 'next/font/google';
+import { Fraunces, Outfit, Caveat, VT323 } from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
-import { Header } from '@/components/layout/header';
+import { Taskbar } from '@/components/layout/taskbar';
 import { Footer } from '@/components/layout/footer';
 import { BRAND_NAME, BRAND_TAGLINE } from '@/lib/constants';
 import './globals.css';
 
-const playfairDisplay = Playfair_Display({
+const fraunces = Fraunces({
   subsets: ['latin'],
-  weight: ['600', '700'],
-  variable: '--font-playfair-display',
+  variable: '--font-fraunces',
   display: 'swap',
 });
 
-const plusJakartaSans = Plus_Jakarta_Sans({
+const outfit = Outfit({
   subsets: ['latin'],
-  variable: '--font-plus-jakarta-sans',
-  display: 'swap',
-});
-
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-inter',
+  variable: '--font-outfit',
+  weight: ['300', '400', '500', '600', '700'],
   display: 'swap',
 });
 
 const caveat = Caveat({
   subsets: ['latin'],
   variable: '--font-caveat',
+  display: 'swap',
+});
+
+const vt323 = VT323({
+  subsets: ['latin'],
+  variable: '--font-vt323',
+  weight: '400',
   display: 'swap',
 });
 
@@ -56,11 +52,12 @@ export default async function RootLayout({
   return (
     <html
       lang={locale}
-      className={`${playfairDisplay.variable} ${plusJakartaSans.variable} ${inter.variable} ${caveat.variable}`}
+      className={`${fraunces.variable} ${outfit.variable} ${caveat.variable} ${vt323.variable}`}
     >
       <body className="font-body antialiased">
+        <div className="scanline-overlay" aria-hidden />
         <NextIntlClientProvider messages={messages}>
-          <Header />
+          <Taskbar />
           <main className="min-h-screen">{children}</main>
           <Footer />
         </NextIntlClientProvider>
