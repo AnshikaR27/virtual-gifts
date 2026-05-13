@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 
 const headlines = [
   'Loading ROMANCE.exe...',
@@ -34,113 +34,30 @@ function TitlebarButtons() {
   );
 }
 
-function MobilePopupWindows() {
-  const played = useRef(false);
-
-  useEffect(() => {
-    if (played.current) return;
-    played.current = true;
-    const delays = [800, 1600, 2200];
-    const timeouts = delays.map((delay) =>
-      setTimeout(() => {
-        const audio = new Audio('/sounds/click.wav');
-        audio.volume = 0.3;
-        audio.play().catch(() => {});
-      }, delay),
-    );
-    return () => timeouts.forEach(clearTimeout);
-  }, []);
-
+function MobileNotificationBanners() {
   return (
-    <div className="mt-6 flex flex-col gap-4 md:hidden">
+    <div className="mt-6 flex flex-col gap-3 md:hidden">
       <div
-        className="win98-window animate-popup"
-        style={
-          {
-            '--popup-rotate': '-2deg',
-            animationDelay: '0.8s',
-            width: '85%',
-            marginLeft: '4%',
-          } as React.CSSProperties
-        }
+        className="banner-slide-left font-pixel text-[13px]"
+        style={{ animationDelay: '0.5s' }}
       >
-        <div className="win98-titlebar">
-          <span>⚠️ WARNING</span>
-          <TitlebarButtons />
-        </div>
-        <div className="win98-body">
-          <p className="font-pixel text-[13px] leading-snug text-black">
-            Your love life is running low on memory. Please delete some bad
-            decisions.
-          </p>
-          <div className="mt-3 flex justify-end">
-            <span className="win98-btn text-[12px]">OK</span>
-          </div>
-        </div>
+        <span className="win98-banner">
+          ⚠️ WARNING: Your love life is running low on memory.
+        </span>
       </div>
 
       <div
-        className="win98-window animate-popup"
-        style={
-          {
-            '--popup-rotate': '1.5deg',
-            animationDelay: '1.6s',
-            width: '78%',
-            marginLeft: '18%',
-          } as React.CSSProperties
-        }
+        className="banner-slide-right font-pixel text-[13px]"
+        style={{ animationDelay: '1.2s' }}
       >
-        <div className="win98-titlebar">
-          <span>💕 ROMANCE.exe</span>
-          <TitlebarButtons />
-        </div>
-        <div className="win98-body">
-          <p className="mb-2 font-pixel text-[12px] text-black">
-            Loading ROMANCE.exe...
-          </p>
-          <div
-            className="h-[18px] border-2"
-            style={{
-              borderColor:
-                'var(--win-chrome-dark) var(--win-chrome-light) var(--win-chrome-light) var(--win-chrome-dark)',
-            }}
-          >
-            <div
-              className="animate-progress h-full"
-              style={{
-                background: 'linear-gradient(90deg, #FF69B4, #BA55D3)',
-              }}
-            />
-          </div>
-          <p className="mt-1 font-pixel text-[11px] text-black/60">
-            78% complete
-          </p>
-        </div>
+        <span className="win98-banner">Loading ROMANCE.exe ████████░░ 78%</span>
       </div>
 
       <div
-        className="win98-window animate-popup"
-        style={
-          {
-            '--popup-rotate': '-1deg',
-            animationDelay: '2.2s',
-            width: '72%',
-            marginLeft: '8%',
-          } as React.CSSProperties
-        }
+        className="banner-slide-left font-pixel text-[13px]"
+        style={{ animationDelay: '1.8s' }}
       >
-        <div className="win98-titlebar">
-          <span>💓 SYSTEM</span>
-          <TitlebarButtons />
-        </div>
-        <div className="win98-body text-center">
-          <p className="font-pixel text-[13px] text-black">
-            Heart rate increasing...
-          </p>
-          <div className="mt-3 flex justify-center">
-            <span className="win98-btn text-[12px]">[OK]</span>
-          </div>
-        </div>
+        <span className="win98-banner">💕 Heart rate increasing... [OK]</span>
       </div>
     </div>
   );
@@ -318,7 +235,7 @@ export function HeroSection() {
             </div>
           </div>
 
-          <MobilePopupWindows />
+          <MobileNotificationBanners />
         </div>
       </div>
     </section>

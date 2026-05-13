@@ -50,7 +50,18 @@
       "PowerShell(npx next dev -p 3000)",
       "PowerShell(npx next build 2>&1 | Select-Object -Last 20)",
       "PowerShell(node -e \"const p = require\\('./package.json'\\); console.log\\(JSON.stringify\\({tailwindcss: p.devDependencies?.tailwindcss || p.dependencies?.tailwindcss, postcss: p.devDependencies?.postcss || p.dependencies?.postcss, autoprefixer: p.devDependencies?.autoprefixer || p.dependencies?.autoprefixer}, null, 2\\)\\)\")",
-      "Bash(npx vercel *)"
+      "Bash(npx vercel *)",
+      "Bash(node *)",
+      "Bash(curl -s http://localhost:3000)",
+      "Bash(Select-String -Pattern \"animate-popup\",\"MobilePopupWindows\",\"win98-popup\")",
+      "Bash(Select-Object -First 10)",
+      "PowerShell(\\(Invoke-WebRequest -Uri http://localhost:3000 -UseBasicParsing\\).Content | Select-String -Pattern \"animate-popup\" -AllMatches | ForEach-Object { $_.Matches.Count })",
+      "PowerShell(Get-NetTCPConnection *)",
+      "PowerShell($r = Invoke-WebRequest -Uri http://localhost:3000 -UseBasicParsing; \\($r.Content -split \"`n\" | Select-String \"animate-popup\"\\).Count)",
+      "PowerShell(Get-Process *)",
+      "PowerShell(Stop-Process *)",
+      "Bash(curl -s http://localhost:3001)",
+      "PowerShell(if \\(Test-Path \"C:\\\\Users\\\\12ans\\\\Downloads\\\\win98_click.mp3\"\\) { \\(Get-Item \"C:\\\\Users\\\\12ans\\\\Downloads\\\\win98_click.mp3\"\\).Length } else { \"File not found\" })"
     ]
   }
 }

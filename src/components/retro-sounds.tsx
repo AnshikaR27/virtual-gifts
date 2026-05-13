@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useCallback } from 'react';
 
-const CLICK_SRC = '/sounds/click.wav';
+const CLICK_SRC = '/sounds/click.mp3';
 const WINDOW_OPEN_SRC = '/sounds/window-open.wav';
 
 const CLICKABLE_SELECTOR =

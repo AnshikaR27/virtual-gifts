@@ -327,26 +327,52 @@
   animation: float-gentle 6s ease-in-out infinite;
 }
 
-/* ── Mobile popup windows (bouncy scale-in) ── */
-@keyframes win98-popup {
-  0% {
-    transform: scale(0) rotate(var(--popup-rotate, 0deg));
+/* ── Mobile notification banners (slide-in from edges) ── */
+@keyframes slide-from-left {
+  from {
+    transform: translateX(-100%);
     opacity: 0;
   }
-  70% {
-    transform: scale(1.08) rotate(var(--popup-rotate, 0deg));
-    opacity: 1;
-  }
-  100% {
-    transform: scale(1) rotate(var(--popup-rotate, 0deg));
+  to {
+    transform: translateX(0);
     opacity: 1;
   }
 }
 
-.animate-popup {
+@keyframes slide-from-right {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.banner-slide-left {
   opacity: 0;
-  transform: scale(0) rotate(var(--popup-rotate, 0deg));
-  animation: win98-popup 0.3s ease-out forwards;
+  transform: translateX(-100%);
+  animation: slide-from-left 0.4s ease-out forwards;
+}
+
+.banner-slide-right {
+  opacity: 0;
+  transform: translateX(100%);
+  animation: slide-from-right 0.4s ease-out forwards;
+}
+
+.win98-banner {
+  display: block;
+  background: var(--win-chrome);
+  border: 2px solid;
+  border-color: var(--win-chrome-light) var(--win-chrome-darkest)
+    var(--win-chrome-darkest) var(--win-chrome-light);
+  padding: 6px 10px;
+  color: #000;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 html {
