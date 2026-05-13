@@ -138,13 +138,15 @@ function FloatingWindows() {
 
 export function MobileDecorativeWindows() {
   return (
-    <div className="flex flex-col items-start px-4 py-2 md:hidden">
-      {/* Warning dialog */}
+    <div className="py-2 md:hidden">
+      {/* Warning dialog — leans left, wide */}
       <div
-        className="win98-window w-[75%] max-w-[220px]"
+        className="win98-window"
         style={{
-          transform: 'rotate(-2deg)',
-          marginLeft: '8px',
+          width: '72%',
+          marginLeft: '5%',
+          transform: 'rotate(-2.5deg)',
+          marginBottom: 14,
         }}
       >
         <div className="win98-titlebar">
@@ -164,13 +166,14 @@ export function MobileDecorativeWindows() {
         </div>
       </div>
 
-      {/* Progress bar window */}
+      {/* Progress bar window — sits right, narrower */}
       <div
-        className="win98-window w-[70%] max-w-[200px]"
+        className="win98-window"
         style={{
+          width: '60%',
+          marginLeft: '30%',
           transform: 'rotate(1.5deg)',
-          marginTop: '-12px',
-          marginLeft: '24px',
+          marginBottom: 14,
         }}
       >
         <div className="win98-titlebar">
@@ -199,13 +202,14 @@ export function MobileDecorativeWindows() {
         </div>
       </div>
 
-      {/* System dialog */}
+      {/* System dialog — back toward center-left, smallest */}
       <div
-        className="win98-window w-[65%] max-w-[185px]"
+        className="win98-window"
         style={{
+          width: '55%',
+          marginLeft: '12%',
           transform: 'rotate(-1deg)',
-          marginTop: '-12px',
-          marginLeft: '12px',
+          marginBottom: 14,
         }}
       >
         <div className="win98-titlebar">

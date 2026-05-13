@@ -27,7 +27,30 @@
       "WebFetch(domain:127.0.0.1)",
       "Bash(curl -s http://localhost:3004)",
       "Bash(curl -s http://localhost:3004/_next/static/css/app/layout.css)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git remote *)",
+      "Bash(git branch *)",
+      "Bash(git push *)",
+      "Bash(rm src/app/debug/page.tsx)",
+      "Bash(git commit *)",
+      "PowerShell(try { $response = Invoke-WebRequest -Uri \"http://localhost:3001\" -UseBasicParsing -TimeoutSec 15; Write-Output \"Status: $\\($response.StatusCode\\)\"; Write-Output \"Content length: $\\($response.Content.Length\\)\" } catch { Write-Output \"Error: $\\($_.Exception.Message\\)\" })",
+      "PowerShell(try { $response = Invoke-WebRequest -Uri \"http://localhost:3001/g/test01\" -UseBasicParsing -TimeoutSec 15; Write-Output \"Status: $\\($response.StatusCode\\)\"; Write-Output \"Content length: $\\($response.Content.Length\\)\" } catch { Write-Output \"Error: $\\($_.Exception.Message\\)\" })",
+      "PowerShell(Get-Process -Name \"node\" -ErrorAction SilentlyContinue | Where-Object { $_.CommandLine -match \"next\" } | Stop-Process -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 2; Write-Output \"Stopped\")",
+      "PowerShell(Get-Process -Name \"node\" -ErrorAction SilentlyContinue)",
+      "PowerShell(Stop-Process -Force)",
+      "PowerShell($response = Invoke-WebRequest -Uri \"http://localhost:3001\" -UseBasicParsing -TimeoutSec 15; \\($response.Content | Select-String -Pattern 'stylesheet|\\\\.css|_next/static' -AllMatches\\).Matches.Value | Select-Object -First 10)",
+      "PowerShell($css = Invoke-WebRequest -Uri \"http://localhost:3001/_next/static/css/app/layout.css?v=1778561594224\" -UseBasicParsing -TimeoutSec 10; Write-Output \"CSS length: $\\($css.Content.Length\\)\"; $css.Content.Substring\\(0, 500\\))",
+      "Bash(npx next *)",
+      "Bash(npx kill-port *)",
+      "PowerShell(Invoke-WebRequest -Uri \"http://localhost:3003\" -UseBasicParsing | Select-Object -ExpandProperty StatusCode)",
+      "PowerShell(Start-Process \"http://localhost:3003\")",
+      "PowerShell(Select-String -Path \"src\\\\app\\\\globals.css\" -Pattern \"gift-card\" | ForEach-Object { $_.LineNumber.ToString\\(\\) + \": \" + $_.Line })",
+      "PowerShell(npx next build 2>&1 | Select-Object -Last 30)",
+      "PowerShell(npx next dev -p 3000)",
+      "PowerShell(npx next build 2>&1 | Select-Object -Last 20)",
+      "PowerShell(node -e \"const p = require\\('./package.json'\\); console.log\\(JSON.stringify\\({tailwindcss: p.devDependencies?.tailwindcss || p.dependencies?.tailwindcss, postcss: p.devDependencies?.postcss || p.dependencies?.postcss, autoprefixer: p.devDependencies?.autoprefixer || p.dependencies?.autoprefixer}, null, 2\\)\\)\")",
+      "Bash(npx vercel *)"
     ]
   }
 }
