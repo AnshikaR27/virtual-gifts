@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { playClick } from '@/components/retro-sounds';
 
 const headlines = [
   'Loading ROMANCE.exe...',
@@ -34,97 +35,172 @@ function TitlebarButtons() {
   );
 }
 
-function MiniWindow({
-  title,
-  children,
-  delay,
-  direction,
-}: {
-  title: string;
-  children: React.ReactNode;
-  delay: string;
-  direction: 'left' | 'right';
-}) {
+const POPUPS = [
+  {
+    title: '💓 SYSTEM',
+    body: 'Heart rate increasing...',
+    hasOk: true,
+    delay: 800,
+    offset: { top: 8, marginLeft: -130 },
+  },
+  {
+    title: '💕 ROMANCE.exe',
+    body: 'Loading ROMANCE.exe ████████░░ 78%',
+    hasOk: false,
+    delay: 1500,
+    offset: { top: 20, marginLeft: -120 },
+  },
+  {
+    title: '⚠️ WARNING',
+    body: 'Your love life is running low on memory.',
+    hasOk: true,
+    delay: 2200,
+    offset: { top: 32, marginLeft: -138 },
+  },
+] as const;
+
+const AUTO_DISMISS_DELAY = 6000;
+
+function MobilePopupStack() {
+  const [visible, setVisible] = useState<boolean[]>([false, false, false]);
+  const [dismissing, setDismissing] = useState<boolean[]>([
+    false,
+    false,
+    false,
+  ]);
+  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  const dismiss = useCallback((index: number) => {
+    playClick();
+    setDismissing((prev) => {
+      const next = [...prev];
+      next[index] = true;
+      return next;
+    });
+    setTimeout(() => {
+      setVisible((prev) => {
+        const next = [...prev];
+        next[index] = false;
+        return next;
+      });
+      setDismissing((prev) => {
+        const next = [...prev];
+        next[index] = false;
+        return next;
+      });
+    }, 200);
+  }, []);
+
+  useEffect(() => {
+    POPUPS.forEach((popup, i) => {
+      const t = setTimeout(() => {
+        setVisible((prev) => {
+          const next = [...prev];
+          next[i] = true;
+          return next;
+        });
+        playClick();
+      }, popup.delay);
+      timers.current.push(t);
+    });
+
+    const autoTimer = setTimeout(() => {
+      [2, 1, 0].forEach((i, order) => {
+        const t = setTimeout(() => {
+          setDismissing((prev) => {
+            const next = [...prev];
+            next[i] = true;
+            return next;
+          });
+          const t2 = setTimeout(() => {
+            setVisible((prev) => {
+              const next = [...prev];
+              next[i] = false;
+              return next;
+            });
+            setDismissing((prev) => {
+              const next = [...prev];
+              next[i] = false;
+              return next;
+            });
+          }, 200);
+          timers.current.push(t2);
+        }, order * 300);
+        timers.current.push(t);
+      });
+    }, AUTO_DISMISS_DELAY);
+    timers.current.push(autoTimer);
+
+    return () => {
+      timers.current.forEach(clearTimeout);
+      timers.current = [];
+    };
+  }, []);
+
   return (
-    <div
-      className={
-        direction === 'left' ? 'banner-slide-left' : 'banner-slide-right'
-      }
-      style={{ animationDelay: delay }}
-    >
-      <div
-        className="border-2"
-        style={{
-          background: '#fff',
-          borderColor:
-            'var(--win-chrome-light) var(--win-chrome-darkest) var(--win-chrome-darkest) var(--win-chrome-light)',
-          boxShadow: '2px 2px 0 0 rgba(0,0,0,0.25)',
-          padding: '2px',
-        }}
-      >
-        <div
-          className="win98-titlebar"
-          style={{ fontSize: '12px', padding: '2px 4px' }}
-        >
-          <span>{title}</span>
-          <div className="flex gap-[2px]">
-            <button
-              className="win98-titlebar-btn"
-              aria-label="Minimize"
-              style={{ width: 14, height: 12 }}
+    <div className="relative mt-6 md:hidden" style={{ height: 170 }}>
+      {POPUPS.map((popup, i) =>
+        visible[i] ? (
+          <div
+            key={i}
+            className={`win98-window absolute w-[260px] ${dismissing[i] ? 'popup-dismiss' : 'popup-appear'}`}
+            style={{
+              top: popup.offset.top,
+              left: '50%',
+              marginLeft: popup.offset.marginLeft,
+              zIndex: 10 + i,
+            }}
+          >
+            <div
+              className="win98-titlebar"
+              style={{ fontSize: '12px', padding: '2px 4px' }}
             >
-              <span className="mt-[2px] block h-[2px] w-[5px] bg-black" />
-            </button>
-            <button
-              className="win98-titlebar-btn"
-              aria-label="Maximize"
-              style={{ width: 14, height: 12 }}
-            >
-              <span className="block h-[6px] w-[6px] border border-black" />
-            </button>
-            <button
-              className="win98-titlebar-btn"
-              aria-label="Close"
-              style={{ width: 14, height: 12 }}
-            >
-              <span className="text-[9px] font-bold leading-none text-black">
-                ✕
-              </span>
-            </button>
+              <span>{popup.title}</span>
+              <div className="flex gap-[2px]">
+                <button
+                  className="win98-titlebar-btn"
+                  aria-label="Minimize"
+                  style={{ width: 14, height: 12 }}
+                >
+                  <span className="mt-[2px] block h-[2px] w-[5px] bg-black" />
+                </button>
+                <button
+                  className="win98-titlebar-btn"
+                  aria-label="Maximize"
+                  style={{ width: 14, height: 12 }}
+                >
+                  <span className="block h-[6px] w-[6px] border border-black" />
+                </button>
+                <button
+                  className="win98-titlebar-btn"
+                  aria-label="Close"
+                  style={{ width: 14, height: 12 }}
+                  onClick={() => dismiss(i)}
+                >
+                  <span className="text-[9px] font-bold leading-none text-black">
+                    ✕
+                  </span>
+                </button>
+              </div>
+            </div>
+            <div className="win98-body" style={{ padding: '8px 10px' }}>
+              <p className="font-pixel text-[12px] leading-snug text-black/80">
+                {popup.body}
+              </p>
+              {popup.hasOk && (
+                <div className="mt-2 flex justify-end">
+                  <button
+                    className="win98-btn text-[11px]"
+                    onClick={() => dismiss(i)}
+                  >
+                    OK
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-        <div
-          style={{
-            background: '#FFF5F7',
-            borderLeft: '4px solid',
-            borderImage: 'linear-gradient(180deg, #FF69B4, #BA55D3) 1',
-            padding: '6px 8px',
-          }}
-        >
-          <p className="font-pixel text-[12px] leading-snug text-black/80">
-            {children}
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function MobileNotificationBanners() {
-  return (
-    <div className="mt-6 flex flex-col gap-3 md:hidden">
-      <MiniWindow title="⚠️ WARNING" delay="0.5s" direction="left">
-        Your love life is running low on memory. Please delete some bad
-        decisions.
-      </MiniWindow>
-
-      <MiniWindow title="💕 ROMANCE.exe" delay="1.2s" direction="right">
-        Loading ROMANCE.exe ████████░░ 78%
-      </MiniWindow>
-
-      <MiniWindow title="💓 SYSTEM" delay="1.8s" direction="left">
-        Heart rate increasing... [OK]
-      </MiniWindow>
+        ) : null,
+      )}
     </div>
   );
 }
@@ -301,7 +377,7 @@ export function HeroSection() {
             </div>
           </div>
 
-          <MobileNotificationBanners />
+          <MobilePopupStack />
         </div>
       </div>
     </section>

@@ -9,7 +9,7 @@ const CLICKABLE_SELECTOR =
 
 const SCROLL_THRESHOLD = 10;
 
-function playClick() {
+export function playClick() {
   try {
     const ctx = new (
       window.AudioContext || (window as any).webkitAudioContext
