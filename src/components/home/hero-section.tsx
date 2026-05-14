@@ -35,101 +35,61 @@ function TitlebarButtons() {
   );
 }
 
-const POPUPS = [
-  {
-    title: '💓 SYSTEM',
-    body: 'Heart rate increasing...',
-    hasOk: true,
-    delay: 800,
-    offset: { top: 8, marginLeft: -130 },
-  },
-  {
-    title: '💕 ROMANCE.exe',
-    body: 'Loading ROMANCE.exe ████████░░ 78%',
-    hasOk: false,
-    delay: 1500,
-    offset: { top: 20, marginLeft: -120 },
-  },
+const NOTIFICATIONS = [
   {
     title: '⚠️ WARNING',
     body: 'Your love life is running low on memory.',
-    hasOk: true,
-    delay: 2200,
-    offset: { top: 32, marginLeft: -138 },
+    appearAt: 1000,
+  },
+  {
+    title: '📂 ROMANCE.exe',
+    body: 'Loading romance... ████████░░ 78%',
+    appearAt: 4500,
+  },
+  {
+    title: '💕 SYSTEM',
+    body: 'Heart rate increasing... [OK]',
+    appearAt: 8000,
   },
 ] as const;
 
-const AUTO_DISMISS_DELAY = 6000;
+const VISIBLE_DURATION = 3000;
+const SLIDE_OUT_MS = 350;
 
-function MobilePopupStack() {
-  const [visible, setVisible] = useState<boolean[]>([false, false, false]);
-  const [dismissing, setDismissing] = useState<boolean[]>([
-    false,
-    false,
-    false,
-  ]);
+function MobileNotifications() {
+  const [active, setActive] = useState<number | null>(null);
+  const [leaving, setLeaving] = useState(false);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
 
-  const dismiss = useCallback((index: number) => {
+  const dismiss = useCallback(() => {
+    setLeaving(true);
     playClick();
-    setDismissing((prev) => {
-      const next = [...prev];
-      next[index] = true;
-      return next;
-    });
-    setTimeout(() => {
-      setVisible((prev) => {
-        const next = [...prev];
-        next[index] = false;
-        return next;
-      });
-      setDismissing((prev) => {
-        const next = [...prev];
-        next[index] = false;
-        return next;
-      });
-    }, 200);
+    const t = setTimeout(() => {
+      setActive(null);
+      setLeaving(false);
+    }, SLIDE_OUT_MS);
+    timers.current.push(t);
   }, []);
 
   useEffect(() => {
-    POPUPS.forEach((popup, i) => {
-      const t = setTimeout(() => {
-        setVisible((prev) => {
-          const next = [...prev];
-          next[i] = true;
-          return next;
-        });
+    NOTIFICATIONS.forEach((notif, i) => {
+      const tShow = setTimeout(() => {
+        setActive(i);
+        setLeaving(false);
         playClick();
-      }, popup.delay);
-      timers.current.push(t);
-    });
 
-    const autoTimer = setTimeout(() => {
-      [2, 1, 0].forEach((i, order) => {
-        const t = setTimeout(() => {
-          setDismissing((prev) => {
-            const next = [...prev];
-            next[i] = true;
-            return next;
-          });
-          const t2 = setTimeout(() => {
-            setVisible((prev) => {
-              const next = [...prev];
-              next[i] = false;
-              return next;
-            });
-            setDismissing((prev) => {
-              const next = [...prev];
-              next[i] = false;
-              return next;
-            });
-          }, 200);
-          timers.current.push(t2);
-        }, order * 300);
-        timers.current.push(t);
-      });
-    }, AUTO_DISMISS_DELAY);
-    timers.current.push(autoTimer);
+        const tHide = setTimeout(() => {
+          setLeaving(true);
+          const tRemove = setTimeout(() => {
+            setActive((cur) => (cur === i ? null : cur));
+            setLeaving(false);
+          }, SLIDE_OUT_MS);
+          timers.current.push(tRemove);
+        }, VISIBLE_DURATION);
+        timers.current.push(tHide);
+      }, notif.appearAt);
+      timers.current.push(tShow);
+    });
 
     return () => {
       timers.current.forEach(clearTimeout);
@@ -137,70 +97,34 @@ function MobilePopupStack() {
     };
   }, []);
 
+  if (active === null) return null;
+  const notif = NOTIFICATIONS[active];
+
   return (
-    <div className="relative mt-6 md:hidden" style={{ height: 170 }}>
-      {POPUPS.map((popup, i) =>
-        visible[i] ? (
-          <div
-            key={i}
-            className={`win98-window absolute w-[260px] ${dismissing[i] ? 'popup-dismiss' : 'popup-appear'}`}
-            style={{
-              top: popup.offset.top,
-              left: '50%',
-              marginLeft: popup.offset.marginLeft,
-              zIndex: 10 + i,
-            }}
+    <div
+      className={`notif-drop-down fixed left-0 right-0 z-[9999] px-3 md:hidden ${leaving ? 'notif-slide-up' : ''}`}
+      style={{ top: 48 }}
+    >
+      <div className="notif-window">
+        <div className="notif-titlebar">
+          <span>{notif.title}</span>
+          <button
+            className="win98-titlebar-btn"
+            aria-label="Close"
+            style={{ width: 14, height: 12 }}
+            onClick={dismiss}
           >
-            <div
-              className="win98-titlebar"
-              style={{ fontSize: '12px', padding: '2px 4px' }}
-            >
-              <span>{popup.title}</span>
-              <div className="flex gap-[2px]">
-                <button
-                  className="win98-titlebar-btn"
-                  aria-label="Minimize"
-                  style={{ width: 14, height: 12 }}
-                >
-                  <span className="mt-[2px] block h-[2px] w-[5px] bg-black" />
-                </button>
-                <button
-                  className="win98-titlebar-btn"
-                  aria-label="Maximize"
-                  style={{ width: 14, height: 12 }}
-                >
-                  <span className="block h-[6px] w-[6px] border border-black" />
-                </button>
-                <button
-                  className="win98-titlebar-btn"
-                  aria-label="Close"
-                  style={{ width: 14, height: 12 }}
-                  onClick={() => dismiss(i)}
-                >
-                  <span className="text-[9px] font-bold leading-none text-black">
-                    ✕
-                  </span>
-                </button>
-              </div>
-            </div>
-            <div className="win98-body" style={{ padding: '8px 10px' }}>
-              <p className="font-pixel text-[12px] leading-snug text-black/80">
-                {popup.body}
-              </p>
-              {popup.hasOk && (
-                <div className="mt-2 flex justify-end">
-                  <button
-                    className="win98-btn text-[11px]"
-                    onClick={() => dismiss(i)}
-                  >
-                    OK
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        ) : null,
-      )}
+            <span className="text-[9px] font-bold leading-none text-black">
+              ✕
+            </span>
+          </button>
+        </div>
+        <div className="win98-body" style={{ padding: '8px 10px' }}>
+          <p className="font-pixel text-[13px] leading-snug text-black/90">
+            {notif.body}
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
@@ -377,7 +301,7 @@ export function HeroSection() {
             </div>
           </div>
 
-          <MobilePopupStack />
+          <MobileNotifications />
         </div>
       </div>
     </section>
