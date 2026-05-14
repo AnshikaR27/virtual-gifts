@@ -362,19 +362,6 @@
   animation: slide-from-right 0.4s ease-out forwards;
 }
 
-.win98-banner {
-  display: block;
-  background: var(--win-chrome);
-  border: 2px solid;
-  border-color: var(--win-chrome-light) var(--win-chrome-darkest)
-    var(--win-chrome-darkest) var(--win-chrome-light);
-  padding: 6px 10px;
-  color: #000;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 html {
   scroll-behavior: smooth;
 }

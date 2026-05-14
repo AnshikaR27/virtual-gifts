@@ -34,31 +34,97 @@ function TitlebarButtons() {
   );
 }
 
+function MiniWindow({
+  title,
+  children,
+  delay,
+  direction,
+}: {
+  title: string;
+  children: React.ReactNode;
+  delay: string;
+  direction: 'left' | 'right';
+}) {
+  return (
+    <div
+      className={
+        direction === 'left' ? 'banner-slide-left' : 'banner-slide-right'
+      }
+      style={{ animationDelay: delay }}
+    >
+      <div
+        className="border-2"
+        style={{
+          background: '#fff',
+          borderColor:
+            'var(--win-chrome-light) var(--win-chrome-darkest) var(--win-chrome-darkest) var(--win-chrome-light)',
+          boxShadow: '2px 2px 0 0 rgba(0,0,0,0.25)',
+          padding: '2px',
+        }}
+      >
+        <div
+          className="win98-titlebar"
+          style={{ fontSize: '12px', padding: '2px 4px' }}
+        >
+          <span>{title}</span>
+          <div className="flex gap-[2px]">
+            <button
+              className="win98-titlebar-btn"
+              aria-label="Minimize"
+              style={{ width: 14, height: 12 }}
+            >
+              <span className="mt-[2px] block h-[2px] w-[5px] bg-black" />
+            </button>
+            <button
+              className="win98-titlebar-btn"
+              aria-label="Maximize"
+              style={{ width: 14, height: 12 }}
+            >
+              <span className="block h-[6px] w-[6px] border border-black" />
+            </button>
+            <button
+              className="win98-titlebar-btn"
+              aria-label="Close"
+              style={{ width: 14, height: 12 }}
+            >
+              <span className="text-[9px] font-bold leading-none text-black">
+                ✕
+              </span>
+            </button>
+          </div>
+        </div>
+        <div
+          style={{
+            background: '#FFF5F7',
+            borderLeft: '4px solid',
+            borderImage: 'linear-gradient(180deg, #FF69B4, #BA55D3) 1',
+            padding: '6px 8px',
+          }}
+        >
+          <p className="font-pixel text-[12px] leading-snug text-black/80">
+            {children}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function MobileNotificationBanners() {
   return (
     <div className="mt-6 flex flex-col gap-3 md:hidden">
-      <div
-        className="banner-slide-left font-pixel text-[13px]"
-        style={{ animationDelay: '0.5s' }}
-      >
-        <span className="win98-banner">
-          ⚠️ WARNING: Your love life is running low on memory.
-        </span>
-      </div>
+      <MiniWindow title="⚠️ WARNING" delay="0.5s" direction="left">
+        Your love life is running low on memory. Please delete some bad
+        decisions.
+      </MiniWindow>
 
-      <div
-        className="banner-slide-right font-pixel text-[13px]"
-        style={{ animationDelay: '1.2s' }}
-      >
-        <span className="win98-banner">Loading ROMANCE.exe ████████░░ 78%</span>
-      </div>
+      <MiniWindow title="💕 ROMANCE.exe" delay="1.2s" direction="right">
+        Loading ROMANCE.exe ████████░░ 78%
+      </MiniWindow>
 
-      <div
-        className="banner-slide-left font-pixel text-[13px]"
-        style={{ animationDelay: '1.8s' }}
-      >
-        <span className="win98-banner">💕 Heart rate increasing... [OK]</span>
-      </div>
+      <MiniWindow title="💓 SYSTEM" delay="1.8s" direction="left">
+        Heart rate increasing... [OK]
+      </MiniWindow>
     </div>
   );
 }

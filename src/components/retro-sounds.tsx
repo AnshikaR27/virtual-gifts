@@ -2,11 +2,33 @@
 
 import { useEffect, useRef, useCallback } from 'react';
 
-const CLICK_SRC = '/sounds/click.mp3';
 const WINDOW_OPEN_SRC = '/sounds/window-open.wav';
 
 const CLICKABLE_SELECTOR =
   'a, button, [role="button"], .win98-btn, .win98-btn-pink, .desktop-icon, .win98-titlebar-btn';
+
+const SCROLL_THRESHOLD = 10;
+
+function playClick() {
+  try {
+    const ctx = new (
+      window.AudioContext || (window as any).webkitAudioContext
+    )();
+    const oscillator = ctx.createOscillator();
+    const gain = ctx.createGain();
+    oscillator.connect(gain);
+    gain.connect(ctx.destination);
+    oscillator.frequency.setValueAtTime(1800, ctx.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(
+      400,
+      ctx.currentTime + 0.06,
+    );
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.06);
+    oscillator.start(ctx.currentTime);
+    oscillator.stop(ctx.currentTime + 0.06);
+  } catch (e) {}
+}
 
 function tryPlay(audio: HTMLAudioElement) {
   audio.currentTime = 0;
@@ -14,21 +36,14 @@ function tryPlay(audio: HTMLAudioElement) {
 }
 
 export function RetroSounds() {
-  const clickPool = useRef<HTMLAudioElement[]>([]);
   const windowOpenAudio = useRef<HTMLAudioElement | null>(null);
-  const poolIndex = useRef(0);
   const unlocked = useRef(false);
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
+  const lastTouchPlayedAt = useRef(0);
 
   const initAudio = useCallback(() => {
     if (typeof window === 'undefined') return;
-    if (clickPool.current.length > 0) return;
-
-    for (let i = 0; i < 4; i++) {
-      const a = new Audio(CLICK_SRC);
-      a.volume = 0.3;
-      a.preload = 'auto';
-      clickPool.current.push(a);
-    }
+    if (windowOpenAudio.current) return;
 
     const wo = new Audio(WINDOW_OPEN_SRC);
     wo.volume = 0.2;
@@ -39,14 +54,6 @@ export function RetroSounds() {
   const unlock = useCallback(() => {
     if (unlocked.current) return;
     unlocked.current = true;
-    clickPool.current.forEach((a) => {
-      a.play()
-        .then(() => {
-          a.pause();
-          a.currentTime = 0;
-        })
-        .catch(() => {});
-    });
     if (windowOpenAudio.current) {
       windowOpenAudio.current
         .play()
@@ -63,17 +70,51 @@ export function RetroSounds() {
 
     const handleClick = (e: MouseEvent) => {
       unlock();
+      if (Date.now() - lastTouchPlayedAt.current < 500) return;
       const target = e.target as HTMLElement;
       if (target.closest(CLICKABLE_SELECTOR)) {
-        const audio =
-          clickPool.current[poolIndex.current % clickPool.current.length];
-        poolIndex.current++;
-        tryPlay(audio);
+        playClick();
+      }
+    };
+
+    const handleTouchStart = (e: TouchEvent) => {
+      const touch = e.touches[0];
+      if (touch) {
+        touchStart.current = { x: touch.clientX, y: touch.clientY };
+      }
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      unlock();
+      const start = touchStart.current;
+      const touch = e.changedTouches[0];
+      if (!start || !touch) {
+        touchStart.current = null;
+        return;
+      }
+
+      const dx = touch.clientX - start.x;
+      const dy = touch.clientY - start.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      touchStart.current = null;
+
+      if (distance > SCROLL_THRESHOLD) return;
+
+      const target = e.target as HTMLElement;
+      if (target.closest(CLICKABLE_SELECTOR)) {
+        lastTouchPlayedAt.current = Date.now();
+        playClick();
       }
     };
 
     document.addEventListener('click', handleClick, true);
-    return () => document.removeEventListener('click', handleClick, true);
+    document.addEventListener('touchstart', handleTouchStart, true);
+    document.addEventListener('touchend', handleTouchEnd, true);
+    return () => {
+      document.removeEventListener('click', handleClick, true);
+      document.removeEventListener('touchstart', handleTouchStart, true);
+      document.removeEventListener('touchend', handleTouchEnd, true);
+    };
   }, [initAudio, unlock]);
 
   useEffect(() => {
