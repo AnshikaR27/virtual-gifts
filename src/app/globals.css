@@ -422,6 +422,33 @@ html {
   scroll-behavior: smooth;
 }
 
+/* ── Y2K custom cursor (desktop only) ── */
+@media (min-width: 768px) {
+  body {
+    cursor:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cpath d='M4 0 L4 22 L9 17 L13 26 L17 24 L13 16 L19 16 Z' fill='white' stroke='black' stroke-width='2' stroke-linejoin='miter'/%3E%3C/svg%3E")
+        4 0,
+      auto;
+  }
+}
+
+/* ── Gift loading paper-fly animation ── */
+@keyframes paper-fly {
+  0%,
+  100% {
+    transform: translateX(-14px) translateY(0);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translateX(14px) translateY(-8px);
+    opacity: 1;
+  }
+}
+
+.gift-loading-paper {
+  animation: paper-fly 0.6s ease-in-out infinite;
+}
+
 /* ── Mobile optimizations (360px baseline) ── */
 @media (max-width: 767px) {
   .win98-window {

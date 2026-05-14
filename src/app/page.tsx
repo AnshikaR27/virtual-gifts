@@ -6,6 +6,8 @@ import { HowItWorks } from '@/components/home/how-it-works';
 import { CommunityCTA } from '@/components/home/community-cta';
 import { Testimonials } from '@/components/home/testimonials';
 import { StickyCTA } from '@/components/home/sticky-cta';
+import { LoveStats } from '@/components/home/love-stats';
+import { ShutdownButton } from '@/components/y2k-shutdown';
 import { giftRows } from '@/components/home/gift-catalog';
 
 export const metadata: Metadata = {
@@ -32,7 +34,9 @@ export default function Home() {
       <HowItWorks />
       <Testimonials />
       <CommunityCTA />
+      <LoveStats />
       <StickyCTA />
+      <ShutdownButton />
     </div>
   );
 }
