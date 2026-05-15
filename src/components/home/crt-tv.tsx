@@ -31,9 +31,16 @@ export function CrtTv() {
   const [isStatic, setIsStatic] = useState(false);
   const [loading, setLoading] = useState(false);
   const [userInteracted, setUserInteracted] = useState(false);
+  const [showChannelOsd, setShowChannelOsd] = useState(true);
   const touchStartRef = useRef(0);
   const swipedRef = useRef(false);
   const router = useRouter();
+
+  useEffect(() => {
+    setShowChannelOsd(true);
+    const t = setTimeout(() => setShowChannelOsd(false), 1500);
+    return () => clearTimeout(t);
+  }, [channel]);
 
   const changeChannel = useCallback(
     (next: number) => {
@@ -159,13 +166,16 @@ export function CrtTv() {
                   </div>
                 )}
 
+                {showChannelOsd && !isStatic && (
+                  <span className="crt-channel-osd font-pixel">
+                    CH 0{channel + 1}
+                  </span>
+                )}
+
                 <div
                   className="crt-channel-content"
                   style={{ opacity: isStatic ? 0 : 1 }}
                 >
-                  <span className="crt-channel-indicator font-pixel">
-                    CH 0{channel + 1}
-                  </span>
                   <span className="crt-emoji">
                     {heroEmojis[gift.slug] || gift.emoji}
                   </span>
@@ -191,20 +201,37 @@ export function CrtTv() {
               </div>
             </div>
 
-            <div className="crt-controls-strip">
-              <div className="crt-channel-buttons">
-                {heroGifts.map((_, i) => (
+            <div className="crt-controls-panel">
+              <div className="crt-speaker-grille" aria-hidden />
+
+              <div className="crt-controls-strip">
+                <div className="crt-channel-buttons">
+                  {heroGifts.map((_, i) => (
+                    <button
+                      key={i}
+                      className={`crt-ch-btn font-pixel ${i === channel ? 'crt-ch-btn-active' : ''}`}
+                      onClick={() => changeChannel(i)}
+                      aria-label={`Channel ${i + 1}`}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+                </div>
+                <div className="crt-power-group">
                   <button
-                    key={i}
-                    className={`crt-ch-btn font-pixel ${i === channel ? 'crt-ch-btn-active' : ''}`}
-                    onClick={() => changeChannel(i)}
-                    aria-label={`Channel ${i + 1}`}
+                    className="crt-power-btn"
+                    aria-label="Power (decorative)"
                   >
-                    {i + 1}
+                    <span className="crt-power-icon" />
                   </button>
-                ))}
+                  <div className="crt-power-led" />
+                </div>
               </div>
-              <div className="crt-power-led" />
+
+              <div className="crt-brand-area">
+                <span className="crt-brand-label font-pixel">HONEYHEARTS</span>
+                <span className="crt-model-label font-pixel">HH-2026</span>
+              </div>
             </div>
           </div>
 

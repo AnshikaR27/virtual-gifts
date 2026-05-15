@@ -525,6 +525,30 @@ html {
   text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
 }
 
+.crt-channel-osd {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  z-index: 12;
+  font-size: 16px;
+  color: #00ff00;
+  text-shadow:
+    0 0 6px rgba(0, 255, 0, 0.8),
+    0 0 12px rgba(0, 255, 0, 0.4);
+  animation: osd-fade 1.5s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes osd-fade {
+  0%,
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
 .crt-controls-strip {
   display: flex;
   align-items: center;
@@ -563,6 +587,96 @@ html {
   color: #fff;
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
   border-color: var(--win-hot-pink);
+}
+
+.crt-controls-panel {
+  padding: 10px 16px 6px;
+}
+
+.crt-speaker-grille {
+  width: 50px;
+  height: 36px;
+  margin-bottom: 8px;
+  border-radius: 4px;
+  background: radial-gradient(circle, #222 1.5px, transparent 1.5px);
+  background-size: 6px 6px;
+  border: 1px solid #1a1a1a;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+@media (min-width: 768px) {
+  .crt-speaker-grille {
+    width: 60px;
+    height: 40px;
+  }
+}
+
+.crt-brand-area {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.crt-brand-label {
+  font-size: 11px;
+  color: #777;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.crt-model-label {
+  font-size: 10px;
+  color: #555;
+  letter-spacing: 1px;
+}
+
+.crt-power-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.crt-power-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #555, #333);
+  border: 1px solid #222;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  padding: 0;
+}
+
+.crt-power-btn:active {
+  background: linear-gradient(180deg, #333, #555);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+.crt-power-icon {
+  width: 10px;
+  height: 10px;
+  border: 2px solid #999;
+  border-radius: 50%;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.crt-power-icon::after {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 6px;
+  background: #999;
 }
 
 .crt-power-led {
