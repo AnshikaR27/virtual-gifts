@@ -413,11 +413,11 @@ export const heroGiftSlugs = [
 ] as const;
 
 export const heroGiftDescriptions: Record<string, string> = {
-  'love-jar': "Shake to pull random love notes they'll cry over",
-  'wishing-dandelion': 'Blow to scatter seeds carrying your wishes',
-  'the-proposal': 'The "No" button runs away. They can only say Yes.',
-  'spotify-wrapped': 'Their relationship stats, Wrapped-style',
-  'sorry-puppy': 'A sad puppy in the rain. Your taps clear the sky.',
+  'love-jar': 'Shake to pull random love notes',
+  'wishing-dandelion': 'Blow to scatter seeds of wishes',
+  'the-proposal': 'The "No" button runs away',
+  'spotify-wrapped': 'Your relationship, Wrapped-style',
+  'sorry-puppy': 'Your taps clear the rain away',
 };
 
 export type OccasionKey =

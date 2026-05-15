@@ -13,9 +13,14 @@ import {
 
 const INITIAL_VISIBLE = 9;
 
-function MiniCard({ gift }: { gift: GiftItem }) {
+const bubbleColors = ['#FFF0F5', '#F3E8FF', '#FFFBEB', '#F0FFF4'] as const;
+
+function ChatBubble({ gift, index }: { gift: GiftItem; index: number }) {
   const [loading, setLoading] = useState(false);
+  const [pressed, setPressed] = useState(false);
   const router = useRouter();
+  const isRight = index % 2 === 1;
+  const bg = bubbleColors[index % bubbleColors.length];
 
   const handleClick = useCallback(
     (e: React.MouseEvent) => {
@@ -32,45 +37,79 @@ function MiniCard({ gift }: { gift: GiftItem }) {
 
   return (
     <>
-      <div className="win98-window">
-        <div className="win98-titlebar text-[13px]">
-          <span className="truncate">{gift.name}</span>
-        </div>
-        <div className="win98-body" style={{ padding: '10px' }}>
+      <div
+        className={`flex flex-col ${isRight ? 'items-end' : 'items-start'}`}
+        onPointerDown={() => setPressed(true)}
+        onPointerUp={() => setPressed(false)}
+        onPointerLeave={() => setPressed(false)}
+      >
+        <div
+          className="relative w-full transition-transform duration-150"
+          style={{
+            transform: pressed ? 'scale(1.02)' : 'scale(1)',
+            outline: pressed ? '2px solid #0078D7' : 'none',
+            outlineOffset: 2,
+            background: bg,
+            borderRadius: isRight ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+            padding: '12px 14px',
+          }}
+        >
+          {/* Tail */}
+          <div
+            style={{
+              position: 'absolute',
+              bottom: 6,
+              [isRight ? 'right' : 'left']: -8,
+              width: 0,
+              height: 0,
+              borderTop: `6px solid transparent`,
+              borderBottom: `6px solid transparent`,
+              [isRight ? 'borderLeft' : 'borderRight']: `8px solid ${bg}`,
+            }}
+          />
+
           <div className="flex items-start gap-3">
             <span className="flex-shrink-0 text-[32px] leading-none">
               {gift.emoji}
             </span>
             <div className="min-w-0 flex-1">
-              <p className="line-clamp-2 font-body text-[13px] leading-snug text-black/70">
+              <h3 className="font-display text-[15px] font-semibold leading-tight text-[#2D0A4E]">
+                {gift.name}
+              </h3>
+              <p className="mt-0.5 line-clamp-2 font-body text-[13px] leading-snug text-black/55">
                 {gift.description}
               </p>
-              <div className="mt-2 flex items-center gap-2">
-                <span
-                  className="rounded-sm border px-1.5 py-[1px] font-body text-[12px] font-medium"
-                  style={{
-                    borderColor: 'rgba(0,0,0,0.1)',
-                    background:
-                      gift.badge === 'Free'
-                        ? 'rgba(34,197,94,0.12)'
-                        : 'rgba(168,85,247,0.12)',
-                    color: gift.badge === 'Free' ? '#15803d' : '#7c3aed',
-                  }}
-                >
-                  {gift.badge}
-                </span>
-                <a
-                  href={`/gift/${gift.slug}`}
-                  onClick={handleClick}
-                  className="win98-btn-pink text-[12px]"
-                  style={{ padding: '2px 10px', minHeight: 'auto' }}
-                >
-                  Create
-                </a>
-              </div>
+            </div>
+            <div className="flex flex-shrink-0 flex-col items-end gap-1.5">
+              <span
+                className="rounded-full border px-2 py-[1px] font-body text-[11px] font-medium"
+                style={{
+                  borderColor: 'rgba(0,0,0,0.08)',
+                  background:
+                    gift.badge === 'Free'
+                      ? 'rgba(34,197,94,0.15)'
+                      : 'rgba(168,85,247,0.15)',
+                  color: gift.badge === 'Free' ? '#15803d' : '#7c3aed',
+                }}
+              >
+                {gift.badge}
+              </span>
+              <a
+                href={`/gift/${gift.slug}`}
+                onClick={handleClick}
+                className="win98-btn-pink text-[11px]"
+                style={{ padding: '2px 8px', minHeight: 'auto' }}
+              >
+                Create
+              </a>
             </div>
           </div>
         </div>
+        <span
+          className={`mt-0.5 font-pixel text-[11px] text-black/35 ${isRight ? 'mr-2' : 'ml-2'}`}
+        >
+          sent by HoneyHearts 💕
+        </span>
       </div>
       {loading && <GiftLoading onComplete={handleComplete} />}
     </>
@@ -106,6 +145,7 @@ export function GiftBrowser() {
   return (
     <section id="browse" className="px-4 py-5 md:py-8">
       <div className="mx-auto max-w-6xl">
+        {/* Win98 filter bar */}
         <div className="win98-window">
           <div className="win98-titlebar text-[14px]">
             <span>📂 Browse by occasion</span>
@@ -124,7 +164,6 @@ export function GiftBrowser() {
             </div>
           </div>
           <div className="win98-body">
-            {/* Filter buttons */}
             <div className="flex flex-wrap gap-[6px]">
               {occasions.map((o) => (
                 <button
@@ -167,35 +206,33 @@ export function GiftBrowser() {
               </button>
             </div>
 
-            {/* Count */}
             <p className="mt-3 font-pixel text-[13px] text-black/60">
               Showing {visibleGifts.length}
               {!expanded && hasMore ? ` of ${filteredGifts.length}` : ''} gifts
             </p>
-
-            {/* Gift grid */}
-            <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
-              {visibleGifts.map((gift) => (
-                <MiniCard key={gift.slug} gift={gift} />
-              ))}
-            </div>
-
-            {/* Show all button */}
-            {hasMore && !expanded && (
-              <div className="mt-4 flex justify-center">
-                <button
-                  className="win98-btn text-[14px]"
-                  onClick={() => {
-                    playClick();
-                    setExpanded(true);
-                  }}
-                >
-                  Show all ({filteredGifts.length})
-                </button>
-              </div>
-            )}
           </div>
         </div>
+
+        {/* MSN chat bubble cards */}
+        <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+          {visibleGifts.map((gift, i) => (
+            <ChatBubble key={gift.slug} gift={gift} index={i} />
+          ))}
+        </div>
+
+        {hasMore && !expanded && (
+          <div className="mt-4 flex justify-center">
+            <button
+              className="win98-btn text-[14px]"
+              onClick={() => {
+                playClick();
+                setExpanded(true);
+              }}
+            >
+              Show all ({filteredGifts.length})
+            </button>
+          </div>
+        )}
       </div>
     </section>
   );
