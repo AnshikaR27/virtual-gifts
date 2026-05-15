@@ -1,15 +1,10 @@
 'use client';
 
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { playClick } from '@/components/retro-sounds';
 import { GiftLoading } from '@/components/gift-loading';
-import {
-  allGifts,
-  occasions,
-  type GiftItem,
-  type OccasionKey,
-} from './gift-catalog';
+import { allGifts, type GiftItem } from './gift-catalog';
 
 const INITIAL_STRINGS = 3;
 
@@ -76,7 +71,6 @@ function getSagOffset(index: number, total: number, maxSag: number) {
 }
 
 export function PolaroidWall() {
-  const [activeFilter, setActiveFilter] = useState<OccasionKey>('all');
   const [stringCount, setStringCount] = useState(INITIAL_STRINGS);
   const [flippedSlug, setFlippedSlug] = useState<string | null>(null);
   const [loadingSlug, setLoadingSlug] = useState<string | null>(null);
@@ -86,12 +80,6 @@ export function PolaroidWall() {
   const perString = isDesktop ? 5 : 3;
   const maxSag = isDesktop ? 20 : 14;
 
-  const filteredSlugs = useMemo(() => {
-    if (activeFilter === 'all') return null;
-    const occ = occasions.find((o) => o.key === activeFilter);
-    return occ ? new Set(occ.slugs) : null;
-  }, [activeFilter]);
-
   const visibleGifts = orderedGifts.slice(0, stringCount * perString);
   const hasMore = stringCount * perString < orderedGifts.length;
 
@@ -99,12 +87,6 @@ export function PolaroidWall() {
   for (let i = 0; i < visibleGifts.length; i += perString) {
     strings.push(visibleGifts.slice(i, i + perString));
   }
-
-  const handleFilterClick = useCallback((key: OccasionKey) => {
-    playClick();
-    setActiveFilter(key);
-    setFlippedSlug(null);
-  }, []);
 
   const handleFlip = useCallback((slug: string) => {
     playClick();
@@ -130,86 +112,16 @@ export function PolaroidWall() {
     setStringCount((prev) => prev + 1);
   }, []);
 
-  const isMatch = useCallback(
-    (slug: string) => !filteredSlugs || filteredSlugs.has(slug),
-    [filteredSlugs],
-  );
-
   return (
     <section id="browse" className="px-4 py-5 md:py-8">
       <div className="mx-auto max-w-6xl">
-        {/* Win98 filter bar */}
-        <div className="win98-window">
-          <div className="win98-titlebar text-[14px]">
-            <span>📂 Browse by occasion</span>
-            <div className="flex gap-[2px]">
-              <span className="win98-titlebar-btn" aria-hidden>
-                <span className="mt-[2px] block h-[2px] w-[6px] bg-black" />
-              </span>
-              <span className="win98-titlebar-btn" aria-hidden>
-                <span className="block h-[7px] w-[7px] border border-black" />
-              </span>
-              <span className="win98-titlebar-btn" aria-hidden>
-                <span className="text-[10px] font-bold leading-none text-black">
-                  ✕
-                </span>
-              </span>
-            </div>
-          </div>
-          <div className="win98-body">
-            <div className="flex flex-wrap gap-[6px]">
-              {occasions.map((o) => (
-                <button
-                  key={o.key}
-                  onClick={() => handleFilterClick(o.key)}
-                  className="font-pixel text-[13px]"
-                  style={{
-                    background: 'var(--win-chrome)',
-                    border: '2px solid',
-                    borderColor:
-                      activeFilter === o.key
-                        ? 'var(--win-chrome-darkest) var(--win-chrome-light) var(--win-chrome-light) var(--win-chrome-darkest)'
-                        : 'var(--win-chrome-light) var(--win-chrome-darkest) var(--win-chrome-darkest) var(--win-chrome-light)',
-                    padding:
-                      activeFilter === o.key ? '3px 7px 1px 9px' : '2px 8px',
-                    cursor: 'pointer',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {o.label}
-                </button>
-              ))}
-              <button
-                onClick={() => handleFilterClick('all')}
-                className="font-pixel text-[13px]"
-                style={{
-                  background: 'var(--win-chrome)',
-                  border: '2px solid',
-                  borderColor:
-                    activeFilter === 'all'
-                      ? 'var(--win-chrome-darkest) var(--win-chrome-light) var(--win-chrome-light) var(--win-chrome-darkest)'
-                      : 'var(--win-chrome-light) var(--win-chrome-darkest) var(--win-chrome-darkest) var(--win-chrome-light)',
-                  padding:
-                    activeFilter === 'all' ? '3px 7px 1px 9px' : '2px 8px',
-                  cursor: 'pointer',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                ✨ All
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Section title */}
         <h2
-          className="mb-4 mt-6 text-center font-display text-[20px] font-semibold text-white md:text-[24px]"
+          className="mb-4 text-center font-display text-[20px] font-semibold text-white md:text-[24px]"
           style={{ textShadow: '0 2px 8px rgba(0,0,0,0.3)' }}
         >
           pull a memory off the wall
         </h2>
 
-        {/* Garland Wall */}
         <div className="polaroid-wall-bg">
           {strings.map((stringGifts, stringIdx) => (
             <div
@@ -234,7 +146,6 @@ export function PolaroidWall() {
               <div className="garland-polaroids">
                 {stringGifts.map((gift, i) => {
                   const globalIdx = stringIdx * perString + i;
-                  const matched = isMatch(gift.slug);
                   const isFlipped = flippedSlug === gift.slug;
                   const gradient = gradients[globalIdx % gradients.length];
                   const angle = swayAngles[globalIdx % swayAngles.length];
@@ -253,7 +164,6 @@ export function PolaroidWall() {
                         className={`garland-polaroid${isFlipped ? ' is-unclipped' : ''}`}
                         style={{
                           ['--base-angle' as string]: `${angle}deg`,
-                          opacity: matched ? 1 : 0.3,
                           animationDuration: `${swayDuration}s`,
                           animationDelay: `${swayDelay}s`,
                         }}

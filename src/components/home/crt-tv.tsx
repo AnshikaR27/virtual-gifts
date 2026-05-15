@@ -31,6 +31,7 @@ export function CrtTv() {
   const [isStatic, setIsStatic] = useState(false);
   const [loading, setLoading] = useState(false);
   const [userInteracted, setUserInteracted] = useState(false);
+  const [showChannelOsd, setShowChannelOsd] = useState(true);
   const touchStartRef = useRef(0);
   const swipedRef = useRef(false);
   const router = useRouter();
@@ -62,6 +63,12 @@ export function CrtTv() {
     }, 4000);
     return () => clearInterval(id);
   }, [userInteracted]);
+
+  useEffect(() => {
+    setShowChannelOsd(true);
+    const timer = setTimeout(() => setShowChannelOsd(false), 1500);
+    return () => clearTimeout(timer);
+  }, [channel]);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     touchStartRef.current = e.touches[0].clientX;
@@ -160,12 +167,16 @@ export function CrtTv() {
                 )}
 
                 <div
+                  className="crt-channel-osd font-pixel"
+                  style={{ opacity: showChannelOsd ? 1 : 0 }}
+                >
+                  CH {String(channel + 1).padStart(2, '0')}
+                </div>
+
+                <div
                   className="crt-channel-content"
                   style={{ opacity: isStatic ? 0 : 1 }}
                 >
-                  <span className="crt-channel-indicator font-pixel">
-                    CH 0{channel + 1}
-                  </span>
                   <span className="crt-emoji">
                     {heroEmojis[gift.slug] || gift.emoji}
                   </span>
@@ -191,20 +202,59 @@ export function CrtTv() {
               </div>
             </div>
 
-            <div className="crt-controls-strip">
-              <div className="crt-channel-buttons">
-                {heroGifts.map((_, i) => (
-                  <button
-                    key={i}
-                    className={`crt-ch-btn font-pixel ${i === channel ? 'crt-ch-btn-active' : ''}`}
-                    onClick={() => changeChannel(i)}
-                    aria-label={`Channel ${i + 1}`}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
+            {/* Physical controls panel */}
+            <div className="crt-controls-panel">
+              <div className="crt-brand-area">
+                <div className="crt-brand-label">HoneyHearts</div>
+                <div className="crt-model-label font-pixel">HH-2026</div>
+                <div className="crt-power-group">
+                  <div className="crt-power-btn" aria-hidden>
+                    <div className="crt-power-icon" />
+                  </div>
+                  <div className="crt-power-led" />
+                </div>
               </div>
-              <div className="crt-power-led" />
+
+              <div className="crt-speaker-grille" aria-hidden />
+
+              <div className="crt-rockers">
+                <div className="crt-rocker-group">
+                  <span className="crt-rocker-label font-pixel">CH</span>
+                  <div className="crt-rocker">
+                    <button
+                      className="crt-rocker-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        changeChannel(channel + 1);
+                      }}
+                      aria-label="Next channel"
+                    >
+                      ▲
+                    </button>
+                    <button
+                      className="crt-rocker-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        changeChannel(channel - 1);
+                      }}
+                      aria-label="Previous channel"
+                    >
+                      ▼
+                    </button>
+                  </div>
+                </div>
+                <div className="crt-rocker-group">
+                  <span className="crt-rocker-label font-pixel">VOL</span>
+                  <div className="crt-rocker">
+                    <div className="crt-rocker-btn crt-rocker-decorative">
+                      +
+                    </div>
+                    <div className="crt-rocker-btn crt-rocker-decorative">
+                      −
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -212,36 +262,6 @@ export function CrtTv() {
           <div className="crt-stand-feet">
             <div className="crt-foot" />
             <div className="crt-foot" />
-          </div>
-
-          <div className="crt-nav">
-            <button
-              className="win98-btn text-[14px]"
-              onClick={() => changeChannel(channel - 1)}
-              aria-label="Previous channel"
-            >
-              ◀ PREV
-            </button>
-            <div className="flex gap-2">
-              {heroGifts.map((_, i) => (
-                <span
-                  key={i}
-                  className={`crt-dot font-pixel text-[12px] ${i === channel ? 'crt-dot-active' : ''}`}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => changeChannel(i)}
-                >
-                  {i + 1}
-                </span>
-              ))}
-            </div>
-            <button
-              className="win98-btn text-[14px]"
-              onClick={() => changeChannel(channel + 1)}
-              aria-label="Next channel"
-            >
-              NEXT ▶
-            </button>
           </div>
         </div>
       </section>

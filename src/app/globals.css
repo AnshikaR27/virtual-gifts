@@ -388,29 +388,37 @@ html {
 /* ── CRT Television ── */
 
 .crt-tv-body {
-  background: linear-gradient(180deg, #4a4a4a 0%, #363636 30%, #2a2a2a 100%);
-  border-radius: 22px 22px 10px 10px;
-  padding: 20px 20px 12px;
+  background: linear-gradient(
+    180deg,
+    #4a4a4a 0%,
+    #3a3a3a 20%,
+    #333 50%,
+    #2a2a2a 100%
+  );
+  border-radius: 24px 24px 12px 12px;
+  padding: 18px 18px 0;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.12),
-    inset -1px 0 0 rgba(255, 255, 255, 0.05),
-    inset 1px 0 0 rgba(255, 255, 255, 0.05),
-    0 12px 40px rgba(0, 0, 0, 0.5),
+    inset 0 2px 0 rgba(255, 255, 255, 0.15),
+    inset -2px 0 0 rgba(255, 255, 255, 0.05),
+    inset 2px 0 0 rgba(255, 255, 255, 0.05),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.4),
+    0 14px 40px rgba(0, 0, 0, 0.55),
     0 4px 0 #1a1a1a;
 }
 
 .crt-tv-bezel {
   background: #111;
-  border-radius: 14px;
+  border-radius: 16px;
   padding: 10px;
   box-shadow:
-    inset 0 2px 10px rgba(0, 0, 0, 0.9),
-    0 1px 0 rgba(255, 255, 255, 0.06);
+    inset 0 3px 12px rgba(0, 0, 0, 0.9),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.04),
+    0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .crt-tv-screen {
   position: relative;
-  border-radius: 10px;
+  border-radius: 12px / 14px;
   overflow: hidden;
   height: 280px;
   display: flex;
@@ -419,6 +427,7 @@ html {
   flex-direction: column;
   cursor: pointer;
   user-select: none;
+  box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.15);
 }
 
 @media (min-width: 768px) {
@@ -454,6 +463,26 @@ html {
   z-index: 5;
 }
 
+.crt-channel-osd {
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  font-size: 20px;
+  color: #00ff00;
+  text-shadow:
+    0 0 8px rgba(0, 255, 0, 0.6),
+    2px 2px 0 rgba(0, 0, 0, 0.5);
+  z-index: 12;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+@media (min-width: 768px) {
+  .crt-channel-osd {
+    font-size: 24px;
+  }
+}
+
 .crt-channel-content {
   position: relative;
   z-index: 2;
@@ -467,15 +496,6 @@ html {
   width: 100%;
   height: 100%;
   transition: opacity 0.15s;
-}
-
-.crt-channel-indicator {
-  position: absolute;
-  top: 12px;
-  right: 16px;
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.7);
-  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
 }
 
 .crt-emoji {
@@ -506,44 +526,86 @@ html {
   display: block;
 }
 
-.crt-controls-strip {
+/* ── Physical Controls ── */
+
+.crt-controls-panel {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px 4px;
+  padding: 14px 16px 12px;
+  gap: 12px;
 }
 
-.crt-channel-buttons {
+.crt-brand-area {
   display: flex;
-  gap: 4px;
+  flex-direction: column;
+  gap: 2px;
+  flex-shrink: 0;
 }
 
-.crt-ch-btn {
-  width: 32px;
-  height: 28px;
-  background: linear-gradient(180deg, #555, #3a3a3a);
-  border: 1px solid #222;
-  border-radius: 3px;
-  color: #999;
+.crt-brand-label {
+  font-family: var(--font-outfit), sans-serif;
   font-size: 13px;
+  font-weight: 700;
+  color: #777;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  text-shadow:
+    0 -1px 0 rgba(0, 0, 0, 0.6),
+    0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+@media (min-width: 768px) {
+  .crt-brand-label {
+    font-size: 14px;
+    letter-spacing: 2.5px;
+  }
+}
+
+.crt-model-label {
+  font-size: 9px;
+  color: #555;
+  letter-spacing: 0.5px;
+}
+
+.crt-power-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.crt-power-btn {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #444, #2a2a2a);
+  border: 2px solid;
+  border-color: #555 #1a1a1a #1a1a1a #555;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-  padding: 0;
 }
 
-.crt-ch-btn:active {
-  background: linear-gradient(180deg, #3a3a3a, #555);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
+.crt-power-icon {
+  width: 6px;
+  height: 6px;
+  border: 1.5px solid #666;
+  border-radius: 50%;
+  border-top-color: transparent;
+  position: relative;
 }
 
-.crt-ch-btn-active {
-  background: linear-gradient(180deg, #666, #444);
-  color: #fff;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
-  border-color: var(--win-hot-pink);
+.crt-power-icon::after {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1.5px;
+  height: 4px;
+  background: #666;
 }
 
 .crt-power-led {
@@ -555,6 +617,82 @@ html {
     0 0 6px #00ff00,
     0 0 2px #00ff00;
 }
+
+.crt-speaker-grille {
+  width: 50px;
+  height: 36px;
+  background: radial-gradient(circle, #1a1a1a 1.5px, transparent 1.5px);
+  background-size: 7px 7px;
+  border-radius: 4px;
+  opacity: 0.7;
+  flex-shrink: 0;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+@media (min-width: 768px) {
+  .crt-speaker-grille {
+    width: 60px;
+    height: 40px;
+  }
+}
+
+.crt-rockers {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.crt-rocker-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.crt-rocker-label {
+  font-size: 9px;
+  color: #666;
+  letter-spacing: 1px;
+}
+
+.crt-rocker {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.crt-rocker-btn {
+  width: 28px;
+  height: 20px;
+  background: linear-gradient(180deg, #555 0%, #3a3a3a 100%);
+  border: 2px solid;
+  border-color: #666 #222 #222 #666;
+  border-radius: 3px;
+  color: #999;
+  font-size: 10px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.4);
+}
+
+.crt-rocker-btn:active {
+  border-color: #222 #666 #666 #222;
+  background: linear-gradient(180deg, #3a3a3a 0%, #555 100%);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
+  transform: translateY(1px);
+}
+
+.crt-rocker-decorative {
+  pointer-events: none;
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* ── Stand ── */
 
 .crt-stand {
   width: 50%;
@@ -577,30 +715,6 @@ html {
   height: 6px;
   background: linear-gradient(180deg, #3a3a3a, #2a2a2a);
   border-radius: 0 0 4px 4px;
-}
-
-.crt-nav {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  margin-top: 16px;
-}
-
-.crt-dot {
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: rgba(255, 255, 255, 0.35);
-  cursor: pointer;
-  transition: color 0.2s;
-}
-
-.crt-dot-active {
-  color: var(--win-hot-pink);
-  text-shadow: 0 0 8px rgba(255, 105, 180, 0.6);
 }
 
 /* ── Polaroid Wall ── */
