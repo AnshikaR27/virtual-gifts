@@ -65,7 +65,8 @@
       "Bash(timeout 5)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000)",
       "PowerShell(Start-Sleep -Seconds 5; try { \\(Invoke-WebRequest -Uri http://localhost:3000 -UseBasicParsing -TimeoutSec 10\\).StatusCode } catch { \"Not ready: $\\($_.Exception.Message\\)\" })",
-      "PowerShell($html = \\(Invoke-WebRequest -Uri http://localhost:3000 -UseBasicParsing\\).Content; if \\($html -match \"Love Stats\"\\) { \"Love Stats section found\" } else { \"Love Stats NOT found\" }; if \\($html -match \"safe to close\"\\) { \"Shutdown button found\" } else { \"Shutdown NOT found\" }; if \\($html -match \"HoneyHearts\"\\) { \"Start button found\" } else { \"Start button NOT found\" }; if \\($html -match \"paper-fly\"\\) { \"Paper-fly CSS found\" } else { \"Paper-fly CSS NOT found\" })"
+      "PowerShell($html = \\(Invoke-WebRequest -Uri http://localhost:3000 -UseBasicParsing\\).Content; if \\($html -match \"Love Stats\"\\) { \"Love Stats section found\" } else { \"Love Stats NOT found\" }; if \\($html -match \"safe to close\"\\) { \"Shutdown button found\" } else { \"Shutdown NOT found\" }; if \\($html -match \"HoneyHearts\"\\) { \"Start button found\" } else { \"Start button NOT found\" }; if \\($html -match \"paper-fly\"\\) { \"Paper-fly CSS found\" } else { \"Paper-fly CSS NOT found\" })",
+      "PowerShell(Start-Process \"http://localhost:3000\")"
     ]
   }
 }

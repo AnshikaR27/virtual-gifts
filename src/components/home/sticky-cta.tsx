@@ -26,7 +26,7 @@ export function StickyCTA() {
       }`}
     >
       <a
-        href="#quick-sweet"
+        href="#browse"
         className="win98-btn-pink inline-flex items-center gap-1.5 text-[16px]"
         style={{
           boxShadow: '3px 3px 0 0 rgba(0,0,0,0.3)',

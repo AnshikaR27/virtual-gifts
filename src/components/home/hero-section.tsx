@@ -10,12 +10,12 @@ const headlines = [
 ];
 
 const desktopIcons = [
-  { emoji: '🫙', label: 'LOVE_JAR.exe', href: '#make-them-melt' },
-  { emoji: '🐶', label: 'SORRY.bat', href: '#quick-sweet' },
-  { emoji: '🌼', label: 'DANDELION.gif', href: '#make-them-melt' },
-  { emoji: '🎵', label: 'SPOTIFY_WRAPPED.zip', href: '#wildcard' },
-  { emoji: '📜', label: 'TERMS.pdf', href: '#wildcard' },
-  { emoji: '📅', label: '365_JAR.app', href: '#for-the-long-run' },
+  { emoji: '🫙', label: 'LOVE_JAR.exe', href: '#browse' },
+  { emoji: '🐶', label: 'SORRY.bat', href: '#browse' },
+  { emoji: '🌼', label: 'DANDELION.gif', href: '#browse' },
+  { emoji: '🎵', label: 'SPOTIFY_WRAPPED.zip', href: '#browse' },
+  { emoji: '📜', label: 'TERMS.pdf', href: '#browse' },
+  { emoji: '📅', label: '365_JAR.app', href: '#browse' },
 ];
 
 function TitlebarButtons() {
@@ -196,10 +196,10 @@ export function HeroSection() {
               </p>
 
               <div className="mt-6 flex flex-wrap gap-3">
-                <a href="#quick-sweet" className="win98-btn-pink text-[18px]">
+                <a href="#browse" className="win98-btn-pink text-[18px]">
                   Try Free ♥
                 </a>
-                <a href="#make-them-melt" className="win98-btn text-[16px]">
+                <a href="#browse" className="win98-btn text-[16px]">
                   See Gifts
                 </a>
               </div>

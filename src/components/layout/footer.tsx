@@ -50,26 +50,8 @@ export function Footer() {
                   📁 Gifts
                 </p>
                 <div className="mt-2 flex flex-col gap-2.5 font-pixel text-[14px] text-black/70 md:gap-1">
-                  <Link href="/#quick-sweet" className="hover:text-[#FF1493]">
-                    Quick &amp; Sweet
-                  </Link>
-                  <Link
-                    href="/#make-them-melt"
-                    className="hover:text-[#FF1493]"
-                  >
-                    Make Them Melt
-                  </Link>
-                  <Link href="/#wildcard" className="hover:text-[#FF1493]">
-                    Wildcard
-                  </Link>
-                  <Link href="/#play-together" className="hover:text-[#FF1493]">
-                    Play Together
-                  </Link>
-                  <Link
-                    href="/#for-the-long-run"
-                    className="hover:text-[#FF1493]"
-                  >
-                    For The Long Run
+                  <Link href="/#browse" className="hover:text-[#FF1493]">
+                    Browse All
                   </Link>
                 </div>
               </div>

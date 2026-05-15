@@ -8,9 +8,7 @@ const MENU_ITEMS = [
   {
     label: '💕 Send love',
     action: () =>
-      document
-        .getElementById('quick-sweet')
-        ?.scrollIntoView({ behavior: 'smooth' }),
+      document.getElementById('browse')?.scrollIntoView({ behavior: 'smooth' }),
   },
   {
     label: '📋 Copy feelings',
@@ -27,9 +25,7 @@ const MENU_ITEMS = [
   {
     label: '📂 Open emotions folder',
     action: () =>
-      document
-        .getElementById('make-them-melt')
-        ?.scrollIntoView({ behavior: 'smooth' }),
+      document.getElementById('browse')?.scrollIntoView({ behavior: 'smooth' }),
   },
 ];
 

@@ -34,10 +34,10 @@ export function CommunityCTA() {
               Would you like to find love?
             </p>
             <div className="mt-6 flex justify-center gap-3">
-              <a href="#quick-sweet" className="win98-btn-pink text-[18px]">
+              <a href="#browse" className="win98-btn-pink text-[18px]">
                 Yes
               </a>
-              <a href="#quick-sweet" className="win98-btn-pink text-[18px]">
+              <a href="#browse" className="win98-btn-pink text-[18px]">
                 Absolutely!
               </a>
             </div>
