@@ -852,6 +852,7 @@ html {
 .garland-polaroid {
   width: 100%;
   cursor: pointer;
+  -webkit-perspective: 800px;
   perspective: 800px;
   transform-origin: top center;
   rotate: var(--base-angle, 0deg);
@@ -910,21 +911,31 @@ html {
 
 .polaroid-flipper {
   position: relative;
-  transition: transform 0.4s ease;
+  -webkit-transform-style: preserve-3d;
   transform-style: preserve-3d;
+  transition: transform 0.4s ease;
+  will-change: transform;
 }
 
 .polaroid-flipper.is-flipped {
+  -webkit-transform: rotateY(180deg);
   transform: rotateY(180deg);
 }
 
 .polaroid-front,
 .polaroid-back {
-  backface-visibility: hidden;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  overflow: hidden;
 }
 
 .polaroid-front {
+  position: relative;
   background: white;
   padding: 8px 8px 0;
   box-shadow:
@@ -960,9 +971,8 @@ html {
 }
 
 .polaroid-back {
-  position: absolute;
-  inset: 0;
   background: white;
+  -webkit-transform: rotateY(180deg);
   transform: rotateY(180deg);
   display: flex;
   flex-direction: column;
