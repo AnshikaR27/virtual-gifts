@@ -27,8 +27,9 @@ function Clock() {
 export function Taskbar() {
   return (
     <header
-      className="sticky top-0 z-50 flex h-11 items-center justify-between px-1 md:h-[34px]"
+      className="sticky z-50 flex h-11 items-center justify-between px-1 md:h-[34px]"
       style={{
+        top: 'env(safe-area-inset-top, 0px)',
         background: 'var(--win-chrome)',
         borderBottom: '2px solid',
         borderColor: 'var(--win-chrome-light)',

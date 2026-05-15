@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Fraunces, Outfit, Caveat, VT323 } from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
@@ -37,6 +37,12 @@ const vt323 = VT323({
   display: 'swap',
 });
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+};
+
 export const metadata: Metadata = {
   title: {
     default: BRAND_NAME,
@@ -58,12 +64,12 @@ export default async function RootLayout({
       lang={locale}
       className={`${fraunces.variable} ${outfit.variable} ${caveat.variable} ${vt323.variable}`}
     >
-      <body className="font-body antialiased">
+      <body className="safe-area-pad font-body antialiased">
         <div className="scanline-overlay" aria-hidden />
         <NextIntlClientProvider messages={messages}>
           <RetroSounds />
           <Taskbar />
-          <main className="min-h-screen">{children}</main>
+          <main className="main-min-h">{children}</main>
           <Footer />
           <ToastProvider />
           <Y2KContextMenu />

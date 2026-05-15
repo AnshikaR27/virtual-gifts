@@ -103,6 +103,16 @@
     background: var(--win-body-bg);
     color: #1a0a2e;
   }
+
+  .safe-area-pad {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .main-min-h {
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
 }
 
 /* ── Win98 Window Component ── */
@@ -420,7 +430,7 @@ html {
   position: relative;
   border-radius: 12px / 14px;
   overflow: hidden;
-  height: 280px;
+  height: clamp(220px, 55vw, 280px);
   display: flex;
   align-items: center;
   justify-content: center;

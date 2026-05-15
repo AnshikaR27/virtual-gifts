@@ -4,7 +4,7 @@ export default function CreateGiftPage({
   params: { slug: string };
 }) {
   return (
-    <div className="flex min-h-[80vh] items-center justify-center">
+    <div className="flex min-h-[80dvh] items-center justify-center">
       <div className="text-center">
         <h1 className="font-display text-2xl font-bold">
           Create: {params.slug}
