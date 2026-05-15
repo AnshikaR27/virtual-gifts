@@ -401,20 +401,20 @@ html {
   position: relative;
   background: linear-gradient(
     180deg,
-    #ffc8e0 0%,
-    #ffb6d9 20%,
-    #f9a8cc 50%,
-    #ef95be 100%
+    #545460 0%,
+    #4a4a52 20%,
+    #434350 50%,
+    #3d3d45 100%
   );
   border-radius: 24px 24px 12px 12px;
   padding: 20px 20px 12px;
   box-shadow:
-    inset 0 2px 0 rgba(255, 255, 255, 0.4),
-    inset -2px 0 0 rgba(255, 255, 255, 0.15),
-    inset 2px 0 0 rgba(255, 255, 255, 0.15),
-    inset 0 -2px 4px rgba(180, 80, 120, 0.3),
+    inset 0 2px 0 rgba(255, 255, 255, 0.12),
+    inset -2px 0 0 rgba(255, 255, 255, 0.06),
+    inset 2px 0 0 rgba(255, 255, 255, 0.06),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.3),
     0 14px 40px rgba(0, 0, 0, 0.35),
-    0 4px 0 #d8809e;
+    0 4px 0 #35353d;
 }
 
 .crt-sticker {
@@ -638,34 +638,34 @@ html {
 .crt-ch-btn {
   width: 32px;
   height: 28px;
-  background: linear-gradient(180deg, #e8e0f0, #c5b4d8);
-  border: 1px solid #a890bc;
+  background: linear-gradient(180deg, #5a5a64, #48484f);
+  border: 1px solid #3a3a42;
   border-radius: 3px;
-  color: #6b4d80;
+  color: #b0b0b8;
   font-size: 13px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 1px 2px rgba(80, 40, 100, 0.25);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
   padding: 0;
 }
 
 .crt-ch-btn:active {
-  background: linear-gradient(180deg, #c5b4d8, #e8e0f0);
-  box-shadow: inset 0 1px 2px rgba(80, 40, 100, 0.3);
+  background: linear-gradient(180deg, #48484f, #5a5a64);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
 .crt-ch-btn-active {
-  background: linear-gradient(180deg, #f0d0e8, #e8a8d0);
+  background: linear-gradient(180deg, #6a6a74, #5a5a64);
   color: #fff;
-  box-shadow: inset 0 1px 3px rgba(200, 80, 140, 0.3);
-  border-color: var(--win-hot-pink);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+  border-color: #c0c0c8;
 }
 
 .crt-controls-panel {
   padding: 10px 16px 6px;
-  background: linear-gradient(180deg, #d4b8e8 0%, #c5a4d8 100%);
+  background: linear-gradient(180deg, #3f3f48 0%, #383842 100%);
   border-radius: 0 0 8px 8px;
   margin: 0 4px;
 }
@@ -675,10 +675,10 @@ html {
   height: 36px;
   margin-bottom: 8px;
   border-radius: 4px;
-  background: radial-gradient(circle, #9a7baf 1.5px, transparent 1.5px);
+  background: radial-gradient(circle, #2e2e36 1.5px, transparent 1.5px);
   background-size: 6px 6px;
-  border: 1px solid #b098c4;
-  box-shadow: inset 0 1px 3px rgba(80, 40, 100, 0.3);
+  border: 1px solid #4a4a54;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 @media (min-width: 768px) {
@@ -801,9 +801,9 @@ html {
   width: 50%;
   height: 10px;
   margin: 0 auto;
-  background: linear-gradient(180deg, #e0e0e0, #c0c0c0, #a8a8a8);
+  background: linear-gradient(180deg, #4a4a52, #3d3d45, #35353d);
   border-radius: 0 0 8px 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .crt-stand-feet {
@@ -816,7 +816,7 @@ html {
 .crt-foot {
   width: 30px;
   height: 6px;
-  background: linear-gradient(180deg, #d0d0d0, #a8a8a8);
+  background: linear-gradient(180deg, #4a4a52, #3d3d45);
   border-radius: 0 0 4px 4px;
 }
 
