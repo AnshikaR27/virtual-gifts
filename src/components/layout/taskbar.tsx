@@ -51,7 +51,7 @@ export function Taskbar() {
       {/* Center marquee area */}
       <div className="hidden items-center sm:flex">
         <span className="font-pixel text-[14px] text-black/80">
-          💕 87 gifts, starting free
+          💕 87 gifts to make them ugly cry
         </span>
       </div>
 

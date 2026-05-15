@@ -177,9 +177,6 @@ export function PolaroidWall() {
                               className="polaroid-photo"
                               style={{ background: gradient }}
                             >
-                              <span className="polaroid-price">
-                                {gift.badge}
-                              </span>
                               <span className="polaroid-emoji">
                                 {gift.emoji}
                               </span>
@@ -195,9 +192,6 @@ export function PolaroidWall() {
                             <p className="line-clamp-2 font-body text-[13px] leading-snug text-[#333]">
                               {gift.description}
                             </p>
-                            <span className="mt-1 font-pixel text-[14px] text-[#666]">
-                              {gift.badge}
-                            </span>
                             <button
                               className="win98-btn-pink mt-2 text-[13px]"
                               onClick={(e) => handleCreate(gift.slug, e)}

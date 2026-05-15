@@ -81,19 +81,6 @@ function ChatBubble({ gift, index }: { gift: GiftItem; index: number }) {
               </p>
             </div>
             <div className="flex flex-shrink-0 flex-col items-end gap-1.5">
-              <span
-                className="rounded-full border px-2 py-[1px] font-body text-[11px] font-medium"
-                style={{
-                  borderColor: 'rgba(0,0,0,0.08)',
-                  background:
-                    gift.badge === 'Free'
-                      ? 'rgba(34,197,94,0.15)'
-                      : 'rgba(168,85,247,0.15)',
-                  color: gift.badge === 'Free' ? '#15803d' : '#7c3aed',
-                }}
-              >
-                {gift.badge}
-              </span>
               <a
                 href={`/gift/${gift.slug}`}
                 onClick={handleClick}

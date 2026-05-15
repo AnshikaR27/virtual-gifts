@@ -107,21 +107,6 @@ function CDCard({ gift }: { gift: GiftItem }) {
             <p className="line-clamp-1 font-body text-[13px] leading-snug text-black/60">
               {heroGiftDescriptions[gift.slug]}
             </p>
-            <div className="flex items-center gap-2">
-              <span
-                className="rounded-sm border px-1.5 py-[1px] font-body text-[12px] font-medium"
-                style={{
-                  borderColor: 'rgba(0,0,0,0.1)',
-                  background:
-                    gift.badge === 'Free'
-                      ? 'rgba(34,197,94,0.12)'
-                      : 'rgba(168,85,247,0.12)',
-                  color: gift.badge === 'Free' ? '#15803d' : '#7c3aed',
-                }}
-              >
-                {gift.badge}
-              </span>
-            </div>
             <a
               href={`/gift/${gift.slug}`}
               onClick={handleClick}
