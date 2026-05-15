@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import { BRAND_NAME } from '@/lib/constants';
 import { HeroSection } from '@/components/home/hero-section';
-import { HeroGifts } from '@/components/home/hero-gifts';
-import { GiftBrowser } from '@/components/home/gift-browser';
+import { CrtTv } from '@/components/home/crt-tv';
+import { PolaroidWall } from '@/components/home/polaroid-wall';
 import { HowItWorks } from '@/components/home/how-it-works';
 import { CommunityCTA } from '@/components/home/community-cta';
 import { Testimonials } from '@/components/home/testimonials';
@@ -28,8 +28,8 @@ export default function Home() {
   return (
     <div className="pb-20 md:pb-0">
       <HeroSection />
-      <HeroGifts />
-      <GiftBrowser />
+      <CrtTv />
+      <PolaroidWall />
       <HowItWorks />
       <Testimonials />
       <CommunityCTA />
