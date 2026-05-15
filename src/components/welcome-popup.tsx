@@ -3,12 +3,124 @@
 import { useState, useEffect, useCallback } from 'react';
 import { playClick } from '@/components/retro-sounds';
 
-const MESSAGES = [
-  '⚠️ WARNING: Your love life is running low on memory. Please delete some bad decisions.',
-  '💕 SYSTEM: Heart rate increasing... are you in love?',
-  '📂 ROMANCE.exe has stopped working. Reason: too many feelings.',
-  '🔮 You have 3 unread love letters. Would you like to panic?',
-  '⚠️ ERROR: Cannot find chill.exe. Would you like to catch feelings instead?',
+const POPUP_MESSAGES = [
+  {
+    title: '⚠️ WARNING',
+    text: 'Your love life is running low on memory. Please delete some bad decisions.',
+  },
+  {
+    title: '⚠️ SYSTEM',
+    text: 'Heart rate increasing... Are you sure you want to continue?',
+  },
+  {
+    title: '⚠️ ERROR',
+    text: 'Cannot find chill.exe. Would you like to catch feelings instead?',
+  },
+  {
+    title: '📂 ALERT',
+    text: 'ROMANCE.exe has stopped working. Reason: too many butterflies.',
+  },
+  {
+    title: '⚠️ WARNING',
+    text: 'You have 3 unread love letters. Would you like to panic?',
+  },
+  {
+    title: '⚠️ SYSTEM',
+    text: 'Feelings.zip is corrupted. Please see a therapist.',
+  },
+  {
+    title: '📂 NOTICE',
+    text: 'Your crush is typing... Just kidding. But what if?',
+  },
+  {
+    title: '⚠️ ERROR',
+    text: 'Attempt to forget them failed. Error code: STILL_IN_LOVE.',
+  },
+  {
+    title: '⚠️ WARNING',
+    text: 'Low storage. Too many screenshots of their texts.',
+  },
+  {
+    title: '⚠️ SYSTEM',
+    text: 'Installing butterflies... This may take forever.',
+  },
+  {
+    title: '📂 ALERT',
+    text: 'Someone is thinking about you right now. Probably.',
+  },
+  {
+    title: '⚠️ ERROR',
+    text: 'Cannot delete feelings. File is in use by your heart.',
+  },
+  { title: '⚠️ WARNING', text: 'Overthinking.exe is using 99% of your brain.' },
+  {
+    title: '⚠️ SYSTEM',
+    text: 'Would you like to send love? This action cannot be undone.',
+  },
+  {
+    title: '📂 NOTICE',
+    text: 'New update available: Relationship 2.0. Tap to install.',
+  },
+  {
+    title: '⚠️ ERROR',
+    text: 'Connection to reality lost. Reason: daydreaming about them.',
+  },
+  {
+    title: '⚠️ WARNING',
+    text: 'Your heart has been successfully hacked. By love.',
+  },
+  {
+    title: '⚠️ SYSTEM',
+    text: 'Scanning for red flags... 0 found. Proceed with feelings.',
+  },
+  {
+    title: '📂 ALERT',
+    text: 'Backup complete. All memories with them safely stored.',
+  },
+  {
+    title: '⚠️ ERROR',
+    text: 'Task failed: Moving on. Would you like to try again? [No] [Also No]',
+  },
+  {
+    title: '⚠️ WARNING',
+    text: 'Battery low. Recharge by hugging someone you love.',
+  },
+  {
+    title: '⚠️ SYSTEM',
+    text: 'This website contains extreme levels of cuteness. Proceed?',
+  },
+  {
+    title: '📂 NOTICE',
+    text: "Reminder: You are someone's favorite notification.",
+  },
+  {
+    title: '⚠️ ERROR',
+    text: 'Playing it cool failed. Reverting to being a simp.',
+  },
+  {
+    title: '⚠️ WARNING',
+    text: 'Your ex viewed your story. Do NOT reply. Repeat: do NOT.',
+  },
+  {
+    title: '⚠️ SYSTEM',
+    text: 'Compressing feelings... Error: feelings too big to compress.',
+  },
+  {
+    title: '📂 ALERT',
+    text: 'Love.zip downloaded successfully. Warning: cannot be unzipped.',
+  },
+  {
+    title: '⚠️ ERROR',
+    text: 'Sleep.exe interrupted by thoughts of them. Again.',
+  },
+  {
+    title: '⚠️ WARNING',
+    text: "You've been staring at their photo for 4 minutes. We noticed.",
+  },
+  {
+    title: '⚠️ SYSTEM',
+    text: 'Matching you with... just kidding. Go text them yourself.',
+  },
 ];
 
 const STORAGE_KEY = 'honeyhearts_popup_seen';
@@ -16,13 +128,18 @@ const STORAGE_KEY = 'honeyhearts_popup_seen';
 export function WelcomePopup() {
   const [visible, setVisible] = useState(false);
   const [dismissing, setDismissing] = useState(false);
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState<{
+    title: string;
+    text: string;
+  } | null>(null);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (localStorage.getItem(STORAGE_KEY) === 'true') return;
+    if (sessionStorage.getItem(STORAGE_KEY) === 'true') return;
 
-    setMessage(MESSAGES[Math.floor(Math.random() * MESSAGES.length)]);
+    setMessage(
+      POPUP_MESSAGES[Math.floor(Math.random() * POPUP_MESSAGES.length)],
+    );
     const timer = setTimeout(() => setVisible(true), 1500);
     return () => clearTimeout(timer);
   }, []);
@@ -30,7 +147,7 @@ export function WelcomePopup() {
   const dismiss = useCallback(() => {
     playClick();
     setDismissing(true);
-    localStorage.setItem(STORAGE_KEY, 'true');
+    sessionStorage.setItem(STORAGE_KEY, 'true');
     setTimeout(() => setVisible(false), 200);
   }, []);
 
@@ -63,13 +180,13 @@ export function WelcomePopup() {
           <div
             className="flex items-center justify-between"
             style={{
-              background: 'linear-gradient(90deg, #FF69B4, #BA55D3)',
+              background: 'linear-gradient(90deg, #DAA520, #FFD700)',
               padding: '3px 4px',
               userSelect: 'none',
             }}
           >
             <span className="font-pixel text-[14px] font-bold tracking-wide text-white">
-              💕 HoneyHearts
+              {message?.title ?? '⚠️ WARNING'}
             </span>
             <button
               className="win98-titlebar-btn"
@@ -93,7 +210,7 @@ export function WelcomePopup() {
             }}
           >
             <p className="font-pixel text-[14px] leading-relaxed text-black">
-              {message}
+              {message?.text}
             </p>
             <div className="mt-4 flex justify-end">
               <button className="win98-btn text-[14px]" onClick={dismiss}>
