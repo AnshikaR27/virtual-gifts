@@ -7,6 +7,7 @@ import { Footer } from '@/components/layout/footer';
 import { RetroSounds } from '@/components/retro-sounds';
 import { ToastProvider } from '@/components/y2k-toast';
 import { Y2KContextMenu } from '@/components/y2k-context-menu';
+import { WelcomePopup } from '@/components/welcome-popup';
 import { BRAND_NAME, BRAND_TAGLINE } from '@/lib/constants';
 import './globals.css';
 
@@ -66,6 +67,7 @@ export default async function RootLayout({
           <Footer />
           <ToastProvider />
           <Y2KContextMenu />
+          <WelcomePopup />
         </NextIntlClientProvider>
       </body>
     </html>

@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { playClick } from '@/components/retro-sounds';
+import { useState, useEffect } from 'react';
 
 const headlines = [
   'Loading ROMANCE.exe...',
@@ -31,100 +30,6 @@ function TitlebarButtons() {
       <button className="win98-titlebar-btn" aria-label="Close">
         <span className="text-[10px] font-bold leading-none text-black">✕</span>
       </button>
-    </div>
-  );
-}
-
-const NOTIFICATIONS = [
-  {
-    title: '⚠️ WARNING',
-    body: 'Your love life is running low on memory.',
-    appearAt: 1000,
-  },
-  {
-    title: '📂 ROMANCE.exe',
-    body: 'Loading romance... ████████░░ 78%',
-    appearAt: 4500,
-  },
-  {
-    title: '💕 SYSTEM',
-    body: 'Heart rate increasing... [OK]',
-    appearAt: 8000,
-  },
-] as const;
-
-const VISIBLE_DURATION = 3000;
-const SLIDE_OUT_MS = 350;
-
-function MobileNotifications() {
-  const [active, setActive] = useState<number | null>(null);
-  const [leaving, setLeaving] = useState(false);
-  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
-
-  const dismiss = useCallback(() => {
-    setLeaving(true);
-    playClick();
-    const t = setTimeout(() => {
-      setActive(null);
-      setLeaving(false);
-    }, SLIDE_OUT_MS);
-    timers.current.push(t);
-  }, []);
-
-  useEffect(() => {
-    NOTIFICATIONS.forEach((notif, i) => {
-      const tShow = setTimeout(() => {
-        setActive(i);
-        setLeaving(false);
-        playClick();
-
-        const tHide = setTimeout(() => {
-          setLeaving(true);
-          const tRemove = setTimeout(() => {
-            setActive((cur) => (cur === i ? null : cur));
-            setLeaving(false);
-          }, SLIDE_OUT_MS);
-          timers.current.push(tRemove);
-        }, VISIBLE_DURATION);
-        timers.current.push(tHide);
-      }, notif.appearAt);
-      timers.current.push(tShow);
-    });
-
-    return () => {
-      timers.current.forEach(clearTimeout);
-      timers.current = [];
-    };
-  }, []);
-
-  if (active === null) return null;
-  const notif = NOTIFICATIONS[active];
-
-  return (
-    <div
-      className={`notif-drop-down fixed left-0 right-0 z-[9999] px-3 md:hidden ${leaving ? 'notif-slide-up' : ''}`}
-      style={{ top: 48 }}
-    >
-      <div className="notif-window">
-        <div className="notif-titlebar">
-          <span>{notif.title}</span>
-          <button
-            className="win98-titlebar-btn"
-            aria-label="Close"
-            style={{ width: 14, height: 12 }}
-            onClick={dismiss}
-          >
-            <span className="text-[9px] font-bold leading-none text-black">
-              ✕
-            </span>
-          </button>
-        </div>
-        <div className="win98-body" style={{ padding: '8px 10px' }}>
-          <p className="font-pixel text-[13px] leading-snug text-black/90">
-            {notif.body}
-          </p>
-        </div>
-      </div>
     </div>
   );
 }
@@ -300,8 +205,6 @@ export function HeroSection() {
               </div>
             </div>
           </div>
-
-          <MobileNotifications />
         </div>
       </div>
     </section>

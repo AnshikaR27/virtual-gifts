@@ -327,95 +327,31 @@
   animation: float-gentle 6s ease-in-out infinite;
 }
 
-/* ── Mobile notification banners (slide-in from edges) ── */
-@keyframes slide-from-left {
-  from {
-    transform: translateX(-100%);
+/* ── Welcome popup animations ── */
+@keyframes popup-appear {
+  0% {
+    transform: scale(0);
     opacity: 0;
   }
-  to {
-    transform: translateX(0);
+  70% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
     opacity: 1;
   }
 }
 
-@keyframes slide-from-right {
+@keyframes popup-dismiss {
   from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-.banner-slide-left {
-  opacity: 0;
-  transform: translateX(-100%);
-  animation: slide-from-left 0.4s ease-out forwards;
-}
-
-.banner-slide-right {
-  opacity: 0;
-  transform: translateX(100%);
-  animation: slide-from-right 0.4s ease-out forwards;
-}
-
-/* ── Mobile notification drop-downs ── */
-@keyframes notif-enter {
-  from {
-    transform: translateY(-100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-@keyframes notif-exit {
-  from {
-    transform: translateY(0);
+    transform: scale(1);
     opacity: 1;
   }
   to {
-    transform: translateY(-100%);
+    transform: scale(0);
     opacity: 0;
   }
-}
-
-.notif-drop-down {
-  animation: notif-enter 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-
-.notif-drop-down.notif-slide-up {
-  animation: notif-exit 0.35s cubic-bezier(0.55, 0, 1, 0.45) forwards;
-}
-
-.notif-window {
-  background: var(--win-chrome);
-  border: 2px solid;
-  border-color: var(--win-chrome-light) var(--win-chrome-darkest)
-    var(--win-chrome-darkest) var(--win-chrome-light);
-  box-shadow:
-    0 6px 20px rgba(0, 0, 0, 0.35),
-    2px 2px 0 0 #000;
-  padding: 3px;
-}
-
-.notif-titlebar {
-  background: linear-gradient(90deg, #ffd700, #ffc107);
-  color: #1a0a2e;
-  padding: 3px 4px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  user-select: none;
-  font-family: var(--font-vt323), monospace;
-  font-size: 14px;
-  font-weight: bold;
-  letter-spacing: 0.5px;
 }
 
 html {
