@@ -115,15 +115,6 @@ export function PolaroidWall() {
   return (
     <section id="browse" className="px-4 py-5 md:py-8">
       <div className="mx-auto max-w-6xl">
-        <div className="mb-3 text-center">
-          <p className="font-display text-[15px] font-normal text-white/50 md:text-[16px]">
-            or wander the wall
-          </p>
-          <p className="mt-0.5 font-body text-[12px] text-white/35">
-            tap a polaroid to flip it · find the one that fits your moment
-          </p>
-        </div>
-
         <div className="polaroid-wall-bg">
           {strings.map((stringGifts, stringIdx) => (
             <div

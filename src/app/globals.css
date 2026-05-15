@@ -398,32 +398,69 @@ html {
 /* ── CRT Television ── */
 
 .crt-tv-body {
+  position: relative;
   background: linear-gradient(
     180deg,
-    #4a4a4a 0%,
-    #3a3a3a 20%,
-    #333 50%,
-    #2a2a2a 100%
+    #ffc8e0 0%,
+    #ffb6d9 20%,
+    #f9a8cc 50%,
+    #ef95be 100%
   );
   border-radius: 24px 24px 12px 12px;
   padding: 20px 20px 12px;
   box-shadow:
-    inset 0 2px 0 rgba(255, 255, 255, 0.15),
-    inset -2px 0 0 rgba(255, 255, 255, 0.05),
-    inset 2px 0 0 rgba(255, 255, 255, 0.05),
-    inset 0 -2px 4px rgba(0, 0, 0, 0.4),
-    0 14px 40px rgba(0, 0, 0, 0.55),
-    0 4px 0 #1a1a1a;
+    inset 0 2px 0 rgba(255, 255, 255, 0.4),
+    inset -2px 0 0 rgba(255, 255, 255, 0.15),
+    inset 2px 0 0 rgba(255, 255, 255, 0.15),
+    inset 0 -2px 4px rgba(180, 80, 120, 0.3),
+    0 14px 40px rgba(0, 0, 0, 0.35),
+    0 4px 0 #d8809e;
+}
+
+.crt-sticker {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  z-index: 20;
+  background: linear-gradient(135deg, #ffe44d 0%, #ffcc00 50%, #f5b800 100%);
+  color: #7a3e00;
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 3px;
+  transform: rotate(-8deg);
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.crt-sticker::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 8px;
+  height: 8px;
+  background: linear-gradient(
+    135deg,
+    transparent 40%,
+    rgba(0, 0, 0, 0.06) 40%,
+    rgba(0, 0, 0, 0.06) 50%,
+    #e8a800 50%
+  );
+  border-radius: 0 0 3px 0;
 }
 
 .crt-tv-bezel {
-  background: #111;
+  background: linear-gradient(180deg, #e8e8e8, #c0c0c0, #e8e8e8);
   border-radius: 16px;
-  padding: 10px;
+  padding: 6px;
   box-shadow:
-    inset 0 3px 12px rgba(0, 0, 0, 0.9),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.04),
-    0 1px 0 rgba(255, 255, 255, 0.08);
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.15),
+    0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .crt-tv-screen {
@@ -601,33 +638,36 @@ html {
 .crt-ch-btn {
   width: 32px;
   height: 28px;
-  background: linear-gradient(180deg, #555, #3a3a3a);
-  border: 1px solid #222;
+  background: linear-gradient(180deg, #e8e0f0, #c5b4d8);
+  border: 1px solid #a890bc;
   border-radius: 3px;
-  color: #999;
+  color: #6b4d80;
   font-size: 13px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 1px 2px rgba(80, 40, 100, 0.25);
   padding: 0;
 }
 
 .crt-ch-btn:active {
-  background: linear-gradient(180deg, #3a3a3a, #555);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
+  background: linear-gradient(180deg, #c5b4d8, #e8e0f0);
+  box-shadow: inset 0 1px 2px rgba(80, 40, 100, 0.3);
 }
 
 .crt-ch-btn-active {
-  background: linear-gradient(180deg, #666, #444);
+  background: linear-gradient(180deg, #f0d0e8, #e8a8d0);
   color: #fff;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
+  box-shadow: inset 0 1px 3px rgba(200, 80, 140, 0.3);
   border-color: var(--win-hot-pink);
 }
 
 .crt-controls-panel {
   padding: 10px 16px 6px;
+  background: linear-gradient(180deg, #d4b8e8 0%, #c5a4d8 100%);
+  border-radius: 0 0 8px 8px;
+  margin: 0 4px;
 }
 
 .crt-speaker-grille {
@@ -635,10 +675,10 @@ html {
   height: 36px;
   margin-bottom: 8px;
   border-radius: 4px;
-  background: radial-gradient(circle, #222 1.5px, transparent 1.5px);
+  background: radial-gradient(circle, #9a7baf 1.5px, transparent 1.5px);
   background-size: 6px 6px;
-  border: 1px solid #1a1a1a;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6);
+  border: 1px solid #b098c4;
+  box-shadow: inset 0 1px 3px rgba(80, 40, 100, 0.3);
 }
 
 @media (min-width: 768px) {
@@ -657,15 +697,20 @@ html {
 
 .crt-brand-label {
   font-size: 11px;
-  color: #777;
+  background: linear-gradient(180deg, #e0e0e0, #a8a8a8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   letter-spacing: 2px;
   text-transform: uppercase;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .crt-model-label {
   font-size: 10px;
-  color: #555;
+  background: linear-gradient(180deg, #d0d0d0, #999);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   letter-spacing: 1px;
 }
 
@@ -679,27 +724,27 @@ html {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: linear-gradient(180deg, #555, #333);
-  border: 1px solid #222;
+  background: linear-gradient(180deg, #e0e0e0, #b0b0b0);
+  border: 1px solid #a0a0a0;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    0 1px 2px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
   padding: 0;
 }
 
 .crt-power-btn:active {
-  background: linear-gradient(180deg, #333, #555);
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6);
+  background: linear-gradient(180deg, #b0b0b0, #e0e0e0);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .crt-power-icon {
   width: 10px;
   height: 10px;
-  border: 2px solid #999;
+  border: 2px solid #888;
   border-radius: 50%;
   position: relative;
   box-sizing: border-box;
@@ -713,7 +758,7 @@ html {
   transform: translateX(-50%);
   width: 2px;
   height: 6px;
-  background: #999;
+  background: #888;
 }
 
 .crt-power-led {
@@ -756,9 +801,9 @@ html {
   width: 50%;
   height: 10px;
   margin: 0 auto;
-  background: linear-gradient(180deg, #444, #333, #2a2a2a);
+  background: linear-gradient(180deg, #e0e0e0, #c0c0c0, #a8a8a8);
   border-radius: 0 0 8px 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .crt-stand-feet {
@@ -771,7 +816,7 @@ html {
 .crt-foot {
   width: 30px;
   height: 6px;
-  background: linear-gradient(180deg, #3a3a3a, #2a2a2a);
+  background: linear-gradient(180deg, #d0d0d0, #a8a8a8);
   border-radius: 0 0 4px 4px;
 }
 

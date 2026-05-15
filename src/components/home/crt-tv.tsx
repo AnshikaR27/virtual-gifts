@@ -133,18 +133,10 @@ export function CrtTv() {
         </p>
       </div>
 
-      <div className="px-4 pb-3 text-center">
-        <p className="font-display text-[15px] font-normal text-white/50 md:text-[16px]">
-          now playing — fan favorites
-        </p>
-        <p className="mt-0.5 font-body text-[12px] text-white/35">
-          flip channels to browse · tap the screen to create
-        </p>
-      </div>
-
       <section ref={sectionRef} className="px-4 pb-8 md:pb-12">
         <div className="mx-auto" style={{ maxWidth: 550 }}>
           <div className="crt-tv-body">
+            <span className="crt-sticker font-pixel">MOST LOVED ★</span>
             <div className="crt-tv-bezel">
               <div
                 className="crt-tv-screen"
@@ -213,12 +205,6 @@ export function CrtTv() {
                   >
                     {heroGiftDescriptions[gift.slug]}
                   </p>
-                  <button
-                    className="win98-btn-pink mt-3 text-[14px]"
-                    onClick={handleWatch}
-                  >
-                    ▶ Watch
-                  </button>
                 </div>
 
                 <span className="crt-tap-hint font-pixel">▶ tap to create</span>
