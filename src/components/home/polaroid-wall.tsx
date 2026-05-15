@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo, useRef } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { playClick } from '@/components/retro-sounds';
 import { GiftLoading } from '@/components/gift-loading';
@@ -11,8 +11,7 @@ import {
   type OccasionKey,
 } from './gift-catalog';
 
-const INITIAL_COUNT = 15;
-const LOAD_MORE_COUNT = 15;
+const INITIAL_STRINGS = 3;
 
 const preferredOrder = [
   'love-jar',
@@ -56,36 +55,36 @@ const gradients = [
   'linear-gradient(135deg, #FED7AA, #FDBA74)',
 ];
 
-const rotations = [-4, 2, -2, 5, -1, 3, -5, 1, -3, 4];
+const swayAngles = [-4, 2, -3, 5, -1, 3, -5, 1, -2, 4];
 
-type Decoration =
-  | 'thumbtack'
-  | 'tape-pink'
-  | 'tape-yellow'
-  | 'tape-blue'
-  | 'tape-mint'
-  | 'none';
-const decorations: Decoration[] = [
-  'thumbtack',
-  'tape-pink',
-  'none',
-  'tape-yellow',
-  'thumbtack',
-  'tape-blue',
-  'none',
-  'tape-mint',
-  'thumbtack',
-  'tape-pink',
-];
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 768px)');
+    setIsDesktop(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+  return isDesktop;
+}
+
+function getSagOffset(index: number, total: number, maxSag: number) {
+  if (total <= 1) return 0;
+  const t = (index + 0.5) / total;
+  return maxSag * 4 * t * (1 - t);
+}
 
 export function PolaroidWall() {
   const [activeFilter, setActiveFilter] = useState<OccasionKey>('all');
-  const [visibleCount, setVisibleCount] = useState(INITIAL_COUNT);
+  const [stringCount, setStringCount] = useState(INITIAL_STRINGS);
   const [flippedSlug, setFlippedSlug] = useState<string | null>(null);
   const [loadingSlug, setLoadingSlug] = useState<string | null>(null);
-  const [animatingFrom, setAnimatingFrom] = useState<number | null>(null);
   const router = useRouter();
-  const wallRef = useRef<HTMLDivElement>(null);
+  const isDesktop = useIsDesktop();
+
+  const perString = isDesktop ? 5 : 3;
+  const maxSag = isDesktop ? 20 : 14;
 
   const filteredSlugs = useMemo(() => {
     if (activeFilter === 'all') return null;
@@ -93,8 +92,13 @@ export function PolaroidWall() {
     return occ ? new Set(occ.slugs) : null;
   }, [activeFilter]);
 
-  const visibleGifts = orderedGifts.slice(0, visibleCount);
-  const hasMore = visibleCount < orderedGifts.length;
+  const visibleGifts = orderedGifts.slice(0, stringCount * perString);
+  const hasMore = stringCount * perString < orderedGifts.length;
+
+  const strings: GiftItem[][] = [];
+  for (let i = 0; i < visibleGifts.length; i += perString) {
+    strings.push(visibleGifts.slice(i, i + perString));
+  }
 
   const handleFilterClick = useCallback((key: OccasionKey) => {
     playClick();
@@ -123,12 +127,8 @@ export function PolaroidWall() {
 
   const handleShowMore = useCallback(() => {
     playClick();
-    const from = visibleCount;
-    const next = Math.min(visibleCount + LOAD_MORE_COUNT, orderedGifts.length);
-    setAnimatingFrom(from);
-    setVisibleCount(next);
-    setTimeout(() => setAnimatingFrom(null), (next - from) * 100 + 400);
-  }, [visibleCount]);
+    setStringCount((prev) => prev + 1);
+  }, []);
 
   const isMatch = useCallback(
     (slug: string) => !filteredSlugs || filteredSlugs.has(slug),
@@ -209,120 +209,120 @@ export function PolaroidWall() {
           pull a memory off the wall
         </h2>
 
-        {/* Polaroid Wall */}
-        <div className="polaroid-wall-bg" ref={wallRef}>
-          <div className="polaroid-grid">
-            {visibleGifts.map((gift, i) => {
-              const matched = isMatch(gift.slug);
-              const isFlipped = flippedSlug === gift.slug;
-              const gradient = gradients[i % gradients.length];
-              const rotation = rotations[i % rotations.length];
-              const decoration = decorations[i % decorations.length];
-              const isNew = animatingFrom !== null && i >= animatingFrom;
-              const staggerDelay = isNew
-                ? `${(i - (animatingFrom ?? 0)) * 0.1}s`
-                : undefined;
-
-              return (
-                <div
-                  key={gift.slug}
-                  className={`polaroid-card${isNew ? ' polaroid-animating' : ''}`}
-                  style={{
-                    transform: `rotate(${rotation}deg) scale(${matched ? 1 : 0.92})`,
-                    opacity: matched ? 1 : 0.4,
-                    animationDelay: staggerDelay,
-                    // pass rotation to the fade-in animation
-                    ['--pol-rot' as string]: `${rotation}deg`,
-                  }}
-                  onClick={() => handleFlip(gift.slug)}
-                >
-                  {/* Decoration */}
-                  {decoration === 'thumbtack' && (
-                    <div className="polaroid-thumbtack" />
-                  )}
-                  {decoration !== 'thumbtack' && decoration !== 'none' && (
-                    <div className={`polaroid-tape ${decoration}`} />
-                  )}
-
-                  {/* Flipper */}
-                  <div
-                    className={`polaroid-flipper${isFlipped ? ' is-flipped' : ''}`}
-                  >
-                    {/* Front */}
-                    <div className="polaroid-front">
-                      <div
-                        className="polaroid-photo"
-                        style={{ background: gradient }}
-                      >
-                        <span className="polaroid-price">{gift.badge}</span>
-                        <span className="polaroid-emoji">{gift.emoji}</span>
-                      </div>
-                      <div className="polaroid-caption">
-                        <span className="font-handwritten text-[15px] text-[#333]">
-                          {gift.name}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Back */}
-                    <div className="polaroid-back">
-                      <p className="line-clamp-2 font-body text-[13px] leading-snug text-[#333]">
-                        {gift.description}
-                      </p>
-                      <span className="mt-1 font-pixel text-[14px] text-[#666]">
-                        {gift.badge}
-                      </span>
-                      <button
-                        className="win98-btn-pink mt-2 text-[13px]"
-                        onClick={(e) => handleCreate(gift.slug, e)}
-                      >
-                        Create This Gift →
-                      </button>
-                      <span
-                        className="mt-1 cursor-pointer font-pixel text-[11px] text-[#999]"
-                        role="button"
-                        tabIndex={0}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          playClick();
-                          setFlippedSlug(null);
-                        }}
-                      >
-                        ✕ flip back
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Show more — styled as a Polaroid */}
-          {hasMore && (
-            <div className="mt-8 flex justify-center">
-              <div
-                className="polaroid-card cursor-pointer"
-                style={{ transform: 'rotate(2deg)', maxWidth: 160 }}
-                onClick={handleShowMore}
-                role="button"
-                tabIndex={0}
+        {/* Garland Wall */}
+        <div className="polaroid-wall-bg">
+          {strings.map((stringGifts, stringIdx) => (
+            <div
+              key={stringIdx}
+              className="garland-string-row"
+              style={{ animationDelay: `${stringIdx * 0.12}s` }}
+            >
+              <svg
+                className="garland-svg"
+                viewBox="0 0 1000 40"
+                preserveAspectRatio="none"
               >
-                <div className="polaroid-front">
-                  <div
-                    className="polaroid-photo"
-                    style={{
-                      background: 'linear-gradient(135deg, #E5E7EB, #D1D5DB)',
-                    }}
-                  >
-                    <span style={{ fontSize: 36 }}>📸</span>
-                  </div>
-                  <div className="polaroid-caption">
-                    <span className="font-handwritten text-[14px] text-[#555]">
-                      show more memories
-                    </span>
-                  </div>
-                </div>
+                <path
+                  d="M-10,4 Q500,36 1010,4"
+                  stroke="#A0845C"
+                  strokeWidth="3"
+                  fill="none"
+                  strokeLinecap="round"
+                />
+              </svg>
+
+              <div className="garland-polaroids">
+                {stringGifts.map((gift, i) => {
+                  const globalIdx = stringIdx * perString + i;
+                  const matched = isMatch(gift.slug);
+                  const isFlipped = flippedSlug === gift.slug;
+                  const gradient = gradients[globalIdx % gradients.length];
+                  const angle = swayAngles[globalIdx % swayAngles.length];
+                  const sagPx = getSagOffset(i, stringGifts.length, maxSag);
+                  const swayDuration = 4 + (globalIdx % 3);
+                  const swayDelay = ((globalIdx * 0.7) % 4).toFixed(1);
+
+                  return (
+                    <div
+                      key={gift.slug}
+                      className="garland-slot"
+                      style={{ paddingTop: `${sagPx}px` }}
+                    >
+                      <div className="garland-clothespin" />
+                      <div
+                        className={`garland-polaroid${isFlipped ? ' is-unclipped' : ''}`}
+                        style={{
+                          ['--base-angle' as string]: `${angle}deg`,
+                          opacity: matched ? 1 : 0.3,
+                          animationDuration: `${swayDuration}s`,
+                          animationDelay: `${swayDelay}s`,
+                        }}
+                        onClick={() => handleFlip(gift.slug)}
+                      >
+                        <div
+                          className={`polaroid-flipper${isFlipped ? ' is-flipped' : ''}`}
+                        >
+                          <div className="polaroid-front">
+                            <div
+                              className="polaroid-photo"
+                              style={{ background: gradient }}
+                            >
+                              <span className="polaroid-price">
+                                {gift.badge}
+                              </span>
+                              <span className="polaroid-emoji">
+                                {gift.emoji}
+                              </span>
+                            </div>
+                            <div className="polaroid-caption">
+                              <span className="font-handwritten text-[15px] text-[#333]">
+                                {gift.name}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="polaroid-back">
+                            <p className="line-clamp-2 font-body text-[13px] leading-snug text-[#333]">
+                              {gift.description}
+                            </p>
+                            <span className="mt-1 font-pixel text-[14px] text-[#666]">
+                              {gift.badge}
+                            </span>
+                            <button
+                              className="win98-btn-pink mt-2 text-[13px]"
+                              onClick={(e) => handleCreate(gift.slug, e)}
+                            >
+                              Create This Gift →
+                            </button>
+                            <span
+                              className="mt-1 cursor-pointer font-pixel text-[11px] text-[#999]"
+                              role="button"
+                              tabIndex={0}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                playClick();
+                                setFlippedSlug(null);
+                              }}
+                            >
+                              ✕ clip back
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
+            </div>
+          ))}
+
+          {hasMore && (
+            <div className="mt-4 flex justify-center">
+              <button className="garland-show-more" onClick={handleShowMore}>
+                <span className="font-handwritten text-[16px] text-[#8B7355]">
+                  hang more photos 📸
+                </span>
+              </button>
             </div>
           )}
         </div>

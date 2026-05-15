@@ -624,43 +624,154 @@ html {
       transparent 50%
     );
   border-radius: 8px;
-  padding: 24px 12px;
+  padding: 20px 8px;
   box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
 }
 
 @media (min-width: 768px) {
   .polaroid-wall-bg {
-    padding: 32px 24px;
+    padding: 28px 20px;
   }
 }
 
-.polaroid-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 28px 16px;
+/* ── Garland Strings ── */
+
+.garland-string-row {
+  position: relative;
+  padding-bottom: 8px;
+  animation: string-drop-in 0.4s ease-out both;
+}
+
+.garland-string-row + .garland-string-row {
+  margin-top: 4px;
+}
+
+.garland-svg {
+  position: absolute;
+  top: 0;
+  left: -1%;
+  width: 102%;
+  height: 24px;
+  z-index: 1;
+  pointer-events: none;
 }
 
 @media (min-width: 768px) {
-  .polaroid-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 32px 24px;
+  .garland-svg {
+    height: 28px;
   }
 }
 
-@media (min-width: 1024px) {
-  .polaroid-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-.polaroid-card {
+.garland-polaroids {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  align-items: flex-start;
   position: relative;
-  perspective: 800px;
+  z-index: 2;
+  padding-top: 4px;
+}
+
+@media (min-width: 768px) {
+  .garland-polaroids {
+    gap: 16px;
+  }
+}
+
+.garland-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 0 1 105px;
+}
+
+@media (min-width: 768px) {
+  .garland-slot {
+    flex: 0 1 150px;
+  }
+}
+
+.garland-clothespin {
+  width: 8px;
+  height: 20px;
+  background: linear-gradient(180deg, #b8976b, #8b7355);
+  border-radius: 2px 2px 1px 1px;
+  position: relative;
+  z-index: 3;
+  box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
+}
+
+.garland-clothespin::after {
+  content: '';
+  position: absolute;
+  top: 7px;
+  left: 1px;
+  right: 1px;
+  height: 3px;
+  background: rgba(0, 0, 0, 0.12);
+  border-radius: 1px;
+}
+
+.garland-polaroid {
+  width: 100%;
   cursor: pointer;
+  perspective: 800px;
+  transform-origin: top center;
+  rotate: var(--base-angle, 0deg);
+  animation: polaroid-sway 5s ease-in-out infinite;
   transition:
     opacity 0.3s,
-    transform 0.3s;
+    translate 0.3s ease,
+    rotate 0.3s ease;
+  margin-top: -2px;
 }
+
+.garland-polaroid.is-unclipped {
+  animation: none;
+  translate: 0 -12px;
+  rotate: 0deg;
+}
+
+@keyframes polaroid-sway {
+  0%,
+  100% {
+    transform: rotate(-3deg);
+  }
+  50% {
+    transform: rotate(3deg);
+  }
+}
+
+@keyframes string-drop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.garland-show-more {
+  background: none;
+  border: 2px dashed #c4a882;
+  border-radius: 8px;
+  padding: 10px 24px;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
+}
+
+.garland-show-more:hover {
+  background: rgba(160, 132, 92, 0.08);
+  border-color: #a0845c;
+}
+
+/* ── Polaroid Card ── */
 
 .polaroid-flipper {
   position: relative;
@@ -740,59 +851,6 @@ html {
   box-shadow: 2px 3px 12px rgba(0, 0, 0, 0.1);
   text-align: center;
   gap: 4px;
-}
-
-.polaroid-thumbtack {
-  position: absolute;
-  top: -7px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 14px;
-  height: 14px;
-  background: radial-gradient(circle at 40% 35%, #e74c3c, #c0392b);
-  border-radius: 50%;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  z-index: 10;
-}
-
-.polaroid-tape {
-  position: absolute;
-  top: -5px;
-  left: 50%;
-  transform: translateX(-50%) rotate(-8deg);
-  width: 44px;
-  height: 14px;
-  border-radius: 2px;
-  z-index: 10;
-  opacity: 0.7;
-}
-
-.tape-pink {
-  background: #ffb6c1;
-}
-.tape-yellow {
-  background: #ffeaa7;
-}
-.tape-blue {
-  background: #87ceeb;
-}
-.tape-mint {
-  background: #98d8c8;
-}
-
-@keyframes polaroid-fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(12px) rotate(var(--pol-rot, 0deg));
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) rotate(var(--pol-rot, 0deg));
-  }
-}
-
-.polaroid-animating {
-  animation: polaroid-fade-in 0.3s ease-out both;
 }
 
 /* ── Mobile optimizations (360px baseline) ── */
