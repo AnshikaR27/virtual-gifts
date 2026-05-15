@@ -135,7 +135,13 @@ export function CrtTv() {
 
       <section ref={sectionRef} className="px-4 pb-8 md:pb-12">
         <div className="mx-auto" style={{ maxWidth: 550 }}>
+          <div className="crt-antennas" aria-hidden>
+            <div className="crt-antenna-left" />
+            <div className="crt-antenna-right" />
+          </div>
+
           <div className="crt-tv-body">
+            <div className="crt-vents" aria-hidden />
             <span className="crt-sticker font-pixel">MOST LOVED ★</span>
             <div className="crt-tv-bezel">
               <div
@@ -150,6 +156,7 @@ export function CrtTv() {
               >
                 <div className="crt-scanlines" />
                 <div className="crt-glass" />
+                <div className="crt-vignette" />
 
                 {isStatic && (
                   <div className="crt-static-overlay">
@@ -227,6 +234,9 @@ export function CrtTv() {
                     </button>
                   ))}
                 </div>
+                <div className="crt-dial" aria-hidden>
+                  <div className="crt-dial-notch" />
+                </div>
                 <div className="crt-power-group">
                   <button
                     className="crt-power-btn"
@@ -239,8 +249,8 @@ export function CrtTv() {
               </div>
 
               <div className="crt-brand-area">
-                <span className="crt-brand-label font-pixel">HONEYHEARTS</span>
-                <span className="crt-model-label font-pixel">HH-2026</span>
+                <span className="crt-brand-label">HoneyVision™</span>
+                <span className="crt-model-label">Model HH-2026</span>
               </div>
             </div>
           </div>
