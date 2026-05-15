@@ -549,6 +549,43 @@ html {
   }
 }
 
+.crt-tap-hint {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 8;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(0, 0, 0, 0.3);
+  padding: 3px 12px;
+  border-radius: 999px;
+  pointer-events: none;
+  animation: hint-pulse 2.5s ease-in-out infinite;
+}
+
+.crt-tv-screen:hover .crt-tap-hint,
+.crt-tv-screen:active .crt-tap-hint {
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+@media (pointer: coarse) {
+  .crt-tv-screen:active .crt-tap-hint {
+    opacity: 0;
+  }
+}
+
+@keyframes hint-pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
 .crt-controls-strip {
   display: flex;
   align-items: center;
