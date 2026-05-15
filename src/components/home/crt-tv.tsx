@@ -32,9 +32,22 @@ export function CrtTv() {
   const [loading, setLoading] = useState(false);
   const [userInteracted, setUserInteracted] = useState(false);
   const [showChannelOsd, setShowChannelOsd] = useState(true);
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
   const touchStartRef = useRef(0);
   const swipedRef = useRef(false);
   const router = useRouter();
+
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsVisible(entry.isIntersecting),
+      { threshold: 0.3 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     setShowChannelOsd(true);
@@ -59,7 +72,7 @@ export function CrtTv() {
   );
 
   useEffect(() => {
-    if (userInteracted) return;
+    if (userInteracted || !isVisible) return;
     const id = setInterval(() => {
       setIsStatic(true);
       setTimeout(() => {
@@ -68,7 +81,7 @@ export function CrtTv() {
       }, 300);
     }, 4000);
     return () => clearInterval(id);
-  }, [userInteracted]);
+  }, [userInteracted, isVisible]);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     touchStartRef.current = e.touches[0].clientX;
@@ -129,7 +142,7 @@ export function CrtTv() {
         </p>
       </div>
 
-      <section className="px-4 pb-8 md:pb-12">
+      <section ref={sectionRef} className="px-4 pb-8 md:pb-12">
         <div className="mx-auto" style={{ maxWidth: 550 }}>
           <div className="crt-tv-body">
             <div className="crt-tv-bezel">
