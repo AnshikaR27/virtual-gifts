@@ -13,9 +13,20 @@ interface EnvelopeData {
   waxColorDark: string;
   sealIcon: string;
   tilt: number;
+  rank: number;
 }
 
 const envelopes: EnvelopeData[] = [
+  {
+    slug: 'the-proposal',
+    color: '#E0D4F0',
+    flapColor: '#D0C4E0',
+    waxColor: '#D4AC0D',
+    waxColorDark: '#9A7D0A',
+    sealIcon: '◇',
+    tilt: -1,
+    rank: 1,
+  },
   {
     slug: 'love-jar',
     color: '#F5EFE0',
@@ -24,6 +35,7 @@ const envelopes: EnvelopeData[] = [
     waxColorDark: '#922B21',
     sealIcon: '♥',
     tilt: -3,
+    rank: 2,
   },
   {
     slug: 'wishing-dandelion',
@@ -33,15 +45,7 @@ const envelopes: EnvelopeData[] = [
     waxColorDark: '#6C3483',
     sealIcon: '★',
     tilt: 2,
-  },
-  {
-    slug: 'the-proposal',
-    color: '#E0D4F0',
-    flapColor: '#D0C4E0',
-    waxColor: '#D4AC0D',
-    waxColorDark: '#9A7D0A',
-    sealIcon: '◇',
-    tilt: -1,
+    rank: 3,
   },
   {
     slug: 'spotify-wrapped',
@@ -51,6 +55,7 @@ const envelopes: EnvelopeData[] = [
     waxColorDark: '#1E8449',
     sealIcon: '♪',
     tilt: 3,
+    rank: 4,
   },
   {
     slug: 'sorry-puppy',
@@ -60,6 +65,7 @@ const envelopes: EnvelopeData[] = [
     waxColorDark: '#B8176E',
     sealIcon: '✿',
     tilt: -2,
+    rank: 5,
   },
 ];
 
@@ -194,19 +200,22 @@ export function LoveLetterRack() {
     <>
       <div className="px-4 pb-3 pt-10 text-center">
         <p
-          className="font-handwritten text-[22px] md:text-[26px]"
+          className="font-handwritten text-[24px] font-bold md:text-[28px]"
           style={{
             color: '#8B6F4E',
             textShadow: '0 1px 3px rgba(139,111,78,0.2)',
           }}
         >
-          &#9733; pick a letter to open &#9733;
+          &#9733; top 5 letters everyone&apos;s sending &#9733;
         </p>
       </div>
 
       <section className="letter-rack-section">
         <div className="letter-desk">
           <div className="letter-desk-surface">
+            <span className="letter-fan-favs-sticker font-pixel" aria-hidden>
+              &#9733; FAN FAVS &#9733;
+            </span>
             {envelopes.map((env) => {
               const gift = allGifts.find((g) => g.slug === env.slug)!;
               const isOpen = openEnvelope === env.slug;
@@ -228,6 +237,9 @@ export function LoveLetterRack() {
                     onClick={() => handleTap(env.slug)}
                     aria-label={`Open ${gift.name} letter`}
                   >
+                    <span className="letter-rank-badge font-pixel">
+                      {env.rank}
+                    </span>
                     <span className="letter-flap" aria-hidden />
                     <span className="letter-body-inner" aria-hidden />
 
