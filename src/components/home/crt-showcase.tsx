@@ -207,14 +207,18 @@ export function CrtShowcase() {
 
   return (
     <>
-      <div className="px-4 pb-5 pt-10 text-center md:pb-6">
-        <p className="crt-marquee-header font-pixel">
-          <span className="crt-marquee-star">&#10022;</span> NOW SHOWING &mdash;
-          FAN FAVORITES <span className="crt-marquee-star">&#10022;</span>
-        </p>
-      </div>
-
       <section className="crt-section" ref={sectionRef}>
+        {/* Win98 title bar flush above CRT */}
+        <div className="crt-win98-titlebar">
+          <span className="crt-win98-titlebar-text">
+            ★ NOW SHOWING — FAN FAVORITES
+          </span>
+          <div className="crt-win98-titlebar-controls">
+            <span className="crt-win98-ctrl-btn">_</span>
+            <span className="crt-win98-ctrl-btn">□</span>
+            <span className="crt-win98-ctrl-btn">✕</span>
+          </div>
+        </div>
         <div className="crt-tv">
           {/* Screen area */}
           <div className="crt-screen-bezel">

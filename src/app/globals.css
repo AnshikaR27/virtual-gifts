@@ -395,33 +395,65 @@ html {
   animation: paper-fly 0.6s ease-in-out infinite;
 }
 
-/* ── CRT Marquee Header ── */
+/* ── CRT Win98 Title Bar ── */
 
-.crt-marquee-header {
-  display: inline-block;
-  font-size: 2.5rem;
-  letter-spacing: 0.05em;
-  color: #ff1493;
-  text-shadow:
-    -2px -2px 0 #fff,
-    2px -2px 0 #fff,
-    -2px 2px 0 #fff,
-    2px 2px 0 #fff,
-    0 4px 8px rgba(255, 20, 147, 0.3);
-  max-width: 70%;
-  margin: 0 auto;
+.crt-win98-titlebar {
+  width: 100%;
+  max-width: 520px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px 0 8px;
+  background: linear-gradient(90deg, #000080, #1084d0);
+  border: 2px solid;
+  border-color: #fff #000 #000 #fff;
+  border-bottom: none;
+  border-radius: 4px 4px 0 0;
+  box-sizing: border-box;
+  margin-bottom: -2px;
+  position: relative;
+  z-index: 2;
 }
 
 @media (min-width: 768px) {
-  .crt-marquee-header {
-    font-size: 3rem;
-    max-width: 65%;
+  .crt-win98-titlebar {
+    width: 92%;
+    max-width: 520px;
   }
 }
 
-.crt-marquee-star {
-  font-size: 0.75em;
-  vertical-align: middle;
+.crt-win98-titlebar-text {
+  font-family: Tahoma, 'MS Sans Serif', Arial, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.crt-win98-titlebar-controls {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.crt-win98-ctrl-btn {
+  width: 16px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #c0c0c0;
+  border: 2px solid;
+  border-color: #fff #404040 #404040 #fff;
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  color: #000;
+  box-shadow: inset -1px -1px 0 #808080;
 }
 
 /* ── CRT TV Showcase ── */
@@ -430,12 +462,12 @@ html {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0 12px 8px;
+  padding: 24px 12px 8px;
 }
 
 @media (min-width: 768px) {
   .crt-section {
-    padding: 0 16px 8px;
+    padding: 24px 16px 8px;
   }
 }
 
@@ -793,36 +825,36 @@ html {
   padding: 36px 16px 32px;
 }
 
-.wall-transition-title {
-  font-size: 24px;
-  color: #8b6f4e;
-  margin: 0 0 6px;
-  text-shadow: 0 1px 2px rgba(139, 111, 78, 0.15);
+.wall-transition-btn {
+  display: inline-block;
+  background: #c0c0c0;
+  border: 2px solid;
+  border-color: #fff #000 #000 #fff;
+  box-shadow:
+    inset -1px -1px 0 #808080,
+    inset 1px 1px 0 #dfdfdf;
+  padding: 8px 20px;
+  font-family: Tahoma, 'MS Sans Serif', Arial, sans-serif;
+  font-size: 14px;
+  color: #000;
+  text-decoration: none;
+  cursor: pointer;
 }
 
-@media (min-width: 768px) {
-  .wall-transition-title {
-    font-size: 32px;
-  }
+.wall-transition-btn:active {
+  border-color: #000 #fff #fff #000;
+  box-shadow:
+    inset 1px 1px 0 #808080,
+    inset -1px -1px 0 #dfdfdf;
+  padding: 9px 19px 7px 21px;
 }
 
-.wall-transition-sub {
-  font-size: 13px;
-  color: #a08b6f;
-  margin: 0;
-}
-
-@media (min-width: 768px) {
-  .wall-transition-sub {
-    font-size: 15px;
-  }
-}
-
-.wall-transition-trail {
-  display: block;
-  width: 60px;
-  height: 20px;
-  margin: 12px auto 0;
+.wall-transition-hint {
+  margin: 12px 0 0;
+  font-family: Tahoma, 'MS Sans Serif', Arial, sans-serif;
+  font-size: 12px;
+  font-style: italic;
+  color: #6b5b7b;
 }
 
 /* ── Polaroid Wall ── */
