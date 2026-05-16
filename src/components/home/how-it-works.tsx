@@ -1,3 +1,7 @@
+'use client';
+
+import { useReveal } from '@/hooks/use-reveal';
+
 const steps = [
   {
     number: '01',
@@ -29,18 +33,20 @@ function TitlebarButtons() {
         <span className="block h-[7px] w-[7px] border border-black" />
       </span>
       <span className="win98-titlebar-btn" aria-hidden>
-        <span className="text-[10px] font-bold leading-none text-black">✕</span>
+        <span className="text-[10px] font-bold leading-none text-ink">✕</span>
       </span>
     </div>
   );
 }
 
 export function HowItWorks() {
+  const revealRef = useReveal<HTMLDivElement>({ staggerMs: 80 });
+
   return (
     <section id="how-it-works" className="px-4 py-8 md:py-12">
       <div className="mx-auto max-w-4xl">
         <div className="win98-window">
-          <div className="win98-titlebar text-[14px]">
+          <div className="win98-titlebar">
             <span>📖 README.txt — How It Works</span>
             <TitlebarButtons />
           </div>
@@ -51,18 +57,22 @@ export function HowItWorks() {
                 'var(--win-chrome-dark) var(--win-chrome-light) var(--win-chrome-light) var(--win-chrome-dark)',
             }}
           >
-            <div className="grid gap-6 md:grid-cols-3 md:gap-8">
+            <div ref={revealRef} className="grid gap-6 md:grid-cols-3 md:gap-8">
               {steps.map((step) => (
-                <div key={step.number} className="relative text-center">
-                  <span className="pointer-events-none absolute -right-1 -top-2 select-none font-pixel text-[48px] leading-none text-[#C8A2E8]/30 md:text-[72px]">
+                <div
+                  key={step.number}
+                  className="relative text-center"
+                  data-reveal
+                >
+                  <span className="pointer-events-none absolute -right-1 -top-2 select-none font-pixel text-[40px] leading-none text-[#C8A2E8]/30 md:text-[72px]">
                     {step.number}
                   </span>
                   <div className="relative">
                     <span className="text-3xl">{step.emoji}</span>
-                    <h3 className="mt-3 font-display text-lg font-semibold text-[#2D0A4E]">
+                    <h3 className="mt-3 font-display text-[18px] font-semibold text-ink">
                       {step.title}
                     </h3>
-                    <p className="mt-2 font-body text-sm leading-relaxed text-black/60">
+                    <p className="mt-2 font-body text-[15px] leading-relaxed text-ink/60">
                       {step.description}
                     </p>
                   </div>

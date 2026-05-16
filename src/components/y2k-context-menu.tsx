@@ -78,7 +78,7 @@ export function Y2KContextMenu() {
         {MENU_ITEMS.map((item, i) => (
           <button
             key={i}
-            className="flex w-full items-center px-6 py-[5px] text-left font-pixel text-[14px] text-black hover:bg-[#0000AA] hover:text-white"
+            className="flex w-full items-center px-6 py-[5px] text-left font-pixel text-[15px] text-ink hover:bg-[#0000AA] hover:text-white"
             onClick={(e) => {
               e.stopPropagation();
               playClick();

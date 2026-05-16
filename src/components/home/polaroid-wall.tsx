@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { playClick } from '@/components/retro-sounds';
 import { GiftLoading } from '@/components/gift-loading';
@@ -85,6 +85,37 @@ export function PolaroidWall() {
   const [loadingSlug, setLoadingSlug] = useState<string | null>(null);
   const router = useRouter();
   const isDesktop = useIsDesktop();
+  const wallRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const wall = wallRef.current;
+    if (!wall) return;
+
+    const prefersReducedMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches;
+
+    if (prefersReducedMotion) {
+      wall.querySelectorAll('.garland-string-row').forEach((el) => {
+        (el as HTMLElement).classList.add('is-visible');
+      });
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          wall.querySelectorAll('.garland-string-row').forEach((el) => {
+            (el as HTMLElement).classList.add('is-visible');
+          });
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.15, rootMargin: '0px 0px -40px 0px' },
+    );
+    observer.observe(wall);
+    return () => observer.disconnect();
+  }, [stringCount]);
 
   const perString = isDesktop ? 5 : 3;
   const maxSag = isDesktop ? 20 : 14;
@@ -124,7 +155,7 @@ export function PolaroidWall() {
   return (
     <section id="browse" className="px-4 py-5 md:py-8">
       <div className="mx-auto max-w-6xl">
-        <div className="polaroid-wall-bg">
+        <div className="polaroid-wall-bg" ref={wallRef}>
           {strings.map((stringGifts, stringIdx) => (
             <div
               key={stringIdx}
@@ -184,14 +215,14 @@ export function PolaroidWall() {
                               </span>
                             </div>
                             <div className="polaroid-caption">
-                              <span className="font-handwritten text-[15px] text-[#333]">
+                              <span className="font-display text-[13px] text-ink">
                                 {gift.name}
                               </span>
                             </div>
                           </div>
 
                           <div className="polaroid-back">
-                            <p className="line-clamp-2 font-body text-[13px] leading-snug text-[#333]">
+                            <p className="line-clamp-2 font-body text-[13px] leading-snug text-ink">
                               {gift.description}
                             </p>
                             <button
@@ -201,7 +232,7 @@ export function PolaroidWall() {
                               Create This Gift →
                             </button>
                             <span
-                              className="mt-1 cursor-pointer font-pixel text-[11px] text-[#999]"
+                              className="mt-1 cursor-pointer font-pixel text-[13px] text-ink/40"
                               role="button"
                               tabIndex={0}
                               onClick={(e) => {
@@ -225,7 +256,7 @@ export function PolaroidWall() {
           {hasMore && (
             <div className="mt-4 flex justify-center">
               <button className="garland-show-more" onClick={handleShowMore}>
-                <span className="font-handwritten text-[16px] text-[#8B7355]">
+                <span className="font-handwritten text-[18px] text-[#8B7355]">
                   hang more photos 📸
                 </span>
               </button>

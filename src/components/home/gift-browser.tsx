@@ -73,10 +73,10 @@ function ChatBubble({ gift, index }: { gift: GiftItem; index: number }) {
               {gift.emoji}
             </span>
             <div className="min-w-0 flex-1">
-              <h3 className="font-display text-[15px] font-semibold leading-tight text-[#2D0A4E]">
+              <h3 className="font-display text-[15px] font-semibold leading-tight text-ink">
                 {gift.name}
               </h3>
-              <p className="mt-0.5 line-clamp-2 font-body text-[13px] leading-snug text-black/55">
+              <p className="mt-0.5 line-clamp-2 font-body text-[13px] leading-snug text-ink/55">
                 {gift.description}
               </p>
             </div>
@@ -84,7 +84,7 @@ function ChatBubble({ gift, index }: { gift: GiftItem; index: number }) {
               <a
                 href={`/gift/${gift.slug}`}
                 onClick={handleClick}
-                className="win98-btn-pink text-[11px]"
+                className="win98-btn-pink text-[13px]"
                 style={{ padding: '2px 8px', minHeight: 'auto' }}
               >
                 Create
@@ -93,7 +93,7 @@ function ChatBubble({ gift, index }: { gift: GiftItem; index: number }) {
           </div>
         </div>
         <span
-          className={`mt-0.5 font-pixel text-[11px] text-black/35 ${isRight ? 'mr-2' : 'ml-2'}`}
+          className={`mt-0.5 font-body text-[13px] text-ink/35 ${isRight ? 'mr-2' : 'ml-2'}`}
         >
           sent by HoneyHearts 💕
         </span>
@@ -134,7 +134,7 @@ export function GiftBrowser() {
       <div className="mx-auto max-w-6xl">
         {/* Win98 filter bar */}
         <div className="win98-window">
-          <div className="win98-titlebar text-[14px]">
+          <div className="win98-titlebar">
             <span>📂 Browse by occasion</span>
             <div className="flex gap-[2px]">
               <span className="win98-titlebar-btn" aria-hidden>
@@ -144,7 +144,7 @@ export function GiftBrowser() {
                 <span className="block h-[7px] w-[7px] border border-black" />
               </span>
               <span className="win98-titlebar-btn" aria-hidden>
-                <span className="text-[10px] font-bold leading-none text-black">
+                <span className="text-[10px] font-bold leading-none text-ink">
                   ✕
                 </span>
               </span>
@@ -193,7 +193,7 @@ export function GiftBrowser() {
               </button>
             </div>
 
-            <p className="mt-3 font-pixel text-[13px] text-black/60">
+            <p className="mt-3 font-body text-[13px] text-ink/60">
               Showing {visibleGifts.length}
               {!expanded && hasMore ? ` of ${filteredGifts.length}` : ''} gifts
             </p>
@@ -210,7 +210,7 @@ export function GiftBrowser() {
         {hasMore && !expanded && (
           <div className="mt-4 flex justify-center">
             <button
-              className="win98-btn text-[14px]"
+              className="win98-btn text-[15px]"
               onClick={() => {
                 playClick();
                 setExpanded(true);

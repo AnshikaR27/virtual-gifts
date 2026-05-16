@@ -8,7 +8,7 @@ function TitlebarButtons() {
         <span className="block h-[7px] w-[7px] border border-black" />
       </span>
       <span className="win98-titlebar-btn" aria-hidden>
-        <span className="text-[10px] font-bold leading-none text-black">✕</span>
+        <span className="text-[10px] font-bold leading-none text-ink">✕</span>
       </span>
     </div>
   );
@@ -19,7 +19,7 @@ export function CommunityCTA() {
     <section className="px-4 py-8 md:py-12">
       <div className="mx-auto max-w-md">
         <div className="win98-window">
-          <div className="win98-titlebar text-[14px]">
+          <div className="win98-titlebar">
             <span>⚠️ SYSTEM</span>
             <TitlebarButtons />
           </div>
@@ -30,14 +30,14 @@ export function CommunityCTA() {
                 'var(--win-chrome-dark) var(--win-chrome-light) var(--win-chrome-light) var(--win-chrome-dark)',
             }}
           >
-            <p className="font-pixel text-[20px] leading-snug text-black md:text-[22px]">
+            <p className="font-pixel text-[18px] leading-snug text-ink md:text-[24px]">
               Would you like to find love?
             </p>
             <div className="mt-6 flex justify-center gap-3">
-              <a href="#browse" className="win98-btn-pink text-[18px]">
+              <a href="#browse" className="win98-btn-pink">
                 Yes
               </a>
-              <a href="#browse" className="win98-btn-pink text-[18px]">
+              <a href="#browse" className="win98-btn-pink">
                 Absolutely!
               </a>
             </div>

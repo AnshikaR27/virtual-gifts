@@ -21,7 +21,7 @@ function Clock() {
     return () => clearInterval(id);
   }, []);
 
-  return <span className="font-pixel text-[14px] text-black">{time}</span>;
+  return <span className="font-pixel text-[15px] text-ink">{time}</span>;
 }
 
 export function Taskbar() {
@@ -39,18 +39,18 @@ export function Taskbar() {
       {/* Start button (no menu) */}
       <a
         href="/"
-        className="win98-btn flex items-center gap-1.5 self-stretch text-[14px] no-underline md:self-auto"
+        className="win98-btn flex items-center gap-1.5 self-stretch no-underline md:self-auto"
         style={{ padding: '2px 10px' }}
       >
         <span className="text-base leading-none">💖</span>
-        <span className="font-pixel font-bold tracking-wide text-black">
+        <span className="font-pixel font-bold tracking-wide text-ink">
           HoneyHearts
         </span>
       </a>
 
       {/* Center marquee area */}
       <div className="hidden items-center sm:flex">
-        <span className="font-pixel text-[14px] text-black/80">
+        <span className="font-pixel text-[15px] text-ink/80">
           💕 87 gifts to make them ugly cry
         </span>
       </div>

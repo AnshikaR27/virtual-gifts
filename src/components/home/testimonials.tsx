@@ -1,3 +1,7 @@
+'use client';
+
+import { useReveal } from '@/hooks/use-reveal';
+
 const quotes = [
   {
     text: 'My boyfriend shook the Love Jar 47 times. FORTY SEVEN.',
@@ -35,24 +39,30 @@ function TitlebarButtons() {
         <span className="block h-[7px] w-[7px] border border-black" />
       </span>
       <span className="win98-titlebar-btn" aria-hidden>
-        <span className="text-[10px] font-bold leading-none text-black">✕</span>
+        <span className="text-[10px] font-bold leading-none text-ink">✕</span>
       </span>
     </div>
   );
 }
 
 export function Testimonials() {
+  const revealRef = useReveal<HTMLDivElement>({ staggerMs: 80 });
+
   return (
     <section className="px-4 py-8 md:py-12">
       <div className="mx-auto max-w-6xl">
-        <h2 className="font-pixel text-xl text-[#2D0A4E] md:text-2xl">
+        <h2 className="font-display text-[24px] font-semibold text-ink md:text-[32px]">
           C:\Reviews\happy_tears
         </h2>
-        <div className="scrollbar-hide -mx-4 mt-5 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2">
+        <div
+          ref={revealRef}
+          className="scrollbar-hide -mx-4 mt-5 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2"
+        >
           {quotes.map((q) => (
             <div
               key={q.username}
               className="w-[270px] flex-shrink-0 snap-start md:w-[310px]"
+              data-reveal
               style={{
                 background: 'var(--win-chrome)',
                 border: '2px solid',
@@ -69,7 +79,7 @@ export function Testimonials() {
                     'linear-gradient(90deg, var(--win-title-start), var(--win-title-end))',
                 }}
               >
-                <span className="font-pixel text-[14px] text-white">
+                <span className="font-pixel text-[15px] text-white">
                   {q.username} — Notepad
                 </span>
                 <TitlebarButtons />
@@ -81,7 +91,7 @@ export function Testimonials() {
                     'var(--win-chrome-dark) var(--win-chrome-light) var(--win-chrome-light) var(--win-chrome-dark)',
                 }}
               >
-                <p className="font-pixel text-[15px] leading-relaxed text-black">
+                <p className="font-body text-[15px] leading-relaxed text-ink">
                   &ldquo;{q.text}&rdquo;
                 </p>
               </div>

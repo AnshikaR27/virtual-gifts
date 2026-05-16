@@ -37,24 +37,24 @@ export function GiftLoading({ onComplete }: { onComplete: () => void }) {
       style={{ background: 'rgba(0, 0, 0, 0.4)' }}
     >
       <div className="win98-window" style={{ width: 340, maxWidth: '90vw' }}>
-        <div className="win98-titlebar text-[14px]">
+        <div className="win98-titlebar">
           <span>Opening gift...</span>
           <div className="flex gap-[2px]">
             <span className="win98-titlebar-btn" aria-hidden>
-              <span className="text-[10px] font-bold leading-none text-black">
+              <span className="text-[10px] font-bold leading-none text-ink">
                 ✕
               </span>
             </span>
           </div>
         </div>
         <div className="win98-body">
-          <p className="mb-3 font-pixel text-[14px] text-black">
+          <p className="mb-3 font-pixel text-[15px] text-ink">
             Copying Love to your heart...
           </p>
 
           <div className="mb-3 flex items-center justify-center gap-2">
             <span className="text-[24px]">📁</span>
-            <span className="gift-loading-paper text-[16px]">📄</span>
+            <span className="gift-loading-paper text-[18px]">📄</span>
             <span className="text-[24px]">📁</span>
           </div>
 
@@ -73,7 +73,7 @@ export function GiftLoading({ onComplete }: { onComplete: () => void }) {
               }}
             />
           </div>
-          <p className="mt-1 font-pixel text-[12px] text-black/60">
+          <p className="mt-1 font-pixel text-[13px] text-ink/60">
             {progress}% complete
           </p>
         </div>

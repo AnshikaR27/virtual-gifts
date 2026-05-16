@@ -14,7 +14,7 @@ export function ShutdownButton() {
           playClick();
           showToast('Error: Cannot shut down. Too much love in the system.');
         }}
-        className="font-pixel text-[16px] tracking-wide"
+        className="font-pixel text-[18px] tracking-wide"
         style={{
           color: '#FF69B4',
           textShadow: '0 0 8px rgba(255,105,180,0.5)',

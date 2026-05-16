@@ -6,6 +6,8 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        ink: '#1a0a2e',
+
         /* ── Primary ── */
         primary: {
           DEFAULT: 'hsl(var(--primary))',

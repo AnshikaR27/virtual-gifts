@@ -185,7 +185,7 @@ export function WelcomePopup() {
               userSelect: 'none',
             }}
           >
-            <span className="font-pixel text-[14px] font-bold tracking-wide text-white">
+            <span className="font-pixel text-[15px] font-bold tracking-wide text-white">
               {message?.title ?? '⚠️ WARNING'}
             </span>
             <button
@@ -193,7 +193,7 @@ export function WelcomePopup() {
               aria-label="Close"
               onClick={dismiss}
             >
-              <span className="text-[10px] font-bold leading-none text-black">
+              <span className="text-[10px] font-bold leading-none text-ink">
                 ✕
               </span>
             </button>
@@ -209,11 +209,11 @@ export function WelcomePopup() {
               padding: '16px 14px',
             }}
           >
-            <p className="font-pixel text-[14px] leading-relaxed text-black">
+            <p className="font-pixel text-[15px] leading-relaxed text-ink">
               {message?.text}
             </p>
             <div className="mt-4 flex justify-end">
-              <button className="win98-btn text-[14px]" onClick={dismiss}>
+              <button className="win98-btn text-[15px]" onClick={dismiss}>
                 OK
               </button>
             </div>

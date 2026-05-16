@@ -209,7 +209,7 @@ export function CrtShowcase() {
     <>
       <div className="px-4 pb-3 pt-10 text-center">
         <p
-          className="font-handwritten text-[22px] md:text-[26px]"
+          className="font-handwritten text-[24px] md:text-[24px]"
           style={{
             color: '#8B6F4E',
             textShadow: '0 1px 3px rgba(139,111,78,0.2)',

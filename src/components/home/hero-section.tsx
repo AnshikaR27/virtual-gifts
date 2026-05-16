@@ -28,7 +28,7 @@ function TitlebarButtons() {
         <span className="block h-[7px] w-[7px] border border-black" />
       </button>
       <button className="win98-titlebar-btn" aria-label="Close">
-        <span className="text-[10px] font-bold leading-none text-black">✕</span>
+        <span className="text-[10px] font-bold leading-none text-ink">✕</span>
       </button>
     </div>
   );
@@ -55,12 +55,12 @@ function FloatingWindows() {
           <TitlebarButtons />
         </div>
         <div className="win98-body">
-          <p className="font-pixel text-[13px] leading-snug text-black">
+          <p className="font-pixel text-[13px] leading-snug text-ink">
             Your love life is running low on memory. Please delete some bad
             decisions.
           </p>
           <div className="mt-3 flex justify-end">
-            <span className="win98-btn text-[12px]">OK</span>
+            <span className="win98-btn text-[13px]">OK</span>
           </div>
         </div>
       </div>
@@ -84,7 +84,7 @@ function FloatingWindows() {
           <TitlebarButtons />
         </div>
         <div className="win98-body">
-          <p className="mb-2 font-pixel text-[12px] text-black">
+          <p className="mb-2 font-pixel text-[13px] text-ink">
             Loading ROMANCE.exe...
           </p>
           <div
@@ -99,7 +99,7 @@ function FloatingWindows() {
               style={{ background: 'linear-gradient(90deg, #FF69B4, #BA55D3)' }}
             />
           </div>
-          <p className="mt-1 font-pixel text-[11px] text-black/60">
+          <p className="mt-1 font-pixel text-[13px] text-ink/60">
             78% complete
           </p>
         </div>
@@ -124,11 +124,11 @@ function FloatingWindows() {
           <TitlebarButtons />
         </div>
         <div className="win98-body text-center">
-          <p className="font-pixel text-[13px] text-black">
+          <p className="font-pixel text-[13px] text-ink">
             Heart rate increasing...
           </p>
           <div className="mt-3 flex justify-center">
-            <span className="win98-btn text-[12px]">[OK]</span>
+            <span className="win98-btn text-[13px]">[OK]</span>
           </div>
         </div>
       </div>
@@ -174,32 +174,32 @@ export function HeroSection() {
         {/* Right side — ROMANCE.exe window */}
         <div className="flex-1 md:max-w-[560px]">
           <div className="win98-window">
-            <div className="win98-titlebar text-[15px]">
+            <div className="win98-titlebar">
               <span>💕 ROMANCE.exe</span>
               <TitlebarButtons />
             </div>
             <div className="win98-body">
               <div className="min-h-[120px] md:min-h-[140px]">
                 <h1
-                  className={`blink-cursor font-display text-[24px] font-semibold leading-snug tracking-tight transition-opacity duration-300 md:text-[34px] md:leading-tight ${
+                  className={`blink-cursor font-display text-[24px] font-semibold leading-snug tracking-tight transition-opacity duration-300 md:text-[32px] md:leading-tight ${
                     fading ? 'opacity-0' : 'opacity-100'
                   }`}
-                  style={{ color: '#2D0A4E' }}
+                  style={{ color: '#1a0a2e' }}
                 >
                   {headlines[index]}
                 </h1>
               </div>
 
-              <p className="mt-4 font-body text-[15px] leading-relaxed text-black/70">
+              <p className="mt-4 font-body text-[15px] leading-relaxed text-ink/70">
                 Pick a gift, add your words, send via WhatsApp. Takes 30
                 seconds.
               </p>
 
               <div className="mt-6 flex flex-wrap gap-3">
-                <a href="#browse" className="win98-btn-pink text-[18px]">
+                <a href="#browse" className="win98-btn-pink">
                   Try Free ♥
                 </a>
-                <a href="#browse" className="win98-btn text-[16px]">
+                <a href="#browse" className="win98-btn">
                   See Gifts
                 </a>
               </div>
