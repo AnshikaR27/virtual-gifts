@@ -397,30 +397,21 @@ html {
 
 /* ── CRT Labels ── */
 
-.crt-label-top {
-  font-size: 24px;
+.crt-label-top,
+.crt-label-bottom {
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
   color: #3a1a4e;
-  margin: 0 0 10px;
-  text-shadow: 0 1px 3px rgba(58, 26, 78, 0.15);
+  margin: 0;
 }
 
-@media (min-width: 768px) {
-  .crt-label-top {
-    font-size: 28px;
-  }
+.crt-label-top {
+  margin-bottom: 18px;
 }
 
 .crt-label-bottom {
-  font-size: 22px;
-  color: #3a1a4e;
-  margin: 10px 0 0;
-  text-shadow: 0 1px 3px rgba(58, 26, 78, 0.15);
-}
-
-@media (min-width: 768px) {
-  .crt-label-bottom {
-    font-size: 26px;
-  }
+  margin-top: 18px;
 }
 
 /* ── CRT TV Showcase ── */
@@ -789,12 +780,12 @@ html {
 /* ── Wall Transition ── */
 .wall-transition {
   text-align: center;
-  padding: 12px 16px 32px;
+  padding: 8px 16px 32px;
 }
 
 .wall-transition-hint {
   margin: 0;
-  font-size: 13px;
+  font-size: 16px;
   color: rgba(58, 26, 78, 0.7);
 }
 

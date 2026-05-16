@@ -208,7 +208,7 @@ export function CrtShowcase() {
   return (
     <>
       <section className="crt-section" ref={sectionRef}>
-        <p className="crt-label-top font-handwritten">★ for your person ♥ ★</p>
+        <p className="crt-label-top font-display">For Your Person ♥</p>
         <div className="crt-tv">
           {/* Screen area */}
           <div className="crt-screen-bezel">
@@ -315,8 +315,8 @@ export function CrtShowcase() {
           <span className="crt-foot crt-foot-r" />
         </div>
 
-        <p className="crt-label-bottom font-handwritten">
-          find what feels like them →
+        <p className="crt-label-bottom font-display">
+          Find What Feels Like Them →
         </p>
       </section>
 
