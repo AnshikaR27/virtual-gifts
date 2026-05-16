@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { BRAND_NAME } from '@/lib/constants';
 import { HeroSection } from '@/components/home/hero-section';
-import { LoveLetterRack } from '@/components/home/love-letter-rack';
+import { CrtShowcase } from '@/components/home/crt-showcase';
 import { PolaroidWall } from '@/components/home/polaroid-wall';
 import { HowItWorks } from '@/components/home/how-it-works';
 import { CommunityCTA } from '@/components/home/community-cta';
@@ -28,7 +28,7 @@ export default function Home() {
   return (
     <div className="pb-20 md:pb-0">
       <HeroSection />
-      <LoveLetterRack />
+      <CrtShowcase />
       <div className="wall-transition">
         <p className="wall-transition-title font-handwritten">
           want more? wander the wall &#8595;
