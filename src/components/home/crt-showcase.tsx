@@ -207,15 +207,10 @@ export function CrtShowcase() {
 
   return (
     <>
-      <div className="px-4 pb-3 pt-10 text-center">
-        <p
-          className="font-handwritten text-[24px] md:text-[24px]"
-          style={{
-            color: '#8B6F4E',
-            textShadow: '0 1px 3px rgba(139,111,78,0.2)',
-          }}
-        >
-          &#9733; now showing &mdash; fan favorites &#9733;
+      <div className="px-4 pb-5 pt-10 text-center md:pb-6">
+        <p className="crt-marquee-header font-pixel">
+          <span className="crt-marquee-star">&#10022;</span> NOW SHOWING &mdash;
+          FAN FAVORITES <span className="crt-marquee-star">&#10022;</span>
         </p>
       </div>
 
