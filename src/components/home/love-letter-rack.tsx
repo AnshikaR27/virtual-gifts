@@ -5,14 +5,12 @@ import { useRouter } from 'next/navigation';
 import { GiftLoading } from '@/components/gift-loading';
 import { allGifts, heroGiftSlugs, heroGiftDescriptions } from './gift-catalog';
 
-const heroGifts = heroGiftSlugs
-  .map((slug) => allGifts.find((g) => g.slug === slug)!)
-  .filter(Boolean);
-
 interface EnvelopeData {
   slug: string;
   color: string;
+  flapColor: string;
   waxColor: string;
+  waxColorDark: string;
   sealIcon: string;
   tilt: number;
 }
@@ -21,37 +19,47 @@ const envelopes: EnvelopeData[] = [
   {
     slug: 'love-jar',
     color: '#F5EFE0',
+    flapColor: '#E8DFD0',
     waxColor: '#C0392B',
+    waxColorDark: '#922B21',
     sealIcon: '♥',
-    tilt: -2,
+    tilt: -3,
   },
   {
     slug: 'wishing-dandelion',
     color: '#FFD6E0',
+    flapColor: '#F0C4CE',
     waxColor: '#8E44AD',
+    waxColorDark: '#6C3483',
     sealIcon: '★',
-    tilt: 3,
+    tilt: 2,
   },
   {
     slug: 'the-proposal',
     color: '#E0D4F0',
+    flapColor: '#D0C4E0',
     waxColor: '#D4AC0D',
+    waxColorDark: '#9A7D0A',
     sealIcon: '◇',
     tilt: -1,
   },
   {
     slug: 'spotify-wrapped',
     color: '#D4E8D4',
+    flapColor: '#C2D8C2',
     waxColor: '#27AE60',
+    waxColorDark: '#1E8449',
     sealIcon: '♪',
-    tilt: 2,
+    tilt: 3,
   },
   {
     slug: 'sorry-puppy',
     color: '#F5E8C0',
+    flapColor: '#E8DAB0',
     waxColor: '#E91E8C',
+    waxColorDark: '#B8176E',
     sealIcon: '✿',
-    tilt: -3,
+    tilt: -2,
   },
 ];
 
@@ -197,12 +205,8 @@ export function LoveLetterRack() {
       </div>
 
       <section className="letter-rack-section">
-        <div className="letter-rack">
-          <div className="letter-rack-label font-pixel">
-            &#9733; Love Letters &#9733;
-          </div>
-
-          <div className="letter-rack-slots">
+        <div className="letter-desk">
+          <div className="letter-desk-surface">
             {envelopes.map((env) => {
               const gift = allGifts.find((g) => g.slug === env.slug)!;
               const isOpen = openEnvelope === env.slug;
@@ -215,18 +219,23 @@ export function LoveLetterRack() {
                     style={
                       {
                         '--envelope-color': env.color,
+                        '--envelope-flap': env.flapColor,
                         '--envelope-tilt': `${env.tilt}deg`,
                         '--wax-color': env.waxColor,
+                        '--wax-color-dark': env.waxColorDark,
                       } as React.CSSProperties
                     }
                     onClick={() => handleTap(env.slug)}
                     aria-label={`Open ${gift.name} letter`}
                   >
+                    <span className="letter-flap" aria-hidden />
+                    <span className="letter-body-inner" aria-hidden />
+
                     <span className="letter-address font-handwritten">
-                      To: My Person ♡
+                      To: My Person &#9825;
                     </span>
 
-                    <span className="letter-stamp">♥</span>
+                    <span className="letter-stamp">&#9829;</span>
 
                     <span className="letter-wax-seal">
                       <span className="letter-wax-seal-icon">
