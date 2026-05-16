@@ -518,6 +518,66 @@ html {
   }
 }
 
+/* ── Channel indicator ── */
+.crt-ch-indicator {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  z-index: 5;
+  font-size: 11px;
+  color: rgba(180, 255, 180, 0.7);
+  text-shadow: 0 0 4px rgba(100, 255, 100, 0.5);
+  letter-spacing: 1px;
+}
+
+/* ── Static burst (channel switch) ── */
+.crt-static-burst::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  border-radius: 22px;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 1px,
+      rgba(255, 255, 255, 0.03) 1px,
+      rgba(255, 255, 255, 0.03) 2px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 2px,
+      rgba(255, 255, 255, 0.02) 2px,
+      rgba(255, 255, 255, 0.02) 4px
+    );
+  animation: crt-noise 0.1s steps(4) infinite;
+}
+
+@keyframes crt-noise {
+  0% {
+    background-position:
+      0 0,
+      0 0;
+  }
+  25% {
+    background-position:
+      -2px 3px,
+      1px -1px;
+  }
+  50% {
+    background-position:
+      1px -2px,
+      -3px 2px;
+  }
+  75% {
+    background-position:
+      -1px 1px,
+      2px -3px;
+  }
+}
+
 /* ── Scanlines ── */
 .crt-scanlines {
   position: absolute;
