@@ -26,13 +26,22 @@ const preferredOrder = [
   'cheer-up',
 ];
 
-const slugIndex = new Map(allGifts.map((g) => [g.slug, g]));
+const featuredSlugs = new Set([
+  'love-jar',
+  'wishing-dandelion',
+  'the-proposal',
+  'spotify-wrapped',
+  'sorry-puppy',
+]);
+
+const catalogGifts = allGifts.filter((g) => !featuredSlugs.has(g.slug));
+const slugIndex = new Map(catalogGifts.map((g) => [g.slug, g]));
 const preferredSet = new Set(preferredOrder);
 const orderedGifts: GiftItem[] = [
   ...(preferredOrder
     .map((s) => slugIndex.get(s))
     .filter(Boolean) as GiftItem[]),
-  ...allGifts.filter((g) => !preferredSet.has(g.slug)),
+  ...catalogGifts.filter((g) => !preferredSet.has(g.slug)),
 ];
 
 const gradients = [

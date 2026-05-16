@@ -29,6 +29,25 @@ export default function Home() {
     <div className="pb-20 md:pb-0">
       <HeroSection />
       <LoveLetterRack />
+      <div className="wall-transition">
+        <p className="wall-transition-title font-handwritten">
+          want more? wander the wall &#8595;
+        </p>
+        <p className="wall-transition-sub font-body">
+          82 more ways to make their phone screen blur
+        </p>
+        <svg className="wall-transition-trail" viewBox="0 0 60 20" aria-hidden>
+          <path
+            d="M5 10 Q15 2 25 10 Q35 18 45 10 Q55 2 58 10"
+            fill="none"
+            stroke="#8B6F4E"
+            strokeWidth="1.5"
+            strokeDasharray="3 3"
+            strokeLinecap="round"
+            opacity="0.4"
+          />
+        </svg>
+      </div>
       <PolaroidWall />
       <HowItWorks />
       <Testimonials />
