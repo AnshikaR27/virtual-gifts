@@ -30,9 +30,6 @@ export default function Home() {
       <HeroSection />
       <CrtShowcase />
       <div className="wall-transition">
-        <a href="#browse" className="wall-transition-btn">
-          want more? wander the wall →
-        </a>
         <p className="wall-transition-hint">
           82 more ways to make their phone screen blur
         </p>
