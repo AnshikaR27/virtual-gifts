@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { GiftLoading } from '@/components/gift-loading';
-import { allGifts, heroGiftSlugs, heroGiftDescriptions } from './gift-catalog';
+import { allGifts, heroGiftDescriptions } from './gift-catalog';
 
 interface EnvelopeData {
   slug: string;
@@ -77,51 +77,7 @@ const heroEmojis: Record<string, string> = {
   'sorry-puppy': '\u{1F97A}',
 };
 
-function playPaperSound() {
-  try {
-    const ctx = new (
-      window.AudioContext || (window as any).webkitAudioContext
-    )();
-    const now = ctx.currentTime;
-
-    const noise = ctx.createBufferSource();
-    const buffer = ctx.createBuffer(1, ctx.sampleRate * 0.15, ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < data.length; i++) {
-      data[i] =
-        (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.04));
-    }
-    noise.buffer = buffer;
-
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'highpass';
-    filter.frequency.value = 2000;
-
-    const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0.15, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
-
-    noise.connect(filter);
-    filter.connect(gain);
-    gain.connect(ctx.destination);
-    noise.start(now);
-    noise.stop(now + 0.15);
-
-    const crack = ctx.createOscillator();
-    const crackGain = ctx.createGain();
-    crack.type = 'square';
-    crack.frequency.setValueAtTime(200, now);
-    crack.frequency.exponentialRampToValueAtTime(80, now + 0.05);
-    crackGain.gain.setValueAtTime(0.08, now);
-    crackGain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
-    crack.connect(crackGain);
-    crackGain.connect(ctx.destination);
-    crack.start(now);
-    crack.stop(now + 0.06);
-  } catch {}
-}
-
-function playSealSound() {
+function playClickSound() {
   try {
     const ctx = new (
       window.AudioContext || (window as any).webkitAudioContext
@@ -131,65 +87,31 @@ function playSealSound() {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(600, now);
-    osc.frequency.exponentialRampToValueAtTime(200, now + 0.1);
-    gain.gain.setValueAtTime(0.1, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+    osc.frequency.setValueAtTime(800, now);
+    osc.frequency.exponentialRampToValueAtTime(400, now + 0.08);
+    gain.gain.setValueAtTime(0.12, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
     osc.connect(gain);
     gain.connect(ctx.destination);
     osc.start(now);
-    osc.stop(now + 0.12);
+    osc.stop(now + 0.1);
   } catch {}
 }
 
 export function LoveLetterRack() {
-  const [openEnvelope, setOpenEnvelope] = useState<string | null>(null);
-  const [animatingOut, setAnimatingOut] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const targetSlug = useRef('');
   const router = useRouter();
 
   const handleTap = useCallback(
     (slug: string) => {
-      if (animatingOut) return;
-
-      if (openEnvelope === slug) {
-        playSealSound();
-        setAnimatingOut(slug);
-        setTimeout(() => {
-          setOpenEnvelope(null);
-          setAnimatingOut(null);
-        }, 500);
-        return;
-      }
-
-      if (openEnvelope) {
-        playSealSound();
-        setAnimatingOut(openEnvelope);
-        setTimeout(() => {
-          setOpenEnvelope(null);
-          setAnimatingOut(null);
-          setTimeout(() => {
-            playPaperSound();
-            setOpenEnvelope(slug);
-          }, 50);
-        }, 500);
-        return;
-      }
-
-      playPaperSound();
-      setOpenEnvelope(slug);
-    },
-    [openEnvelope, animatingOut],
-  );
-
-  const handleNavigate = useCallback(
-    (slug: string) => {
+      if (loading) return;
+      playClickSound();
       targetSlug.current = slug;
       router.prefetch(`/gift/${slug}`);
       setLoading(true);
     },
-    [router],
+    [router, loading],
   );
 
   const handleLoadComplete = useCallback(() => {
@@ -198,33 +120,33 @@ export function LoveLetterRack() {
 
   return (
     <>
-      <div className="px-4 pb-3 pt-10 text-center">
-        <p
-          className="font-handwritten text-[24px] font-bold md:text-[28px]"
-          style={{
-            color: '#8B6F4E',
-            textShadow: '0 1px 3px rgba(139,111,78,0.2)',
-          }}
-        >
-          &#9733; top 5 letters everyone&apos;s sending &#9733;
-        </p>
-      </div>
-
       <section className="letter-rack-section">
-        <div className="letter-desk">
-          <div className="letter-desk-surface">
-            <span className="letter-fan-favs-sticker font-pixel" aria-hidden>
-              &#9733; FAN FAVS &#9733;
-            </span>
-            {envelopes.map((env) => {
-              const gift = allGifts.find((g) => g.slug === env.slug)!;
-              const isOpen = openEnvelope === env.slug;
-              const isClosing = animatingOut === env.slug;
+        <div className="letter-rack-bg">
+          <div className="letter-rack-glow" aria-hidden />
 
-              return (
-                <div key={env.slug} className="letter-slot">
+          <div className="px-4 pb-4 pt-8 text-center">
+            <p
+              className="font-handwritten text-[24px] font-bold md:text-[28px]"
+              style={{ color: '#4A3728' }}
+            >
+              &#9733; top 5 letters everyone&apos;s sending &#9733;
+            </p>
+          </div>
+
+          <div className="letter-scroll">
+            <div className="letter-scroll-inner">
+              <span className="letter-fan-favs-sticker font-pixel" aria-hidden>
+                &#9733; FAN FAVS &#9733;
+              </span>
+              {envelopes.map((env) => {
+                const gift = allGifts.find((g) => g.slug === env.slug)!;
+                const emoji = heroEmojis[env.slug] || gift.emoji;
+                const desc = heroGiftDescriptions[env.slug] || gift.description;
+
+                return (
                   <button
-                    className={`letter-envelope ${isOpen ? 'letter-envelope-open' : ''} ${isClosing ? 'letter-envelope-closing' : ''}`}
+                    key={env.slug}
+                    className="letter-envelope"
                     style={
                       {
                         '--envelope-color': env.color,
@@ -235,7 +157,7 @@ export function LoveLetterRack() {
                       } as React.CSSProperties
                     }
                     onClick={() => handleTap(env.slug)}
-                    aria-label={`Open ${gift.name} letter`}
+                    aria-label={`Create ${gift.name}`}
                   >
                     <span className="letter-rank-badge font-pixel">
                       {env.rank}
@@ -243,59 +165,31 @@ export function LoveLetterRack() {
                     <span className="letter-flap" aria-hidden />
                     <span className="letter-body-inner" aria-hidden />
 
-                    <span className="letter-address font-handwritten">
-                      To: My Person &#9825;
-                    </span>
-
-                    <span className="letter-stamp">&#9829;</span>
-
                     <span className="letter-wax-seal">
                       <span className="letter-wax-seal-icon">
                         {env.sealIcon}
                       </span>
                     </span>
 
-                    {(isOpen || isClosing) && (
-                      <span className="letter-wax-crack" aria-hidden />
-                    )}
-                  </button>
-
-                  {isOpen && !isClosing && (
-                    <div className="letter-card">
-                      <div className="letter-card-inner">
-                        <span className="letter-card-emoji">
-                          {heroEmojis[env.slug] || gift.emoji}
-                        </span>
-                        <h3 className="letter-card-name font-handwritten">
+                    <span className="letter-front-content">
+                      <span className="letter-front-emoji">{emoji}</span>
+                      <span className="letter-front-text">
+                        <span className="letter-front-name font-handwritten">
                           {gift.name}
-                        </h3>
-                        <p className="letter-card-desc font-display">
-                          {heroGiftDescriptions[env.slug] || gift.description}
-                        </p>
-                        <button
-                          className="letter-card-cta font-body"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleNavigate(env.slug);
-                          }}
-                        >
-                          Create This Gift &rarr;
-                        </button>
-                        <button
-                          className="letter-card-close font-handwritten"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleTap(env.slug);
-                          }}
-                        >
-                          &#10005; seal it back
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+                        </span>
+                        <span className="letter-front-desc font-display">
+                          {desc}
+                        </span>
+                      </span>
+                    </span>
+
+                    <span className="letter-address font-handwritten">
+                      To: My Person &#9825;
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       </section>
