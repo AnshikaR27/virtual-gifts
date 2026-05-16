@@ -118,7 +118,7 @@ export function CrtShowcase() {
         setTimeout(() => {
           setCurrentCh((prev) => (prev + 1) % channels.length);
           setSwitching(false);
-        }, 150);
+        }, 300);
       }
     }, AUTO_ROTATE_MS);
   }, []);
@@ -159,18 +159,45 @@ export function CrtShowcase() {
           (prev) => (prev + direction + channels.length) % channels.length,
         );
         setSwitching(false);
-      }, 150);
+      }, 300);
     },
     [switching],
   );
 
-  const handleScreenTap = useCallback(() => {
-    if (loading || switching) return;
-    playClick();
-    targetSlug.current = channel.slug;
-    router.prefetch(`/gift/${channel.slug}`);
-    setLoading(true);
-  }, [channel, router, loading, switching]);
+  const touchStart = useRef(0);
+  const swiped = useRef(false);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStart.current = e.touches[0].clientX;
+    swiped.current = false;
+  }, []);
+
+  const handleTouchEnd = useCallback(
+    (e: React.TouchEvent) => {
+      const diff = e.changedTouches[0].clientX - touchStart.current;
+      if (Math.abs(diff) > 50) {
+        swiped.current = true;
+        switchChannel(diff > 0 ? -1 : 1);
+      }
+    },
+    [switchChannel],
+  );
+
+  const handleScreenTap = useCallback(
+    (e: React.MouseEvent | React.TouchEvent) => {
+      if (swiped.current) {
+        swiped.current = false;
+        return;
+      }
+      if (loading || switching) return;
+      e.preventDefault();
+      playClick();
+      targetSlug.current = channel.slug;
+      router.prefetch(`/gift/${channel.slug}`);
+      setLoading(true);
+    },
+    [channel, router, loading, switching],
+  );
 
   const handleLoadComplete = useCallback(() => {
     router.push(`/gift/${targetSlug.current}`);
@@ -197,8 +224,10 @@ export function CrtShowcase() {
           {/* Screen area */}
           <div className="crt-screen-bezel">
             <div
-              className={`crt-screen${switching ? ' crt-static-burst' : ''}`}
+              className="crt-screen"
               style={{ '--screen-tint': channel.tint } as React.CSSProperties}
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
               onClick={handleScreenTap}
               role="button"
               tabIndex={0}
@@ -219,6 +248,36 @@ export function CrtShowcase() {
                   &#9654; tap to create
                 </span>
               </div>
+
+              {/* TV static noise overlay */}
+              {switching && (
+                <div className="crt-static-overlay">
+                  <svg viewBox="0 0 200 200" preserveAspectRatio="none">
+                    <filter id="crt-noise">
+                      <feTurbulence
+                        type="fractalNoise"
+                        baseFrequency="0.65"
+                        numOctaves="3"
+                        stitchTiles="stitch"
+                      >
+                        <animate
+                          attributeName="seed"
+                          from="0"
+                          to="100"
+                          dur="0.15s"
+                          repeatCount="indefinite"
+                        />
+                      </feTurbulence>
+                    </filter>
+                    <rect
+                      width="100%"
+                      height="100%"
+                      filter="url(#crt-noise)"
+                      opacity="0.6"
+                    />
+                  </svg>
+                </div>
+              )}
 
               {/* Channel indicator */}
               <span className="crt-ch-indicator font-pixel">
