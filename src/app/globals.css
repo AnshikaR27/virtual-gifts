@@ -395,73 +395,32 @@ html {
   animation: paper-fly 0.6s ease-in-out infinite;
 }
 
-/* ── CRT Win98 Title Bar ── */
+/* ── CRT Labels ── */
 
-.crt-win98-titlebar {
-  width: 100%;
-  max-width: 520px;
-  height: 26px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 4px 0 8px;
-  background: linear-gradient(90deg, #000080, #1084d0);
-  border: 2px solid;
-  border-color: #fff #000 #000 #fff;
-  border-bottom: none;
-  border-radius: 4px 4px 0 0;
-  box-sizing: border-box;
-  margin-bottom: -2px;
-  position: relative;
-  z-index: 2;
+.crt-label-top {
+  font-size: 24px;
+  color: #3a1a4e;
+  margin: 0 0 10px;
+  text-shadow: 0 1px 3px rgba(58, 26, 78, 0.15);
 }
 
 @media (min-width: 768px) {
-  .crt-win98-titlebar {
-    width: 92%;
-    max-width: 520px;
+  .crt-label-top {
+    font-size: 28px;
   }
 }
 
-.crt-win98-titlebar-text {
-  font-family: Tahoma, 'MS Sans Serif', Arial, sans-serif;
-  font-size: 13px;
-  font-weight: 700;
-  color: #fff;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.crt-label-bottom {
+  font-size: 22px;
+  color: #3a1a4e;
+  margin: 10px 0 0;
+  text-shadow: 0 1px 3px rgba(58, 26, 78, 0.15);
 }
 
-.crt-win98-titlebar-controls {
-  display: flex;
-  gap: 2px;
-  flex-shrink: 0;
-}
-
-.crt-win98-ctrl-btn {
-  width: 16px;
-  height: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #c0c0c0;
-  border: 2px solid;
-  border-color: #fff #404040 #404040 #fff;
-  font-family: Tahoma, Arial, sans-serif;
-  font-size: 10px;
-  font-weight: 700;
-  line-height: 1;
-  color: #000;
-  box-shadow: inset -1px -1px 0 #808080;
-}
-
-.crt-win98-titlebar-bottom {
-  border-radius: 0 0 4px 4px;
-  border-bottom: 2px solid #000;
-  border-top: none;
-  margin-bottom: 0;
-  margin-top: -2px;
+@media (min-width: 768px) {
+  .crt-label-bottom {
+    font-size: 26px;
+  }
 }
 
 /* ── CRT TV Showcase ── */
@@ -835,10 +794,8 @@ html {
 
 .wall-transition-hint {
   margin: 0;
-  font-family: Tahoma, 'MS Sans Serif', Arial, sans-serif;
-  font-size: 12px;
-  font-style: italic;
-  color: #6b5b7b;
+  font-size: 13px;
+  color: rgba(58, 26, 78, 0.7);
 }
 
 /* ── Polaroid Wall ── */

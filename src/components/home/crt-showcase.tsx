@@ -208,15 +208,7 @@ export function CrtShowcase() {
   return (
     <>
       <section className="crt-section" ref={sectionRef}>
-        {/* Win98 title bar flush above CRT */}
-        <div className="crt-win98-titlebar">
-          <span className="crt-win98-titlebar-text">FOR YOUR PERSON ♥</span>
-          <div className="crt-win98-titlebar-controls">
-            <span className="crt-win98-ctrl-btn">_</span>
-            <span className="crt-win98-ctrl-btn">□</span>
-            <span className="crt-win98-ctrl-btn">✕</span>
-          </div>
-        </div>
+        <p className="crt-label-top font-handwritten">★ for your person ♥ ★</p>
         <div className="crt-tv">
           {/* Screen area */}
           <div className="crt-screen-bezel">
@@ -323,17 +315,9 @@ export function CrtShowcase() {
           <span className="crt-foot crt-foot-r" />
         </div>
 
-        {/* Win98 title bar flush below CRT */}
-        <div className="crt-win98-titlebar crt-win98-titlebar-bottom">
-          <span className="crt-win98-titlebar-text">
-            FIND WHAT FEELS LIKE THEM →
-          </span>
-          <div className="crt-win98-titlebar-controls">
-            <span className="crt-win98-ctrl-btn">_</span>
-            <span className="crt-win98-ctrl-btn">□</span>
-            <span className="crt-win98-ctrl-btn">✕</span>
-          </div>
-        </div>
+        <p className="crt-label-bottom font-handwritten">
+          find what feels like them →
+        </p>
       </section>
 
       {loading && <GiftLoading onComplete={handleLoadComplete} />}
