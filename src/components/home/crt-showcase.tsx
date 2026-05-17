@@ -122,41 +122,9 @@ function TuningColumn() {
 
 function FanFavoritesSticker() {
   return (
-    <div className="crt-sticker" aria-hidden>
-      <svg
-        className="crt-sticker-tape crt-sticker-tape--left"
-        viewBox="0 0 14 8"
-        preserveAspectRatio="none"
-      >
-        <path
-          d="M0.5 0.5 L13 0 L13.5 7.5 L0 8 Z"
-          fill="#E8C77A"
-          fillOpacity="0.7"
-        />
-      </svg>
-      <svg
-        className="crt-sticker-tape crt-sticker-tape--right"
-        viewBox="0 0 14 8"
-        preserveAspectRatio="none"
-      >
-        <path
-          d="M0.5 0 L13.5 0.5 L13 8 L0 7.5 Z"
-          fill="#E8C77A"
-          fillOpacity="0.7"
-        />
-      </svg>
-      <svg
-        className="crt-sticker-paper"
-        viewBox="0 0 70 36"
-        preserveAspectRatio="none"
-      >
-        <path
-          d="M2 1 L68 0.5 L69.5 2 L70 33 L68.5 35 L67 35.5 L3 36 L1 34.5 L0.5 3 Z"
-          fill="#FAF4E6"
-        />
-      </svg>
-      <span className="crt-sticker-text font-handwritten">fan favorites ★</span>
-    </div>
+    <span className="crt-sticker font-pixel" aria-hidden>
+      ★ FAN FAVS
+    </span>
   );
 }
 
