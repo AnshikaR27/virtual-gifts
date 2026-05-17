@@ -1051,7 +1051,7 @@ html {
 
 .crt-sticker {
   position: absolute;
-  top: -12px;
+  top: 2px;
   right: 6px;
   left: auto;
   z-index: 10;
@@ -1111,7 +1111,7 @@ html {
 
 @media (min-width: 768px) {
   .crt-sticker {
-    top: -14px;
+    top: 0px;
     right: 10px;
     width: clamp(130px, 32%, 160px);
   }
