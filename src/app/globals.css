@@ -1048,8 +1048,8 @@ html {
 
 .crt-sticker {
   position: absolute;
-  top: 2px;
-  right: 28px;
+  top: 0px;
+  right: -2px;
   left: auto;
   z-index: 10;
   width: clamp(100px, 28%, 130px);
@@ -1177,10 +1177,10 @@ html {
 
 .crt-washi-tape {
   position: absolute;
-  top: 3px;
+  top: -10px;
   left: 50%;
-  transform: translateX(-50%) rotate(4deg);
-  width: 50%;
+  transform: translateX(-50%) rotate(4deg) translateZ(2px);
+  width: 40%;
   height: 24px;
   z-index: 2;
   background-color: #f9a8d4;
@@ -1227,7 +1227,7 @@ html {
 @media (min-width: 768px) {
   .crt-sticker {
     top: 0;
-    right: 40px;
+    right: -2px;
     width: clamp(125px, 30%, 155px);
   }
 
@@ -1251,7 +1251,7 @@ html {
 
   .crt-washi-tape {
     height: 28px;
-    top: 4px;
+    top: -12px;
   }
 }
 
