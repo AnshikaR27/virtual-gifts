@@ -1064,7 +1064,10 @@ html {
 
 .crt-sticker-tilt-wrapper {
   position: relative;
-  perspective: 600px;
+  perspective: 700px;
+  transform: rotate(20deg);
+  transform-origin: top center;
+  transform-style: preserve-3d;
 }
 
 .crt-sticker-paper {
