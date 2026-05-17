@@ -122,9 +122,71 @@ function TuningColumn() {
 
 function FanFavoritesSticker() {
   return (
-    <span className="crt-sticker font-pixel" aria-hidden>
-      ★ FAN FAVS
-    </span>
+    <div className="crt-sticker" aria-hidden>
+      <svg
+        className="crt-sticker-paper"
+        viewBox="0 0 108 44"
+        preserveAspectRatio="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <defs>
+          <linearGradient id="paper-warmth" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#FAF4E6" />
+            <stop offset="100%" stopColor="#F5EDD8" />
+          </linearGradient>
+          <filter id="paper-grain">
+            <feTurbulence
+              type="fractalNoise"
+              baseFrequency="0.8"
+              numOctaves="4"
+              seed="7"
+              result="grain"
+            />
+            <feColorMatrix in="grain" type="saturate" values="0" result="bw" />
+            <feBlend in="SourceGraphic" in2="bw" mode="multiply" />
+            <feComponentTransfer>
+              <feFuncA type="linear" slope="0.96" intercept="0.04" />
+            </feComponentTransfer>
+          </filter>
+        </defs>
+        {/* Torn paper shape — each edge has unique irregularity */}
+        <path
+          d="M3 2 L5 1.5 L12 2.8 L18 1 L26 2.2 L35 1.8 L42 3 L50 1.5 L58 2.5 L65 1 L72 2 L80 1.8 L88 2.5 L95 1.2 L102 2 L105 1.5
+             L106 5 L107.5 10 L105 14 L107 18 L104.5 22 L107 26 L105.5 30 L108 34 L105 37 L106.5 41 L105 43
+             L100 42 L94 43.5 L87 41.5 L80 43 L72 42 L65 44 L57 42.5 L50 43.5 L42 41.5 L35 43 L28 42 L20 43.5 L12 42 L6 43 L2 42.5
+             L1 38 L2.5 33 L0.5 28 L1.5 23 L0.5 18 L1.5 13 L0.5 8 L2 4 Z"
+          fill="url(#paper-warmth)"
+          filter="url(#paper-grain)"
+        />
+        {/* Aged edge tint — right side yellowing */}
+        <path
+          d="M90 1.2 L95 1.2 L102 2 L105 1.5 L106 5 L107.5 10 L105 14 L107 18 L104.5 22 L107 26 L105.5 30 L108 34 L105 37 L106.5 41 L105 43 L100 42 L94 43.5 L87 41.5 L90 41 Z"
+          fill="rgba(180,150,100,0.05)"
+        />
+        {/* Fiber wisp — bottom-right corner */}
+        <line
+          x1="105"
+          y1="43"
+          x2="109"
+          y2="45"
+          stroke="#F5EDD8"
+          strokeWidth="0.7"
+          opacity="0.3"
+        />
+        <line
+          x1="106.5"
+          y1="41"
+          x2="110"
+          y2="42.5"
+          stroke="#F0E8D6"
+          strokeWidth="0.5"
+          opacity="0.25"
+        />
+      </svg>
+      <span className="crt-sticker-text font-handwritten">
+        top 5 <span style={{ color: '#FF69B4' }}>♥</span>
+      </span>
+    </div>
   );
 }
 
