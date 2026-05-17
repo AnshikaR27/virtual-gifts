@@ -1099,24 +1099,18 @@ html {
   flex-shrink: 0;
 }
 
-/* Corner tape pieces */
+/* Center tape piece */
 .crt-tape {
   position: absolute;
   z-index: 11;
-  width: 20px;
+}
+
+.crt-tape--center {
+  width: 45%;
   height: 16px;
-}
-
-.crt-tape--tl {
-  top: -6px;
-  left: -4px;
-  transform: rotate(-18deg);
-}
-
-.crt-tape--tr {
-  top: -6px;
-  right: -4px;
-  transform: rotate(15deg);
+  top: -7px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-3deg);
 }
 
 @media (min-width: 768px) {
@@ -1140,19 +1134,10 @@ html {
     height: 24px;
   }
 
-  .crt-tape {
-    width: 24px;
+  .crt-tape--center {
+    width: 45%;
     height: 20px;
-  }
-
-  .crt-tape--tl {
-    top: -8px;
-    left: -5px;
-  }
-
-  .crt-tape--tr {
-    top: -8px;
-    right: -5px;
+    top: -9px;
   }
 }
 

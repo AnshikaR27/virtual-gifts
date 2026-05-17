@@ -154,26 +154,14 @@ function Antenna() {
 function FanFavoritesSticker() {
   return (
     <div className="crt-sticker" aria-hidden>
-      {/* Top-left corner tape piece */}
+      {/* Center tape piece */}
       <svg
-        className="crt-tape crt-tape--tl"
-        viewBox="0 0 22 18"
+        className="crt-tape crt-tape--center"
+        viewBox="0 0 60 18"
         xmlns="http://www.w3.org/2000/svg"
       >
         <path
-          d="M0.5 1 L2 0.3 L5 1.2 L10 0.5 L18 0.8 L20 0.5 L21.5 1.5 L21 16 L20 17 L18 17.5 L8 16.8 L3 17.3 L1 17.5 L0 16 L0.5 1 Z"
-          fill="#E8C77A"
-          opacity="0.7"
-        />
-      </svg>
-      {/* Top-right corner tape piece */}
-      <svg
-        className="crt-tape crt-tape--tr"
-        viewBox="0 0 22 18"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M1 1.2 L3 0.5 L8 1 L14 0.4 L19 0.8 L21 0.5 L21.5 1.5 L22 16.5 L21 17.2 L18 17.5 L10 17 L4 17.5 L1.5 17 L0 16 L0.5 1.2 Z"
+          d="M1 1.5 L3 0.4 L8 1.2 L15 0.6 L22 1 L30 0.4 L38 0.9 L45 0.5 L52 1.1 L57 0.6 L59 1.5 L59.5 16 L58 17.2 L53 17.5 L45 16.8 L38 17.3 L30 17 L22 17.4 L15 16.8 L8 17.2 L3 17.5 L1 17 L0 16 L0.5 1.5 Z"
           fill="#E8C77A"
           opacity="0.7"
         />
