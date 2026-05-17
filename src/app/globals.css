@@ -1039,23 +1039,24 @@ html {
 @keyframes sticker-flutter {
   0%,
   100% {
-    transform: perspective(200px) rotateX(0deg);
+    transform: rotate(18deg) perspective(200px) rotateX(0deg);
   }
   40% {
-    transform: perspective(200px) rotateX(2.5deg);
+    transform: rotate(18deg) perspective(200px) rotateX(2.5deg);
   }
   70% {
-    transform: perspective(200px) rotateX(-1.5deg);
+    transform: rotate(18deg) perspective(200px) rotateX(-1.5deg);
   }
 }
 
 .crt-sticker {
   position: absolute;
-  top: -10px;
-  left: 50%;
-  translate: -50% 0;
+  top: -12px;
+  right: 6px;
+  left: auto;
   z-index: 10;
   width: clamp(108px, 30%, 140px);
+  transform: rotate(18deg);
   transform-origin: top center;
   pointer-events: none;
   filter: drop-shadow(1px 2px 4px rgba(0, 0, 0, 0.2));
@@ -1065,6 +1066,7 @@ html {
 @media (prefers-reduced-motion: reduce) {
   .crt-sticker {
     animation: none;
+    transform: rotate(18deg);
   }
 }
 
@@ -1110,6 +1112,7 @@ html {
 @media (min-width: 768px) {
   .crt-sticker {
     top: -14px;
+    right: 10px;
     width: clamp(130px, 32%, 160px);
   }
 
