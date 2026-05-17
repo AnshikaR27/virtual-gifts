@@ -397,6 +397,104 @@ html {
   }
 }
 
+/* ── Desktop Pet (Mochi) ── */
+.desktop-pet-playground {
+  position: relative;
+  width: 100%;
+  height: 160px;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.desktop-pet-mover {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 55px;
+  height: 55px;
+  transition: transform 3.5s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+}
+
+.desktop-pet-tilter {
+  transition: transform 0.8s ease-out;
+}
+
+.desktop-pet-bobber {
+  animation: pet-idle-bob 2.5s ease-in-out infinite;
+}
+
+.desktop-pet-sprite {
+  width: 55px;
+  height: auto;
+  display: block;
+}
+
+.desktop-pet-heart {
+  position: absolute;
+  top: -4px;
+  width: 14px;
+  height: auto;
+  animation: pet-heart-float var(--heart-duration, 2200ms) ease-out
+    var(--heart-delay, 0ms) forwards;
+  opacity: 0;
+}
+
+@keyframes pet-idle-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes pet-heart-float {
+  0% {
+    opacity: 1;
+    transform: translateY(0) translateX(0) rotate(0deg);
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-100px) translateX(var(--heart-drift, 0px))
+      rotate(12deg);
+  }
+}
+
+@media (max-width: 767px) {
+  .desktop-pet-mover {
+    width: 42px;
+    height: 42px;
+  }
+
+  .desktop-pet-sprite {
+    width: 42px;
+  }
+
+  .desktop-pet-heart {
+    width: 11px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .desktop-pet-mover {
+    transition: none !important;
+  }
+
+  .desktop-pet-bobber {
+    animation: none !important;
+  }
+
+  .desktop-pet-heart {
+    display: none !important;
+  }
+}
+
 /* ── Gift loading paper-fly animation ── */
 @keyframes paper-fly {
   0%,
@@ -1042,7 +1140,7 @@ html {
     transform: rotateX(0deg) rotateY(0deg);
   }
   50% {
-    transform: rotateX(22deg) rotateY(-5deg);
+    transform: rotateX(25deg) rotateY(-5deg);
   }
 }
 
