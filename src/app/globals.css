@@ -502,13 +502,13 @@ html {
   position: relative;
   width: 100%;
   max-width: 520px;
-  background: linear-gradient(180deg, #d4b896 0%, #c4a67e 55%, #a8895f 100%);
+  background: linear-gradient(180deg, #d4c4d8 0%, #c2b0c8 55%, #a894b0 100%);
   border-radius: 18px;
   padding: 20px 20px 0;
   box-shadow:
-    4px 4px 0 #8a6d4a,
+    4px 4px 0 #8a7494,
     0 8px 12px rgba(0, 0, 0, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 @media (min-width: 768px) {
@@ -527,7 +527,7 @@ html {
   box-shadow:
     inset 0 3px 8px rgba(0, 0, 0, 0.9),
     inset 0 -1px 3px rgba(0, 0, 0, 0.6),
-    0 0 0 1px rgba(255, 230, 180, 0.15);
+    0 0 0 1px rgba(220, 200, 240, 0.2);
 }
 
 @media (min-width: 768px) {
@@ -714,10 +714,10 @@ html {
   border-radius: 4px;
   background: repeating-linear-gradient(
     90deg,
-    #7a5f3e 0px,
-    #7a5f3e 2px,
-    #9a7e58 2px,
-    #9a7e58 4px
+    #7a6a82 0px,
+    #7a6a82 2px,
+    #9a8aa2 2px,
+    #9a8aa2 4px
   );
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
   flex-shrink: 0;
@@ -736,11 +736,11 @@ html {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: linear-gradient(145deg, #e8d4b8, #a88a60);
+  background: linear-gradient(145deg, #e4dae8, #a090a8);
   box-shadow:
     0 1px 3px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.35);
-  border: 2px solid #8a6d4a;
+  border: 2px solid #8a7494;
   flex-shrink: 0;
   transition: transform 0.3s ease;
 }
@@ -768,11 +768,11 @@ html {
   width: 34px;
   height: 28px;
   border: 2px solid;
-  border-color: #e0c8a4 #7a5f3e #7a5f3e #e0c8a4;
-  background: #b89a6e;
+  border-color: #dcd0e0 #7a6a82 #7a6a82 #dcd0e0;
+  background: #b8a4c0;
   border-radius: 4px;
   font-size: 12px;
-  color: #3a2a14;
+  color: #3a2a42;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -782,7 +782,7 @@ html {
 }
 
 .crt-btn:active {
-  border-color: #7a5f3e #e0c8a4 #e0c8a4 #7a5f3e;
+  border-color: #7a6a82 #dcd0e0 #dcd0e0 #7a6a82;
 }
 
 @media (min-width: 768px) {
@@ -808,7 +808,7 @@ html {
 /* ── Brand label ── */
 .crt-brand {
   font-size: 10px;
-  color: #4a2f15;
+  color: #3a2040;
   letter-spacing: 0.5px;
   margin-left: auto;
   white-space: nowrap;
@@ -835,7 +835,7 @@ html {
   display: block;
   width: 40px;
   height: 12px;
-  background: linear-gradient(180deg, #a8895f, #8a6d4a);
+  background: linear-gradient(180deg, #a894b0, #8a7494);
   border-radius: 0 0 8px 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
