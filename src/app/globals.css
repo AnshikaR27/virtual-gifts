@@ -502,13 +502,13 @@ html {
   position: relative;
   width: 100%;
   max-width: 520px;
-  background: linear-gradient(180deg, #d8d2c6 0%, #c9c2b4 55%, #b5ae9f 100%);
+  background: linear-gradient(180deg, #d4b896 0%, #c4a67e 55%, #a8895f 100%);
   border-radius: 18px;
   padding: 20px 20px 0;
   box-shadow:
-    4px 4px 0 #9c9384,
+    4px 4px 0 #8a6d4a,
     0 8px 12px rgba(0, 0, 0, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 
 @media (min-width: 768px) {
@@ -521,10 +521,19 @@ html {
 
 /* ── Screen bezel (inset ring) ── */
 .crt-screen-bezel {
-  background: #1a1a1a;
+  background: radial-gradient(ellipse at 30% 20%, #2a1e16 0%, #140e08 70%);
   border-radius: 26px;
-  padding: 5px;
-  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.8);
+  padding: 12px;
+  box-shadow:
+    inset 0 3px 8px rgba(0, 0, 0, 0.9),
+    inset 0 -1px 3px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 230, 180, 0.15);
+}
+
+@media (min-width: 768px) {
+  .crt-screen-bezel {
+    padding: 14px;
+  }
 }
 
 /* ── Screen ── */
@@ -705,10 +714,10 @@ html {
   border-radius: 4px;
   background: repeating-linear-gradient(
     90deg,
-    #8c8474 0px,
-    #8c8474 2px,
-    #a39e90 2px,
-    #a39e90 4px
+    #7a5f3e 0px,
+    #7a5f3e 2px,
+    #9a7e58 2px,
+    #9a7e58 4px
   );
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
   flex-shrink: 0;
@@ -727,11 +736,11 @@ html {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: linear-gradient(145deg, #e8e4dc, #a8a290);
+  background: linear-gradient(145deg, #e8d4b8, #a88a60);
   box-shadow:
     0 1px 3px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4);
-  border: 2px solid #9c9384;
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  border: 2px solid #8a6d4a;
   flex-shrink: 0;
   transition: transform 0.3s ease;
 }
@@ -759,11 +768,11 @@ html {
   width: 34px;
   height: 28px;
   border: 2px solid;
-  border-color: #e0dcd4 #8c8474 #8c8474 #e0dcd4;
-  background: #c4bdb0;
+  border-color: #e0c8a4 #7a5f3e #7a5f3e #e0c8a4;
+  background: #b89a6e;
   border-radius: 4px;
   font-size: 12px;
-  color: #4a4a4a;
+  color: #3a2a14;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -773,7 +782,7 @@ html {
 }
 
 .crt-btn:active {
-  border-color: #8c8474 #e0dcd4 #e0dcd4 #8c8474;
+  border-color: #7a5f3e #e0c8a4 #e0c8a4 #7a5f3e;
 }
 
 @media (min-width: 768px) {
@@ -799,11 +808,11 @@ html {
 /* ── Brand label ── */
 .crt-brand {
   font-size: 10px;
-  color: #8c8474;
+  color: #4a2f15;
   letter-spacing: 0.5px;
   margin-left: auto;
   white-space: nowrap;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 @media (min-width: 768px) {
@@ -826,7 +835,7 @@ html {
   display: block;
   width: 40px;
   height: 12px;
-  background: linear-gradient(180deg, #b5ae9f, #9c9384);
+  background: linear-gradient(180deg, #a8895f, #8a6d4a);
   border-radius: 0 0 8px 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
