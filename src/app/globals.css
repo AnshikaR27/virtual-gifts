@@ -501,7 +501,7 @@ html {
 .crt-tv {
   position: relative;
   width: 100%;
-  max-width: 520px;
+  max-width: 450px;
   background: linear-gradient(180deg, #d4c4d8 0%, #c2b0c8 55%, #a894b0 100%);
   border-radius: 18px;
   padding: 20px 20px 0;
