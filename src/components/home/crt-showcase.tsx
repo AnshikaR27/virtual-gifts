@@ -154,78 +154,80 @@ function Antenna() {
 function FanFavoritesSticker() {
   return (
     <div className="crt-sticker" aria-hidden>
-      {/* Paper — rotates with sway animation */}
-      <div className="crt-sticker-paper">
-        <div className="crt-sticker-plate">
-          <span className="crt-sticker-text font-handwritten">
-            top 5{' '}
-            <svg
-              className="crt-doodle-heart"
-              viewBox="0 0 24 22"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M12.5 19C11 17.5 4.5 13 3.2 9C2 5.5 4 3.2 6.8 3C8.5 2.9 10.2 4 11.8 6C13 4.2 14.8 3.2 16.8 3.3C19.2 3.5 21.5 5.8 20.8 9.5C20 13.5 13 17 12.5 19Z"
-                fill="#FFE0F0"
-                opacity="0.5"
-              />
-              <path
-                d="M12 19.5C10.5 17.8 3.5 13.2 2.2 8.8C1 4.8 3.5 2.2 6.5 2C8.4 1.9 10.5 3.5 12 6.2C13.2 3.8 15.2 2.3 17.2 2.5C20 2.8 22.2 5.5 21.5 9.2C20.5 14 13 18 12 19.5Z"
-                stroke="#FF1493"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                style={{ filter: 'url(#doodle-wobble)' }}
-              />
-              <line
-                x1="20"
-                y1="4.5"
-                x2="22"
-                y2="3"
-                stroke="#FF1493"
-                strokeWidth="1.2"
-                strokeLinecap="round"
-              />
-              <line
-                x1="21.5"
-                y1="5.5"
-                x2="23"
-                y2="5"
-                stroke="#FF1493"
-                strokeWidth="1"
-                strokeLinecap="round"
-              />
-              <defs>
-                <filter
-                  id="doodle-wobble"
-                  x="-5%"
-                  y="-5%"
-                  width="110%"
-                  height="110%"
-                >
-                  <feTurbulence
-                    type="turbulence"
-                    baseFrequency="0.04"
-                    numOctaves="4"
-                    seed="3"
-                    result="warp"
-                  />
-                  <feDisplacementMap
-                    in="SourceGraphic"
-                    in2="warp"
-                    scale="1.5"
-                    xChannelSelector="R"
-                    yChannelSelector="G"
-                  />
-                </filter>
-              </defs>
-            </svg>
-          </span>
+      <div className="crt-sticker-tilt-wrapper">
+        {/* Paper — sways 0°→7° relative to the wrapper's +20° base */}
+        <div className="crt-sticker-paper">
+          <div className="crt-sticker-plate">
+            <span className="crt-sticker-text font-handwritten">
+              top 5{' '}
+              <svg
+                className="crt-doodle-heart"
+                viewBox="0 0 24 22"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M12.5 19C11 17.5 4.5 13 3.2 9C2 5.5 4 3.2 6.8 3C8.5 2.9 10.2 4 11.8 6C13 4.2 14.8 3.2 16.8 3.3C19.2 3.5 21.5 5.8 20.8 9.5C20 13.5 13 17 12.5 19Z"
+                  fill="#FFE0F0"
+                  opacity="0.5"
+                />
+                <path
+                  d="M12 19.5C10.5 17.8 3.5 13.2 2.2 8.8C1 4.8 3.5 2.2 6.5 2C8.4 1.9 10.5 3.5 12 6.2C13.2 3.8 15.2 2.3 17.2 2.5C20 2.8 22.2 5.5 21.5 9.2C20.5 14 13 18 12 19.5Z"
+                  stroke="#FF1493"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  style={{ filter: 'url(#doodle-wobble)' }}
+                />
+                <line
+                  x1="20"
+                  y1="4.5"
+                  x2="22"
+                  y2="3"
+                  stroke="#FF1493"
+                  strokeWidth="1.2"
+                  strokeLinecap="round"
+                />
+                <line
+                  x1="21.5"
+                  y1="5.5"
+                  x2="23"
+                  y2="5"
+                  stroke="#FF1493"
+                  strokeWidth="1"
+                  strokeLinecap="round"
+                />
+                <defs>
+                  <filter
+                    id="doodle-wobble"
+                    x="-5%"
+                    y="-5%"
+                    width="110%"
+                    height="110%"
+                  >
+                    <feTurbulence
+                      type="turbulence"
+                      baseFrequency="0.04"
+                      numOctaves="4"
+                      seed="3"
+                      result="warp"
+                    />
+                    <feDisplacementMap
+                      in="SourceGraphic"
+                      in2="warp"
+                      scale="1.5"
+                      xChannelSelector="R"
+                      yChannelSelector="G"
+                    />
+                  </filter>
+                </defs>
+              </svg>
+            </span>
+          </div>
         </div>
+        {/* Washi tape — STATIC within wrapper, does not sway */}
+        <div className="crt-washi-tape" />
       </div>
-      {/* Washi tape — STATIC, anchors paper to chassis */}
-      <div className="crt-washi-tape" />
     </div>
   );
 }

@@ -1036,13 +1036,19 @@ html {
 }
 
 /* ── Top-5 sticker ── */
-@keyframes paper-sway {
+@keyframes paper-curl {
   0%,
   100% {
-    transform: rotate(20deg);
+    transform: rotateX(0deg) rotateZ(0deg);
+  }
+  25% {
+    transform: rotateX(12deg) rotateZ(-1deg);
   }
   50% {
-    transform: rotate(27deg);
+    transform: rotateX(18deg) rotateZ(0deg);
+  }
+  75% {
+    transform: rotateX(10deg) rotateZ(1deg);
   }
 }
 
@@ -1056,12 +1062,17 @@ html {
   pointer-events: none;
 }
 
+.crt-sticker-tilt-wrapper {
+  position: relative;
+  perspective: 600px;
+}
+
 .crt-sticker-paper {
   position: relative;
   width: 100%;
-  transform: rotate(20deg);
+  transform: rotateX(0deg) rotateZ(0deg);
   transform-origin: top center;
-  animation: paper-sway 7s ease-in-out infinite;
+  animation: paper-curl 5.5s ease-in-out infinite;
   filter: drop-shadow(1px 2px 4px rgba(0, 0, 0, 0.18));
   z-index: 1;
 }
@@ -1069,7 +1080,7 @@ html {
 @media (prefers-reduced-motion: reduce) {
   .crt-sticker-paper {
     animation: none;
-    transform: rotate(20deg);
+    transform: rotateX(0deg) rotateZ(0deg);
   }
 }
 
@@ -1168,11 +1179,11 @@ html {
 
 .crt-washi-tape {
   position: absolute;
-  top: -9px;
+  top: -10px;
   left: 50%;
   transform: translateX(-50%) rotate(4deg);
-  width: 130%;
-  height: 18px;
+  width: 50%;
+  height: 24px;
   z-index: 2;
   background-color: #f9a8d4;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath d='M5 8.5C4.3 7.5 1.5 5.5 1 3.8C0.5 2.2 1.8 1.2 2.8 1.2C3.4 1.2 4 1.7 5 3C6 1.7 6.6 1.2 7.2 1.2C8.2 1.2 9.5 2.2 9 3.8C8.5 5.5 5.7 7.5 5 8.5Z' fill='white' opacity='0.5'/%3E%3C/svg%3E");
@@ -1180,40 +1191,38 @@ html {
   opacity: 0.88;
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.08));
   clip-path: polygon(
-    0% 25%,
-    1.5% 5%,
-    3% 42%,
-    4.5% 0%,
-    6% 28%,
-    10% 3%,
-    20% 5%,
-    35% 2%,
-    50% 5%,
-    65% 3%,
-    80% 4%,
-    90% 2%,
-    94% 20%,
-    95.5% 0%,
-    97% 38%,
-    98.5% 6%,
+    0% 20%,
+    2% 0%,
+    5% 38%,
+    7% 5%,
+    10% 30%,
+    14% 2%,
+    20% 3%,
+    40% 1%,
+    60% 3%,
+    80% 1%,
+    86% 2%,
+    90% 25%,
+    93% 0%,
+    95% 35%,
+    98% 8%,
     100% 22%,
     100% 78%,
-    98.5% 94%,
-    97% 62%,
-    95.5% 100%,
-    94% 80%,
-    90% 98%,
-    80% 96%,
-    65% 98%,
-    50% 96%,
-    35% 98%,
-    20% 96%,
-    10% 97%,
-    6% 72%,
-    4.5% 100%,
-    3% 60%,
-    1.5% 95%,
-    0% 75%
+    98% 92%,
+    95% 62%,
+    93% 100%,
+    90% 75%,
+    86% 98%,
+    80% 99%,
+    60% 97%,
+    40% 99%,
+    20% 97%,
+    14% 98%,
+    10% 70%,
+    7% 95%,
+    5% 60%,
+    2% 100%,
+    0% 80%
   );
 }
 
@@ -1239,7 +1248,7 @@ html {
   }
 
   .crt-washi-tape {
-    height: 22px;
+    height: 28px;
     top: -11px;
   }
 }
