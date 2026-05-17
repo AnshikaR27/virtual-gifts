@@ -1177,9 +1177,9 @@ html {
 
 .crt-washi-tape {
   position: absolute;
-  top: -10px;
+  top: -4px;
   left: 50%;
-  transform: translateX(-50%) rotate(4deg) translateZ(2px);
+  transform: translateX(-50%) rotate(16deg);
   width: 40%;
   height: 24px;
   z-index: 2;
@@ -1251,7 +1251,7 @@ html {
 
   .crt-washi-tape {
     height: 28px;
-    top: -12px;
+    top: -6px;
   }
 }
 

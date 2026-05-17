@@ -225,9 +225,8 @@ function FanFavoritesSticker() {
             </span>
           </div>
         </div>
-        {/* Washi tape — STATIC within wrapper, does not sway */}
-        <div className="crt-washi-tape" />
       </div>
+      <div className="crt-washi-tape" />
     </div>
   );
 }
