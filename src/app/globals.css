@@ -1039,16 +1039,10 @@ html {
 @keyframes paper-curl {
   0%,
   100% {
-    transform: rotateX(0deg) rotateZ(0deg);
-  }
-  25% {
-    transform: rotateX(12deg) rotateZ(-1deg);
+    transform: rotateX(0deg);
   }
   50% {
-    transform: rotateX(18deg) rotateZ(0deg);
-  }
-  75% {
-    transform: rotateX(10deg) rotateZ(1deg);
+    transform: rotateX(22deg);
   }
 }
 
@@ -1074,7 +1068,7 @@ html {
   position: relative;
   width: 100%;
   margin-top: 18px;
-  transform: rotateX(0deg) rotateZ(0deg);
+  transform: rotateX(0deg);
   transform-origin: top center;
   animation: paper-curl 5.5s ease-in-out infinite;
   filter: drop-shadow(1px 2px 4px rgba(0, 0, 0, 0.18));
@@ -1084,7 +1078,7 @@ html {
 @media (prefers-reduced-motion: reduce) {
   .crt-sticker-paper {
     animation: none;
-    transform: rotateX(0deg) rotateZ(0deg);
+    transform: rotateX(0deg);
   }
 }
 
