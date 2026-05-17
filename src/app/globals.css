@@ -1039,10 +1039,10 @@ html {
 @keyframes paper-curl {
   0%,
   100% {
-    transform: rotateX(4deg);
+    transform: rotateX(2deg) rotateY(0deg);
   }
   50% {
-    transform: rotateX(26deg);
+    transform: rotateX(35deg) rotateY(-8deg);
   }
 }
 
@@ -1058,7 +1058,7 @@ html {
 
 .crt-sticker-tilt-wrapper {
   position: relative;
-  perspective: 700px;
+  perspective: 450px;
   transform: rotate(20deg);
   transform-origin: top center;
   transform-style: preserve-3d;
@@ -1067,7 +1067,7 @@ html {
 .crt-sticker-paper {
   position: relative;
   width: 100%;
-  margin-top: 18px;
+  margin-top: 14px;
   transform: rotateX(0deg);
   transform-origin: top center;
   animation: paper-curl 3.8s ease-in-out infinite;
@@ -1177,7 +1177,7 @@ html {
 
 .crt-washi-tape {
   position: absolute;
-  top: 4px;
+  top: 3px;
   left: 50%;
   transform: translateX(-50%) rotate(4deg);
   width: 50%;
@@ -1232,7 +1232,7 @@ html {
   }
 
   .crt-sticker-paper {
-    margin-top: 22px;
+    margin-top: 17px;
   }
 
   .crt-sticker-plate {
@@ -1251,7 +1251,7 @@ html {
 
   .crt-washi-tape {
     height: 28px;
-    top: 6px;
+    top: 4px;
   }
 }
 
