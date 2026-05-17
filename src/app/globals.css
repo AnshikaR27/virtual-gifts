@@ -513,6 +513,34 @@ html {
   }
 }
 
+.crt-tv-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 450px;
+}
+
+.crt-antenna {
+  width: 45px;
+  height: 44px;
+  margin-bottom: -6px;
+  z-index: 0;
+}
+
+.crt-antenna svg {
+  width: 100%;
+  height: 100%;
+}
+
+@media (min-width: 768px) {
+  .crt-antenna {
+    width: 60px;
+    height: 58px;
+    margin-bottom: -8px;
+  }
+}
+
 .crt-tv {
   position: relative;
   width: 100%;
@@ -524,6 +552,18 @@ html {
     4px 4px 0 #7a6885,
     0 8px 12px rgba(60, 30, 70, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.crt-tv::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3E%3Cpath d='M4 1.5C4 0.7 4.5 0.2 5 0.2S6.3 0.7 6.3 1.5C6.3 2.8 4 4.2 4 4.2S1.7 2.8 1.7 1.5C1.7 0.7 2.2 0.2 3 0.2S4 0.7 4 1.5Z' fill='%238a7094'/%3E%3C/svg%3E");
+  background-size: 8px 8px;
 }
 
 @media (min-width: 768px) {
@@ -876,19 +916,22 @@ html {
 
 /* ── Prev/Next buttons ── */
 .crt-btn {
-  width: 30px;
-  height: 24px;
+  width: 34px;
+  height: 28px;
   border: 2px solid;
-  border-color: #dcd0e4 #6a5878 #6a5878 #dcd0e4;
-  background: #bca8c4;
+  border-color: #5a4a62 #1a1020 #1a1020 #5a4a62;
+  background: #3a2a3f;
   border-radius: 4px;
   font-size: 11px;
-  color: #3a2a42;
+  color: #f0e8f4;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 2px 3px rgba(0, 0, 0, 0.3);
   transition:
     border-color 0.1s,
     transform 0.1s,
@@ -897,19 +940,20 @@ html {
 
 .crt-btn:hover {
   transform: scale(1.05);
-  filter: brightness(1.05);
+  filter: brightness(1.15);
 }
 
 .crt-btn:active {
-  border-color: #6a5878 #dcd0e4 #dcd0e4 #6a5878;
+  border-color: #1a1020 #5a4a62 #5a4a62 #1a1020;
   transform: scale(0.97);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 @media (min-width: 768px) {
   .crt-btn {
-    width: 34px;
-    height: 28px;
-    font-size: 12px;
+    width: 40px;
+    height: 32px;
+    font-size: 13px;
   }
 }
 
@@ -994,10 +1038,10 @@ html {
 /* ── Washi-tape sticker ── */
 .crt-sticker {
   position: absolute;
-  top: -18px;
-  left: -38px;
+  top: -12px;
+  left: -28px;
   z-index: 10;
-  width: clamp(96px, 28%, 120px);
+  width: clamp(76px, 22%, 96px);
   transform: rotate(-30deg);
   transform-origin: right bottom;
   pointer-events: none;
@@ -1017,7 +1061,7 @@ html {
   align-items: center;
   justify-content: center;
   gap: 3px;
-  font-size: 17px;
+  font-size: 14px;
   color: #1a0a2e;
   transform: rotate(2.5deg);
   white-space: nowrap;
@@ -1025,8 +1069,8 @@ html {
 
 .crt-doodle-heart {
   display: inline-block;
-  width: 20px;
-  height: 18px;
+  width: 16px;
+  height: 14px;
   vertical-align: middle;
   flex-shrink: 0;
 }
@@ -1039,49 +1083,49 @@ html {
 }
 
 .crt-washi--tl {
-  width: 32px;
-  top: -5px;
-  left: -4px;
+  width: 26px;
+  top: -4px;
+  left: -3px;
   transform: rotate(-25deg);
 }
 
 .crt-washi--br {
-  width: 32px;
-  bottom: -5px;
-  right: -4px;
+  width: 26px;
+  bottom: -4px;
+  right: -3px;
   transform: rotate(-20deg);
 }
 
 @media (min-width: 768px) {
   .crt-sticker {
-    top: -15px;
-    left: -25px;
-    width: clamp(115px, 30%, 135px);
+    top: -10px;
+    left: -15px;
+    width: clamp(92px, 24%, 108px);
   }
 
   .crt-sticker-plate {
-    padding: 8px 14px;
+    padding: 6px 11px;
   }
 
   .crt-sticker-text {
-    font-size: 21px;
+    font-size: 17px;
   }
 
   .crt-doodle-heart {
-    width: 24px;
-    height: 22px;
+    width: 19px;
+    height: 17px;
   }
 
   .crt-washi--tl {
-    width: 38px;
-    top: -6px;
-    left: -5px;
+    width: 30px;
+    top: -5px;
+    left: -4px;
   }
 
   .crt-washi--br {
-    width: 38px;
-    bottom: -6px;
-    right: -5px;
+    width: 30px;
+    bottom: -5px;
+    right: -4px;
   }
 }
 

@@ -120,6 +120,37 @@ function TuningColumn() {
   );
 }
 
+function Antenna() {
+  return (
+    <div className="crt-antenna" aria-hidden>
+      <svg viewBox="0 0 60 58" fill="none" xmlns="http://www.w3.org/2000/svg">
+        {/* Left rod: -28° from vertical, 55px tall */}
+        <line
+          x1="30"
+          y1="58"
+          x2="14.2"
+          y2="5"
+          stroke="#3a2a3f"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+        <circle cx="14.2" cy="5" r="2.5" fill="#3a2a3f" />
+        {/* Right rod: +32° from vertical, 48px tall */}
+        <line
+          x1="30"
+          y1="58"
+          x2="49"
+          y2="12"
+          stroke="#3a2a3f"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+        <circle cx="49" cy="12" r="2.5" fill="#3a2a3f" />
+      </svg>
+    </div>
+  );
+}
+
 function FanFavoritesSticker() {
   return (
     <div className="crt-sticker" aria-hidden>
@@ -430,116 +461,121 @@ export function CrtShowcase() {
           </svg>
         </div>
 
-        <div className="crt-tv">
-          <FanFavoritesSticker />
+        <div className="crt-tv-wrap">
+          <Antenna />
+          <div className="crt-tv">
+            <FanFavoritesSticker />
 
-          {/* Main body: screen + tuning column */}
-          <div className="crt-body-row">
-            <div className="crt-screen-bezel">
-              <div
-                className="crt-screen"
-                style={{ '--screen-tint': channel.tint } as React.CSSProperties}
-                onTouchStart={handleTouchStart}
-                onTouchEnd={handleTouchEnd}
-                onClick={handleScreenTap}
-                role="button"
-                tabIndex={0}
-                aria-label={`Create ${channel.name} gift`}
-              >
+            {/* Main body: screen + tuning column */}
+            <div className="crt-body-row">
+              <div className="crt-screen-bezel">
                 <div
-                  className="crt-screen-content"
-                  style={{ opacity: switching ? 0 : 1 }}
+                  className="crt-screen"
+                  style={
+                    { '--screen-tint': channel.tint } as React.CSSProperties
+                  }
+                  onTouchStart={handleTouchStart}
+                  onTouchEnd={handleTouchEnd}
+                  onClick={handleScreenTap}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Create ${channel.name} gift`}
                 >
-                  <span className="crt-screen-emoji">{channel.emoji}</span>
-                  <span className="crt-screen-name font-pixel">
-                    {channel.name}
-                  </span>
-                  <span className="crt-screen-desc font-body">
-                    {channel.desc}
-                  </span>
-                  <span className="crt-screen-cta font-body">
-                    &#9654; tap to create
-                  </span>
-                </div>
-
-                {switching && (
-                  <div className="crt-static-overlay">
-                    <svg viewBox="0 0 200 200" preserveAspectRatio="none">
-                      <filter id="crt-noise">
-                        <feTurbulence
-                          type="fractalNoise"
-                          baseFrequency="0.65"
-                          numOctaves="3"
-                          stitchTiles="stitch"
-                        >
-                          <animate
-                            attributeName="seed"
-                            from="0"
-                            to="100"
-                            dur="0.15s"
-                            repeatCount="indefinite"
-                          />
-                        </feTurbulence>
-                      </filter>
-                      <rect
-                        width="100%"
-                        height="100%"
-                        filter="url(#crt-noise)"
-                        opacity="0.6"
-                      />
-                    </svg>
+                  <div
+                    className="crt-screen-content"
+                    style={{ opacity: switching ? 0 : 1 }}
+                  >
+                    <span className="crt-screen-emoji">{channel.emoji}</span>
+                    <span className="crt-screen-name font-pixel">
+                      {channel.name}
+                    </span>
+                    <span className="crt-screen-desc font-body">
+                      {channel.desc}
+                    </span>
+                    <span className="crt-screen-cta font-body">
+                      &#9654; tap to create
+                    </span>
                   </div>
-                )}
 
-                <span className="crt-ch-indicator font-pixel">
-                  CH {currentCh + 1}/{channels.length}
-                </span>
+                  {switching && (
+                    <div className="crt-static-overlay">
+                      <svg viewBox="0 0 200 200" preserveAspectRatio="none">
+                        <filter id="crt-noise">
+                          <feTurbulence
+                            type="fractalNoise"
+                            baseFrequency="0.65"
+                            numOctaves="3"
+                            stitchTiles="stitch"
+                          >
+                            <animate
+                              attributeName="seed"
+                              from="0"
+                              to="100"
+                              dur="0.15s"
+                              repeatCount="indefinite"
+                            />
+                          </feTurbulence>
+                        </filter>
+                        <rect
+                          width="100%"
+                          height="100%"
+                          filter="url(#crt-noise)"
+                          opacity="0.6"
+                        />
+                      </svg>
+                    </div>
+                  )}
 
-                <div className="crt-scanlines" aria-hidden />
-                <div className="crt-glass-reflection" aria-hidden />
-                <div className="crt-vignette" aria-hidden />
+                  <span className="crt-ch-indicator font-pixel">
+                    CH {currentCh + 1}/{channels.length}
+                  </span>
+
+                  <div className="crt-scanlines" aria-hidden />
+                  <div className="crt-glass-reflection" aria-hidden />
+                  <div className="crt-vignette" aria-hidden />
+                </div>
               </div>
+
+              <TuningColumn />
             </div>
 
-            <TuningColumn />
-          </div>
-
-          {/* Control panel */}
-          <div className="crt-controls">
-            <span className="crt-brand font-pixel">HoneyVision&trade;</span>
-            <div
-              className="crt-dial"
-              aria-hidden
-              style={{ transform: `rotate(${dialRotation}deg)` }}
-            >
-              <span className="crt-dial-notch" />
+            {/* Control panel */}
+            <div className="crt-controls">
+              <span className="crt-brand font-pixel">HoneyVision&trade;</span>
+              <div
+                className="crt-dial"
+                aria-hidden
+                style={{ transform: `rotate(${dialRotation}deg)` }}
+              >
+                <span className="crt-dial-notch" />
+              </div>
+              <button
+                className="crt-btn"
+                aria-label="Previous channel"
+                onClick={() => switchChannel(-1)}
+              >
+                &#9664;
+              </button>
+              <button
+                className="crt-btn"
+                aria-label="Next channel"
+                onClick={() => switchChannel(1)}
+              >
+                &#9654;
+              </button>
+              <div className="crt-led" aria-hidden />
+              <div className="crt-orange-btn" aria-hidden />
             </div>
-            <button
-              className="crt-btn"
-              aria-label="Previous channel"
-              onClick={() => switchChannel(-1)}
-            >
-              &#9664;
-            </button>
-            <button
-              className="crt-btn"
-              aria-label="Next channel"
-              onClick={() => switchChannel(1)}
-            >
-              &#9654;
-            </button>
-            <div className="crt-led" aria-hidden />
-            <div className="crt-orange-btn" aria-hidden />
+
+            {/* Full-width speaker grille */}
+            <div className="crt-speaker-grille" aria-hidden />
           </div>
 
-          {/* Full-width speaker grille */}
-          <div className="crt-speaker-grille" aria-hidden />
-        </div>
-
-        {/* Feet */}
-        <div className="crt-feet" aria-hidden>
-          <span className="crt-foot crt-foot-l" />
-          <span className="crt-foot crt-foot-r" />
+          {/* Feet */}
+          <div className="crt-feet" aria-hidden>
+            <span className="crt-foot crt-foot-l" />
+            <span className="crt-foot crt-foot-r" />
+          </div>
         </div>
 
         <div className="crt-bridge-title crt-bridge-title--bottom">
