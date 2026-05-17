@@ -1099,14 +1099,24 @@ html {
   flex-shrink: 0;
 }
 
-/* Single horizontal washi tape strip at top-center */
-.crt-washi-strip {
-  position: relative;
+/* Corner tape pieces */
+.crt-tape {
+  position: absolute;
   z-index: 11;
-  width: 55%;
-  margin: 0 auto -4px;
-  height: auto;
-  display: block;
+  width: 20px;
+  height: 16px;
+}
+
+.crt-tape--tl {
+  top: -6px;
+  left: -4px;
+  transform: rotate(-18deg);
+}
+
+.crt-tape--tr {
+  top: -6px;
+  right: -4px;
+  transform: rotate(15deg);
 }
 
 @media (min-width: 768px) {
@@ -1128,6 +1138,21 @@ html {
   .crt-doodle-heart {
     width: 26px;
     height: 24px;
+  }
+
+  .crt-tape {
+    width: 24px;
+    height: 20px;
+  }
+
+  .crt-tape--tl {
+    top: -8px;
+    left: -5px;
+  }
+
+  .crt-tape--tr {
+    top: -8px;
+    right: -5px;
   }
 }
 

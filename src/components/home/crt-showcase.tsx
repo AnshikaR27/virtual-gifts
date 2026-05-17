@@ -154,27 +154,27 @@ function Antenna() {
 function FanFavoritesSticker() {
   return (
     <div className="crt-sticker" aria-hidden>
-      {/* Single horizontal washi tape across top-center */}
+      {/* Top-left corner tape piece */}
       <svg
-        className="crt-washi-strip"
-        viewBox="0 0 100 14"
+        className="crt-tape crt-tape--tl"
+        viewBox="0 0 22 18"
         xmlns="http://www.w3.org/2000/svg"
       >
-        <defs>
-          <pattern
-            id="washi-gingham"
-            width="4"
-            height="4"
-            patternUnits="userSpaceOnUse"
-          >
-            <rect width="4" height="4" fill="#FFB6C1" />
-            <rect width="2" height="2" fill="#FF9FB3" />
-            <rect x="2" y="2" width="2" height="2" fill="#FF9FB3" />
-          </pattern>
-        </defs>
         <path
-          d="M0.5 1.2 L3 0.5 L8 1.5 L15 0.8 L25 1.2 L50 0.6 L75 1.3 L85 0.7 L95 1.1 L99 0.8 L99.5 1.5 L100 12 L99 13 L97 13.5 L80 12.8 L50 13.2 L20 12.6 L5 13.3 L2 13.5 L0 12.5 L0.5 1.2 Z"
-          fill="url(#washi-gingham)"
+          d="M0.5 1 L2 0.3 L5 1.2 L10 0.5 L18 0.8 L20 0.5 L21.5 1.5 L21 16 L20 17 L18 17.5 L8 16.8 L3 17.3 L1 17.5 L0 16 L0.5 1 Z"
+          fill="#E8C77A"
+          opacity="0.7"
+        />
+      </svg>
+      {/* Top-right corner tape piece */}
+      <svg
+        className="crt-tape crt-tape--tr"
+        viewBox="0 0 22 18"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M1 1.2 L3 0.5 L8 1 L14 0.4 L19 0.8 L21 0.5 L21.5 1.5 L22 16.5 L21 17.2 L18 17.5 L10 17 L4 17.5 L1.5 17 L0 16 L0.5 1.2 Z"
+          fill="#E8C77A"
           opacity="0.7"
         />
       </svg>
