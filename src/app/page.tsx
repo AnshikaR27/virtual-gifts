@@ -29,11 +29,6 @@ export default function Home() {
     <div className="pb-20 md:pb-0">
       <HeroSection />
       <CrtShowcase />
-      <div className="wall-transition">
-        <p className="wall-transition-hint font-handwritten">
-          82 more ways to make their phone screen blur
-        </p>
-      </div>
       <PolaroidWall />
       <HowItWorks />
       <Testimonials />

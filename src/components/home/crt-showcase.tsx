@@ -208,7 +208,68 @@ export function CrtShowcase() {
   return (
     <>
       <section className="crt-section" ref={sectionRef}>
-        <p className="crt-label-top font-display">For Your Person ♥</p>
+        <div className="crt-bridge-title">
+          <h2 className="crt-label-top font-display">
+            For Your Person{' '}
+            <svg
+              className="crt-heart-icon"
+              width="38"
+              height="35"
+              viewBox="0 0 38 35"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+            >
+              <defs>
+                <linearGradient
+                  id="heart-grad"
+                  x1="19"
+                  y1="0"
+                  x2="19"
+                  y2="35"
+                  gradientUnits="userSpaceOnUse"
+                >
+                  <stop offset="0%" stopColor="#FF85C8" />
+                  <stop offset="100%" stopColor="#E84592" />
+                </linearGradient>
+              </defs>
+              <path
+                d="M19 33C17.5 31.5 3 23 1.5 14.5C0 6 5.5 1 11 1.2C14.5 1.3 17.2 3.5 19 6.5C20.5 3.8 23.5 1.8 27 2C32 2.3 36.5 6.5 36 14C35.3 22.5 20.5 31.5 19 33Z"
+                fill="url(#heart-grad)"
+              />
+              <path
+                d="M19 33C17.5 31.5 3 23 1.5 14.5C0 6 5.5 1 11 1.2C14.5 1.3 17.2 3.5 19 6.5C20.5 3.8 23.5 1.8 27 2C32 2.3 36.5 6.5 36 14C35.3 22.5 20.5 31.5 19 33Z"
+                stroke="#C43A78"
+                strokeWidth="0.75"
+                fill="none"
+                opacity="0.5"
+              />
+              <ellipse
+                cx="10.5"
+                cy="9"
+                rx="4"
+                ry="3.2"
+                fill="white"
+                opacity="0.35"
+                transform="rotate(-15 10.5 9)"
+              />
+            </svg>
+          </h2>
+          <svg
+            className="crt-title-squiggle"
+            viewBox="0 0 80 6"
+            fill="none"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M2 4c6-4 12 4 18 0s12-4 18 0 12 4 18 0s12-4 18 0"
+              stroke="rgba(26,10,46,0.2)"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
+          </svg>
+        </div>
         <div className="crt-tv">
           {/* Screen area */}
           <div className="crt-screen-bezel">
@@ -315,9 +376,57 @@ export function CrtShowcase() {
           <span className="crt-foot crt-foot-r" />
         </div>
 
-        <p className="crt-label-bottom font-display">
-          Find What Feels Like Them →
-        </p>
+        <div className="crt-bridge-title crt-bridge-title--bottom">
+          <h2 className="crt-label-bottom font-display">
+            Find What Feels Like Them{' '}
+            <svg
+              className="crt-arrow-icon"
+              width="44"
+              height="22"
+              viewBox="0 0 44 22"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+            >
+              <path
+                d="M2 14C6 8 11 16 16 9C20 14 25 7 30 13C33 10 36 11.5 40 11C41.5 10.8 43 11.2 43.5 11"
+                stroke="#1a0a2e"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M32 4C34.5 6.5 37 9 39.5 11"
+                stroke="#1a0a2e"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+              />
+              <path
+                d="M34.5 18.5C36 16 38.5 13 39.5 11"
+                stroke="#1a0a2e"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+            </svg>
+          </h2>
+          <svg
+            className="crt-title-squiggle"
+            viewBox="0 0 80 6"
+            fill="none"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M2 4c6-4 12 4 18 0s12-4 18 0 12 4 18 0s12-4 18 0"
+              stroke="rgba(26,10,46,0.2)"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
+          </svg>
+          <p className="crt-bridge-hint font-body">
+            82 more ways to make their phone screen blur
+          </p>
+        </div>
       </section>
 
       {loading && <GiftLoading onComplete={handleLoadComplete} />}

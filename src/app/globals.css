@@ -395,23 +395,92 @@ html {
   animation: paper-fly 0.6s ease-in-out infinite;
 }
 
-/* ── CRT Labels ── */
+/* ── Section Bridge Titles ── */
+
+.crt-bridge-title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
 
 .crt-label-top,
 .crt-label-bottom {
-  font-size: 19px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  color: #3a1a4e;
+  font-size: 32px;
+  font-weight: 500;
+  font-style: italic;
+  letter-spacing: -0.02em;
+  color: #1a0a2e;
   margin: 0;
+  line-height: 1.2;
 }
 
 .crt-label-top {
-  margin-bottom: 18px;
+  margin-bottom: 0;
 }
 
 .crt-label-bottom {
-  margin-top: 18px;
+  margin-top: 0;
+}
+
+.crt-heart-icon {
+  display: inline-block;
+  width: 28px;
+  height: 26px;
+  vertical-align: -0.1em;
+  margin-left: 2px;
+}
+
+.crt-arrow-icon {
+  display: inline-block;
+  width: 36px;
+  height: 18px;
+  vertical-align: middle;
+  margin-left: 4px;
+}
+
+.crt-title-squiggle {
+  display: block;
+  width: 65%;
+  height: 6px;
+  margin-top: 6px;
+}
+
+.crt-bridge-hint {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: rgba(26, 10, 46, 0.6);
+}
+
+/* Spacing: titles hug what they introduce */
+.crt-bridge-title:first-child {
+  margin-bottom: 16px;
+}
+
+.crt-bridge-title--bottom {
+  margin-top: 64px;
+  margin-bottom: 16px;
+}
+
+@media (min-width: 768px) {
+  .crt-label-top,
+  .crt-label-bottom {
+    font-size: 40px;
+  }
+
+  .crt-heart-icon {
+    width: 34px;
+    height: 32px;
+  }
+
+  .crt-arrow-icon {
+    width: 44px;
+    height: 22px;
+  }
+
+  .crt-bridge-title--bottom {
+    margin-top: 80px;
+  }
 }
 
 /* ── CRT TV Showcase ── */
@@ -420,12 +489,12 @@ html {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 24px 12px 8px;
+  padding: 72px 12px 8px;
 }
 
 @media (min-width: 768px) {
   .crt-section {
-    padding: 24px 16px 8px;
+    padding: 96px 16px 8px;
   }
 }
 
@@ -777,17 +846,7 @@ html {
   }
 }
 
-/* ── Wall Transition ── */
-.wall-transition {
-  text-align: center;
-  padding: 8px 16px 32px;
-}
-
-.wall-transition-hint {
-  margin: 0;
-  font-size: 16px;
-  color: rgba(58, 26, 78, 0.7);
-}
+/* (wall-transition removed — hint now grouped with bridge title) */
 
 /* ── Polaroid Wall ── */
 
