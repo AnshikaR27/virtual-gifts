@@ -1015,10 +1015,19 @@ html {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 3px;
   font-size: 17px;
   color: #1a0a2e;
   transform: rotate(2.5deg);
   white-space: nowrap;
+}
+
+.crt-doodle-heart {
+  display: inline-block;
+  width: 20px;
+  height: 18px;
+  vertical-align: middle;
+  flex-shrink: 0;
 }
 
 /* Washi tape strips */
@@ -1055,6 +1064,11 @@ html {
 
   .crt-sticker-text {
     font-size: 21px;
+  }
+
+  .crt-doodle-heart {
+    width: 24px;
+    height: 22px;
   }
 
   .crt-washi--tl {
