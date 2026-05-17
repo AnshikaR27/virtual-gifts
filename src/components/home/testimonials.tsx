@@ -49,7 +49,10 @@ export function Testimonials() {
   const revealRef = useReveal<HTMLDivElement>({ staggerMs: 80 });
 
   return (
-    <section className="px-4 py-8 md:py-12">
+    <section
+      className="px-4"
+      style={{ paddingTop: 0, paddingBottom: 'var(--space-md)' }}
+    >
       <div className="mx-auto max-w-6xl">
         <h2 className="font-display text-[24px] font-semibold text-ink md:text-[32px]">
           C:\Reviews\happy_tears

@@ -154,7 +154,11 @@ export function HeroSection() {
   return (
     <section
       id="hero"
-      className="relative overflow-hidden px-4 py-8 md:min-h-[calc(100dvh-34px)] md:py-20"
+      className="relative overflow-hidden px-4 md:min-h-[calc(100dvh-34px)]"
+      style={{
+        paddingTop: 'var(--space-md)',
+        paddingBottom: 'var(--space-xl)',
+      }}
     >
       <FloatingWindows />
 

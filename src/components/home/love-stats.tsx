@@ -30,7 +30,10 @@ export function LoveStats() {
   const revealRef = useReveal<HTMLDivElement>({ staggerMs: 80 });
 
   return (
-    <section className="px-4 py-5 md:py-8">
+    <section
+      className="px-4"
+      style={{ paddingTop: 0, paddingBottom: 'var(--space-xl)' }}
+    >
       <div className="mx-auto max-w-4xl">
         <div className="win98-window">
           <div className="win98-titlebar">

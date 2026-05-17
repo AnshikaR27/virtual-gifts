@@ -153,7 +153,11 @@ export function PolaroidWall() {
   }, []);
 
   return (
-    <section id="browse" className="px-4 py-5 md:py-8">
+    <section
+      id="browse"
+      className="px-4"
+      style={{ paddingTop: 0, paddingBottom: 'var(--space-lg)' }}
+    >
       <div className="mx-auto max-w-6xl">
         <div className="polaroid-wall-bg" ref={wallRef}>
           {strings.map((stringGifts, stringIdx) => (

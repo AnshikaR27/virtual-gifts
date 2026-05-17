@@ -16,7 +16,13 @@ function TitlebarButtons() {
 
 export function CommunityCTA() {
   return (
-    <section className="px-4 py-8 md:py-12">
+    <section
+      className="px-4"
+      style={{
+        paddingTop: 'var(--space-lg)',
+        paddingBottom: 'var(--space-md)',
+      }}
+    >
       <div className="mx-auto max-w-md">
         <div className="win98-window">
           <div className="win98-titlebar">

@@ -74,6 +74,14 @@
 
     --radius: 0px;
 
+    /* ── Airy spacing scale ── */
+    --space-xs: 16px;
+    --space-sm: 32px;
+    --space-md: 64px;
+    --space-lg: 96px;
+    --space-xl: 144px;
+    --space-2xl: 192px;
+
     /* ── Compat aliases (shadcn slots) ── */
     --foreground: var(--on-surface);
     --card: var(--surface-container-lowest);
@@ -91,6 +99,17 @@
     --border: var(--outline-variant);
     --input: var(--outline-variant);
     --ring: var(--primary);
+  }
+}
+
+@media (max-width: 767px) {
+  :root {
+    --space-xs: 12px;
+    --space-sm: 24px;
+    --space-md: 48px;
+    --space-lg: 72px;
+    --space-xl: 120px;
+    --space-2xl: 156px;
   }
 }
 
@@ -454,12 +473,12 @@ html {
 
 /* Spacing: titles hug what they introduce */
 .crt-bridge-title:first-child {
-  margin-bottom: 16px;
+  margin-bottom: var(--space-sm);
 }
 
 .crt-bridge-title--bottom {
-  margin-top: 64px;
-  margin-bottom: 16px;
+  margin-top: var(--space-md);
+  margin-bottom: var(--space-sm);
 }
 
 @media (min-width: 768px) {
@@ -477,10 +496,6 @@ html {
     width: 44px;
     height: 22px;
   }
-
-  .crt-bridge-title--bottom {
-    margin-top: 80px;
-  }
 }
 
 /* ── CRT TV Showcase ── */
@@ -489,12 +504,12 @@ html {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 72px 12px 8px;
+  padding: 0 12px var(--space-sm);
 }
 
 @media (min-width: 768px) {
   .crt-section {
-    padding: 96px 16px 8px;
+    padding: 0 16px var(--space-sm);
   }
 }
 
@@ -976,64 +991,82 @@ html {
   }
 }
 
-/* ── Torn-paper sticker ── */
+/* ── Washi-tape sticker ── */
 .crt-sticker {
   position: absolute;
-  top: 8px;
-  left: 8px;
+  top: 6px;
+  left: 6px;
   z-index: 10;
-  width: clamp(78px, 22%, 96px);
+  width: clamp(96px, 28%, 120px);
   transform: rotate(-4deg);
   pointer-events: none;
-  filter: drop-shadow(1px 2px 3px rgba(0, 0, 0, 0.22));
+  filter: drop-shadow(1px 2px 4px rgba(0, 0, 0, 0.2));
 }
 
-.crt-sticker::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 12px;
-  height: 7px;
-  background: rgba(0, 0, 0, 0.1);
-  border-radius: 2px 0 0 0;
-  transform: rotate(4deg) translate(1px, 1px);
-  filter: blur(2px);
-}
-
-.crt-sticker-paper {
-  display: block;
-  width: 100%;
-  height: auto;
+.crt-sticker-plate {
+  background: linear-gradient(135deg, #ffe566, #ffd83d);
+  border-radius: 3px;
+  padding: 6px 10px;
+  position: relative;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .crt-sticker-text {
-  position: absolute;
-  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
+  font-size: 17px;
   color: #1a0a2e;
-  transform: rotate(3deg) translateX(-2px);
-  padding-top: 1px;
+  transform: rotate(2.5deg);
   white-space: nowrap;
+}
+
+/* Washi tape strips */
+.crt-washi {
+  position: absolute;
+  z-index: 11;
+  height: auto;
+}
+
+.crt-washi--tl {
+  width: 32px;
+  top: -5px;
+  left: -4px;
+  transform: rotate(-25deg);
+}
+
+.crt-washi--br {
+  width: 32px;
+  bottom: -5px;
+  right: -4px;
+  transform: rotate(-20deg);
 }
 
 @media (min-width: 768px) {
   .crt-sticker {
-    top: 12px;
-    left: 12px;
-    width: clamp(96px, 24%, 110px);
+    top: 10px;
+    left: 10px;
+    width: clamp(115px, 30%, 135px);
+  }
+
+  .crt-sticker-plate {
+    padding: 8px 14px;
   }
 
   .crt-sticker-text {
-    font-size: 19px;
+    font-size: 21px;
   }
 
-  .crt-sticker::after {
-    width: 14px;
-    height: 8px;
+  .crt-washi--tl {
+    width: 38px;
+    top: -6px;
+    left: -5px;
+  }
+
+  .crt-washi--br {
+    width: 38px;
+    bottom: -6px;
+    right: -5px;
   }
 }
 

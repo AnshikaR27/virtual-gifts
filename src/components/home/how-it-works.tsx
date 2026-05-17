@@ -43,7 +43,11 @@ export function HowItWorks() {
   const revealRef = useReveal<HTMLDivElement>({ staggerMs: 80 });
 
   return (
-    <section id="how-it-works" className="px-4 py-8 md:py-12">
+    <section
+      id="how-it-works"
+      className="px-4"
+      style={{ paddingTop: 0, paddingBottom: 'var(--space-md)' }}
+    >
       <div className="mx-auto max-w-4xl">
         <div className="win98-window">
           <div className="win98-titlebar">

@@ -19,7 +19,7 @@ function TitlebarButtons() {
 
 export function Footer() {
   return (
-    <footer className="px-4 py-8 md:py-12">
+    <footer className="px-4 pb-8 md:pb-12" style={{ paddingTop: 0 }}>
       <div className="mx-auto max-w-4xl">
         <div className="win98-window">
           <div className="win98-titlebar">
