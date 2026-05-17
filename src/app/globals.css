@@ -1099,14 +1099,14 @@ html {
   flex-shrink: 0;
 }
 
-/* Single horizontal washi tape strip across top */
+/* Single horizontal washi tape strip at top-center */
 .crt-washi-strip {
   position: relative;
   z-index: 11;
-  width: 110%;
-  margin-left: -5%;
+  width: 55%;
+  margin: 0 auto -4px;
   height: auto;
-  margin-bottom: -4px;
+  display: block;
 }
 
 @media (min-width: 768px) {
