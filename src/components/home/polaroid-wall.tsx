@@ -156,7 +156,7 @@ export function PolaroidWall() {
     <section
       id="browse"
       className="px-4"
-      style={{ paddingTop: 0, paddingBottom: 'var(--space-lg)' }}
+      style={{ paddingTop: 0, paddingBottom: 'var(--space-md)' }}
     >
       <div className="mx-auto max-w-6xl">
         <div className="polaroid-wall-bg" ref={wallRef}>

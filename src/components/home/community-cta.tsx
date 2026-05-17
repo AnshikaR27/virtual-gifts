@@ -19,7 +19,7 @@ export function CommunityCTA() {
     <section
       className="px-4"
       style={{
-        paddingTop: 'var(--space-lg)',
+        paddingTop: 'var(--space-sm)',
         paddingBottom: 'var(--space-md)',
       }}
     >

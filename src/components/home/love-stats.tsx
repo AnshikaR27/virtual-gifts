@@ -32,7 +32,7 @@ export function LoveStats() {
   return (
     <section
       className="px-4"
-      style={{ paddingTop: 0, paddingBottom: 'var(--space-xl)' }}
+      style={{ paddingTop: 0, paddingBottom: 'var(--space-md)' }}
     >
       <div className="mx-auto max-w-4xl">
         <div className="win98-window">
