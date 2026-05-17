@@ -154,10 +154,10 @@ function Antenna() {
 function FanFavoritesSticker() {
   return (
     <div className="crt-sticker" aria-hidden>
-      {/* Washi tape — top-left corner, pink gingham pattern */}
+      {/* Single horizontal washi tape across top-center */}
       <svg
-        className="crt-washi crt-washi--tl"
-        viewBox="0 0 38 14"
+        className="crt-washi-strip"
+        viewBox="0 0 100 14"
         xmlns="http://www.w3.org/2000/svg"
       >
         <defs>
@@ -173,44 +173,12 @@ function FanFavoritesSticker() {
           </pattern>
         </defs>
         <path
-          d="M0.5 1 L2 0.5 L5 1.5 L8 0.8 L36 1 L37.5 1.5 L37 2 L37.5 12 L36 13 L34 13.5 L3 12.8 L1 13.5 L0 12.5 L0.5 1 Z"
+          d="M0.5 1.2 L3 0.5 L8 1.5 L15 0.8 L25 1.2 L50 0.6 L75 1.3 L85 0.7 L95 1.1 L99 0.8 L99.5 1.5 L100 12 L99 13 L97 13.5 L80 12.8 L50 13.2 L20 12.6 L5 13.3 L2 13.5 L0 12.5 L0.5 1.2 Z"
           fill="url(#washi-gingham)"
-          opacity="0.75"
-        />
-      </svg>
-      {/* Washi tape — top-right corner, pink hearts pattern */}
-      <svg
-        className="crt-washi crt-washi--tr"
-        viewBox="0 0 38 14"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <defs>
-          <pattern
-            id="washi-hearts"
-            width="8"
-            height="8"
-            patternUnits="userSpaceOnUse"
-          >
-            <rect width="8" height="8" fill="#FECACA" />
-            <text
-              x="4"
-              y="6.5"
-              fontSize="5"
-              textAnchor="middle"
-              fill="#FF85A2"
-              opacity="0.6"
-            >
-              ♥
-            </text>
-          </pattern>
-        </defs>
-        <path
-          d="M1 1.5 L3 0.5 L6 1.2 L35 0.8 L37 1 L37.5 2 L38 12 L37 13 L35 13.5 L4 13 L2 13.5 L0.5 12.5 L0 2 Z"
-          fill="url(#washi-hearts)"
           opacity="0.7"
         />
       </svg>
-      {/* Yellow paper plate — bottom edge curves inward to suggest curl */}
+      {/* Yellow paper plate */}
       <div className="crt-sticker-plate">
         <span className="crt-sticker-text font-handwritten">
           top 5{' '}
@@ -220,23 +188,19 @@ function FanFavoritesSticker() {
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
           >
-            {/* Misaligned marker fill — bleeds past the outline */}
             <path
               d="M12.5 19C11 17.5 4.5 13 3.2 9C2 5.5 4 3.2 6.8 3C8.5 2.9 10.2 4 11.8 6C13 4.2 14.8 3.2 16.8 3.3C19.2 3.5 21.5 5.8 20.8 9.5C20 13.5 13 17 12.5 19Z"
               fill="#FFE0F0"
               opacity="0.5"
             />
-            {/* Wobbly hand-drawn outline — variable width via irregular path */}
             <path
               d="M12 19.5C10.5 17.8 3.5 13.2 2.2 8.8C1 4.8 3.5 2.2 6.5 2C8.4 1.9 10.5 3.5 12 6.2C13.2 3.8 15.2 2.3 17.2 2.5C20 2.8 22.2 5.5 21.5 9.2C20.5 14 13 18 12 19.5Z"
               stroke="#FF1493"
               strokeWidth="1.8"
               strokeLinecap="round"
               strokeLinejoin="round"
-              strokeDasharray="0"
               style={{ filter: 'url(#doodle-wobble)' }}
             />
-            {/* Tiny sparkle marks */}
             <line
               x1="20"
               y1="4.5"
@@ -281,14 +245,6 @@ function FanFavoritesSticker() {
             </defs>
           </svg>
         </span>
-        <svg
-          className="crt-sticker-curl"
-          viewBox="0 0 80 4"
-          preserveAspectRatio="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path d="M0 0 Q20 3 40 2 Q60 1 80 0" fill="#ffe566" />
-        </svg>
       </div>
     </div>
   );
