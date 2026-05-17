@@ -994,11 +994,12 @@ html {
 /* ── Washi-tape sticker ── */
 .crt-sticker {
   position: absolute;
-  top: 6px;
-  left: 6px;
+  top: -18px;
+  left: -38px;
   z-index: 10;
   width: clamp(96px, 28%, 120px);
-  transform: rotate(-4deg);
+  transform: rotate(-30deg);
+  transform-origin: right bottom;
   pointer-events: none;
   filter: drop-shadow(1px 2px 4px rgba(0, 0, 0, 0.2));
 }
@@ -1053,8 +1054,8 @@ html {
 
 @media (min-width: 768px) {
   .crt-sticker {
-    top: 10px;
-    left: 10px;
+    top: -15px;
+    left: -25px;
     width: clamp(115px, 30%, 135px);
   }
 
