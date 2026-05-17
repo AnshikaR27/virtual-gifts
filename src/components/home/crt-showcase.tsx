@@ -96,6 +96,70 @@ function playStatic() {
   } catch {}
 }
 
+function TuningColumn() {
+  return (
+    <div className="crt-tuning-column" aria-hidden>
+      <span className="crt-tuning-label">МВ</span>
+      <span className="crt-tuning-num">6</span>
+      <span
+        className="crt-tuning-num crt-tuning-misprint"
+        style={{ transform: 'translateX(1.5px)' }}
+      >
+        21
+      </span>
+      <span className="crt-tuning-num">5</span>
+      <span
+        className="crt-tuning-num crt-tuning-misprint"
+        style={{ transform: 'translateX(-1px)' }}
+      >
+        12
+      </span>
+      <span className="crt-tuning-num">49</span>
+      <span className="crt-tuning-label">ДМВ</span>
+    </div>
+  );
+}
+
+function FanFavoritesSticker() {
+  return (
+    <div className="crt-sticker" aria-hidden>
+      <svg
+        className="crt-sticker-tape crt-sticker-tape--left"
+        viewBox="0 0 14 8"
+        preserveAspectRatio="none"
+      >
+        <path
+          d="M0.5 0.5 L13 0 L13.5 7.5 L0 8 Z"
+          fill="#E8C77A"
+          fillOpacity="0.7"
+        />
+      </svg>
+      <svg
+        className="crt-sticker-tape crt-sticker-tape--right"
+        viewBox="0 0 14 8"
+        preserveAspectRatio="none"
+      >
+        <path
+          d="M0.5 0 L13.5 0.5 L13 8 L0 7.5 Z"
+          fill="#E8C77A"
+          fillOpacity="0.7"
+        />
+      </svg>
+      <svg
+        className="crt-sticker-paper"
+        viewBox="0 0 70 36"
+        preserveAspectRatio="none"
+      >
+        <path
+          d="M2 1 L68 0.5 L69.5 2 L70 33 L68.5 35 L67 35.5 L3 36 L1 34.5 L0.5 3 Z"
+          fill="#FAF4E6"
+        />
+      </svg>
+      <span className="crt-sticker-text font-handwritten">fan favorites ★</span>
+    </div>
+  );
+}
+
 export function CrtShowcase() {
   const [currentCh, setCurrentCh] = useState(0);
   const [switching, setSwitching] = useState(false);
@@ -270,80 +334,84 @@ export function CrtShowcase() {
             />
           </svg>
         </div>
+
         <div className="crt-tv">
-          {/* Screen area */}
-          <div className="crt-screen-bezel">
-            <div
-              className="crt-screen"
-              style={{ '--screen-tint': channel.tint } as React.CSSProperties}
-              onTouchStart={handleTouchStart}
-              onTouchEnd={handleTouchEnd}
-              onClick={handleScreenTap}
-              role="button"
-              tabIndex={0}
-              aria-label={`Create ${channel.name} gift`}
-            >
+          <FanFavoritesSticker />
+
+          {/* Main body: screen + tuning column */}
+          <div className="crt-body-row">
+            <div className="crt-screen-bezel">
               <div
-                className="crt-screen-content"
-                style={{ opacity: switching ? 0 : 1 }}
+                className="crt-screen"
+                style={{ '--screen-tint': channel.tint } as React.CSSProperties}
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
+                onClick={handleScreenTap}
+                role="button"
+                tabIndex={0}
+                aria-label={`Create ${channel.name} gift`}
               >
-                <span className="crt-screen-emoji">{channel.emoji}</span>
-                <span className="crt-screen-name font-pixel">
-                  {channel.name}
-                </span>
-                <span className="crt-screen-desc font-body">
-                  {channel.desc}
-                </span>
-                <span className="crt-screen-cta font-body">
-                  &#9654; tap to create
-                </span>
-              </div>
-
-              {/* TV static noise overlay */}
-              {switching && (
-                <div className="crt-static-overlay">
-                  <svg viewBox="0 0 200 200" preserveAspectRatio="none">
-                    <filter id="crt-noise">
-                      <feTurbulence
-                        type="fractalNoise"
-                        baseFrequency="0.65"
-                        numOctaves="3"
-                        stitchTiles="stitch"
-                      >
-                        <animate
-                          attributeName="seed"
-                          from="0"
-                          to="100"
-                          dur="0.15s"
-                          repeatCount="indefinite"
-                        />
-                      </feTurbulence>
-                    </filter>
-                    <rect
-                      width="100%"
-                      height="100%"
-                      filter="url(#crt-noise)"
-                      opacity="0.6"
-                    />
-                  </svg>
+                <div
+                  className="crt-screen-content"
+                  style={{ opacity: switching ? 0 : 1 }}
+                >
+                  <span className="crt-screen-emoji">{channel.emoji}</span>
+                  <span className="crt-screen-name font-pixel">
+                    {channel.name}
+                  </span>
+                  <span className="crt-screen-desc font-body">
+                    {channel.desc}
+                  </span>
+                  <span className="crt-screen-cta font-body">
+                    &#9654; tap to create
+                  </span>
                 </div>
-              )}
 
-              {/* Channel indicator */}
-              <span className="crt-ch-indicator font-pixel">
-                CH {currentCh + 1}/{channels.length}
-              </span>
+                {switching && (
+                  <div className="crt-static-overlay">
+                    <svg viewBox="0 0 200 200" preserveAspectRatio="none">
+                      <filter id="crt-noise">
+                        <feTurbulence
+                          type="fractalNoise"
+                          baseFrequency="0.65"
+                          numOctaves="3"
+                          stitchTiles="stitch"
+                        >
+                          <animate
+                            attributeName="seed"
+                            from="0"
+                            to="100"
+                            dur="0.15s"
+                            repeatCount="indefinite"
+                          />
+                        </feTurbulence>
+                      </filter>
+                      <rect
+                        width="100%"
+                        height="100%"
+                        filter="url(#crt-noise)"
+                        opacity="0.6"
+                      />
+                    </svg>
+                  </div>
+                )}
 
-              {/* CRT overlays */}
-              <div className="crt-scanlines" aria-hidden />
-              <div className="crt-glass-reflection" aria-hidden />
-              <div className="crt-vignette" aria-hidden />
+                <span className="crt-ch-indicator font-pixel">
+                  CH {currentCh + 1}/{channels.length}
+                </span>
+
+                <div className="crt-scanlines" aria-hidden />
+                <div className="crt-glass-reflection" aria-hidden />
+                <div className="crt-vignette" aria-hidden />
+              </div>
             </div>
+
+            <TuningColumn />
           </div>
 
           {/* Control panel */}
           <div className="crt-controls">
-            <div className="crt-speaker" aria-hidden />
+            <span className="crt-brand font-pixel">HoneyVision&trade;</span>
             <div
               className="crt-dial"
               aria-hidden
@@ -366,8 +434,11 @@ export function CrtShowcase() {
               &#9654;
             </button>
             <div className="crt-led" aria-hidden />
-            <span className="crt-brand font-pixel">HoneyVision&trade;</span>
+            <div className="crt-orange-btn" aria-hidden />
           </div>
+
+          {/* Full-width speaker grille */}
+          <div className="crt-speaker-grille" aria-hidden />
         </div>
 
         {/* Feet */}
