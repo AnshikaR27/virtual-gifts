@@ -178,9 +178,9 @@ function FanFavoritesSticker() {
           opacity="0.75"
         />
       </svg>
-      {/* Washi tape — bottom-right corner, pink hearts pattern */}
+      {/* Washi tape — top-right corner, pink hearts pattern */}
       <svg
-        className="crt-washi crt-washi--br"
+        className="crt-washi crt-washi--tr"
         viewBox="0 0 38 14"
         xmlns="http://www.w3.org/2000/svg"
       >
@@ -210,7 +210,7 @@ function FanFavoritesSticker() {
           opacity="0.7"
         />
       </svg>
-      {/* Yellow paper plate */}
+      {/* Yellow paper plate — bottom edge curves inward to suggest curl */}
       <div className="crt-sticker-plate">
         <span className="crt-sticker-text font-handwritten">
           top 5{' '}
@@ -281,6 +281,14 @@ function FanFavoritesSticker() {
             </defs>
           </svg>
         </span>
+        <svg
+          className="crt-sticker-curl"
+          viewBox="0 0 80 4"
+          preserveAspectRatio="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path d="M0 0 Q20 3 40 2 Q60 1 80 0" fill="#ffe566" />
+        </svg>
       </div>
     </div>
   );
