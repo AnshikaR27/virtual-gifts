@@ -401,6 +401,8 @@ html {
 .desktop-pet-playground {
   position: relative;
   width: 100%;
+  max-width: 340px;
+  margin: 0 auto;
   height: 280px;
   overflow: visible;
   pointer-events: none;
@@ -477,6 +479,7 @@ html {
 
 @media (max-width: 767px) {
   .desktop-pet-playground {
+    max-width: 220px;
     height: 160px;
   }
 

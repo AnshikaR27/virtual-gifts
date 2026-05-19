@@ -43,15 +43,15 @@ const LEFT_PALETTE: LeftPalette = {
 };
 
 const RIGHT_PALETTE: RightPalette = {
-  body: '#C7A2F0',
-  outline: '#7A4FA8',
-  highlight: '#E4D0FF',
-  cheek: '#D88AE8',
-  feet: '#B090D8',
+  body: '#FFE5A3',
+  outline: '#C9963F',
+  highlight: '#FFF8DD',
+  cheek: '#FF8FAB',
+  feet: '#FFD680',
   eyeDark: '#1A0A2E',
-  eyeShine: '#3A2060',
-  cowlickBase: '#9B6BBF',
-  cowlickTip: '#7A4FA8',
+  eyeShine: '#4A2A5E',
+  cowlickBase: '#C9963F',
+  cowlickTip: '#C9963F',
 };
 
 function MochiSprite({
