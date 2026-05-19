@@ -157,7 +157,7 @@ export function HeroSection() {
       className="relative overflow-hidden px-4 md:min-h-[calc(100dvh-34px)]"
       style={{
         paddingTop: 'var(--space-md)',
-        paddingBottom: 'var(--space-xl)',
+        paddingBottom: 'var(--space-sm)',
       }}
     >
       <FloatingWindows />
