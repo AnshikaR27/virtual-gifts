@@ -322,18 +322,21 @@ export function DesktopPet() {
   const [leftPos, setLeftPos] = useState({ x: 0, y: 0 });
   const [leftTilt, setLeftTilt] = useState(0);
   const [leftBlinking, setLeftBlinking] = useState(false);
+  const [leftBounce, setLeftBounce] = useState(false);
   const leftPctRef = useRef({ x: 0, y: 50 });
 
   // Right Mochi state
   const [rightPos, setRightPos] = useState({ x: 0, y: 0 });
   const [rightTilt, setRightTilt] = useState(0);
   const [rightBlinking, setRightBlinking] = useState(false);
+  const [rightBounce, setRightBounce] = useState(false);
   const rightPctRef = useRef({ x: 95, y: 50 });
 
   // Shared kiss state
   const [kissState, setKissState] = useState<KissState>('idle');
   const [hearts, setHearts] = useState<HeartData[]>([]);
   const heartIdRef = useRef(0);
+  const meetingRef = useRef(false);
 
   const petSize = useCallback(() => {
     if (typeof window === 'undefined') return { w: 70, h: 70 };
@@ -435,6 +438,85 @@ export function DesktopPet() {
     setHearts((prev) => prev.filter((h) => h.id !== id));
   }, []);
 
+  const handleTap = useCallback(
+    (side: MochiSide) => {
+      if (side === 'left') {
+        setLeftBounce(true);
+        setTimeout(() => setLeftBounce(false), 500);
+      } else {
+        setRightBounce(true);
+        setTimeout(() => setRightBounce(false), 500);
+      }
+      blowKiss(side);
+    },
+    [blowKiss],
+  );
+
+  const spawnMeetHearts = useCallback(() => {
+    const el = playgroundRef.current;
+    if (!el) return;
+    const { w } = petSize();
+    const centerX = el.clientWidth / 2;
+    const count = 6 + Math.floor(Math.random() * 3);
+    const newHearts: HeartData[] = [];
+    for (let i = 0; i < count; i++) {
+      const angle = (Math.PI * 2 * i) / count;
+      newHearts.push({
+        id: ++heartIdRef.current,
+        startX: centerX,
+        travelX: Math.cos(angle) * (30 + Math.random() * 30),
+        travelY: -30 - Math.random() * 50,
+        delay: i * 80,
+        duration: 1400 + Math.random() * 600,
+        wobble: 0,
+      });
+    }
+    setHearts((prev) => [...prev, ...newHearts]);
+  }, [petSize]);
+
+  // Meet in the middle every ~15s
+  useEffect(() => {
+    const scheduleNext = () => {
+      const delay = 13000 + Math.random() * 4000;
+      return setTimeout(() => {
+        if (meetingRef.current) {
+          timerId = scheduleNext();
+          return;
+        }
+        meetingRef.current = true;
+        const meetY = 30 + Math.random() * 30;
+        setLeftPos(calcPixelPos(38, meetY));
+        setRightPos(calcPixelPos(55, meetY));
+        leftPctRef.current = { x: 38, y: meetY };
+        rightPctRef.current = { x: 55, y: meetY };
+
+        // Hearts burst after they arrive
+        setTimeout(() => {
+          spawnMeetHearts();
+          blowKiss('left');
+          setTimeout(() => blowKiss('right'), 300);
+        }, 1900);
+
+        // Drift apart after the moment
+        setTimeout(() => {
+          const lx = Math.random() * 30;
+          const ly = 20 + Math.random() * 50;
+          const rx = 65 + Math.random() * 30;
+          const ry = 20 + Math.random() * 50;
+          setLeftPos(calcPixelPos(lx, ly));
+          setRightPos(calcPixelPos(rx, ry));
+          leftPctRef.current = { x: lx, y: ly };
+          rightPctRef.current = { x: rx, y: ry };
+          meetingRef.current = false;
+        }, 4000);
+
+        timerId = scheduleNext();
+      }, delay);
+    };
+    let timerId = scheduleNext();
+    return () => clearTimeout(timerId);
+  }, [calcPixelPos, spawnMeetHearts, blowKiss]);
+
   // Left drift timer: 3-5s
   useEffect(() => {
     const scheduleNext = () => {
@@ -525,15 +607,21 @@ export function DesktopPet() {
         className="desktop-pet-mover"
         style={
           mounted
-            ? { transform: `translate(${leftPos.x}px, ${leftPos.y}px)` }
+            ? {
+                transform: `translate(${leftPos.x}px, ${leftPos.y}px)`,
+                pointerEvents: 'auto',
+              }
             : { transform: 'translate(-80px, 60px)', opacity: 0 }
         }
+        onClick={() => handleTap('left')}
       >
         <div
           className="desktop-pet-tilter"
           style={{ transform: `rotate(${leftTilt}deg)` }}
         >
-          <div className="desktop-pet-bobber">
+          <div
+            className={`desktop-pet-bobber${leftBounce ? ' desktop-pet-bounce' : ''}`}
+          >
             <MochiSprite
               side="left"
               isKissing={kissState === 'left-kissing'}
@@ -548,15 +636,21 @@ export function DesktopPet() {
         className="desktop-pet-mover"
         style={
           mounted
-            ? { transform: `translate(${rightPos.x}px, ${rightPos.y}px)` }
+            ? {
+                transform: `translate(${rightPos.x}px, ${rightPos.y}px)`,
+                pointerEvents: 'auto',
+              }
             : { transform: 'translate(300px, 60px)', opacity: 0 }
         }
+        onClick={() => handleTap('right')}
       >
         <div
           className="desktop-pet-tilter"
           style={{ transform: `rotate(${rightTilt}deg)` }}
         >
-          <div className="desktop-pet-bobber">
+          <div
+            className={`desktop-pet-bobber${rightBounce ? ' desktop-pet-bounce' : ''}`}
+          >
             <MochiSprite
               side="right"
               isKissing={kissState === 'right-kissing'}

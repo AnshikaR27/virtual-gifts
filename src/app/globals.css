@@ -417,6 +417,7 @@ html {
   height: 70px;
   transition: transform 1.8s cubic-bezier(0.4, 0, 0.2, 1);
   will-change: transform;
+  cursor: pointer;
 }
 
 .desktop-pet-tilter {
@@ -425,6 +426,28 @@ html {
 
 .desktop-pet-bobber {
   animation: pet-idle-bob 2.5s ease-in-out infinite;
+}
+
+.desktop-pet-bounce {
+  animation: pet-tap-bounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes pet-tap-bounce {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  30% {
+    transform: translateY(-12px) scale(1.15, 0.9);
+  }
+  50% {
+    transform: translateY(-8px) scale(0.95, 1.1);
+  }
+  70% {
+    transform: translateY(-3px) scale(1.05, 0.97);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
 }
 
 .desktop-pet-sprite {
