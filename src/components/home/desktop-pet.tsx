@@ -526,7 +526,7 @@ export function DesktopPet() {
         style={
           mounted
             ? { transform: `translate(${leftPos.x}px, ${leftPos.y}px)` }
-            : { transform: 'translate(-100px, -100px)', opacity: 0 }
+            : { transform: 'translate(-80px, 60px)', opacity: 0 }
         }
       >
         <div
@@ -549,7 +549,7 @@ export function DesktopPet() {
         style={
           mounted
             ? { transform: `translate(${rightPos.x}px, ${rightPos.y}px)` }
-            : { transform: 'translate(-100px, -100px)', opacity: 0 }
+            : { transform: 'translate(300px, 60px)', opacity: 0 }
         }
       >
         <div
