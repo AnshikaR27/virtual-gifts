@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import { BRAND_NAME } from '@/lib/constants';
 import { HeroSection } from '@/components/home/hero-section';
 import { DesktopPet } from '@/components/home/desktop-pet';
-import { CrtShowcase } from '@/components/home/crt-showcase';
+// import { CrtShowcase } from '@/components/home/crt-showcase';
+import { LoveLetterRack } from '@/components/home/love-letter-rack';
 import { PolaroidWall } from '@/components/home/polaroid-wall';
 import { HowItWorks } from '@/components/home/how-it-works';
 import { CommunityCTA } from '@/components/home/community-cta';
@@ -30,7 +31,8 @@ export default function Home() {
     <div className="pb-20 md:pb-0">
       <HeroSection />
       <DesktopPet />
-      <CrtShowcase />
+      {/* <CrtShowcase /> */}
+      <LoveLetterRack />
       <PolaroidWall />
       <HowItWorks />
       <Testimonials />
