@@ -322,13 +322,13 @@ export function DesktopPet() {
   const [leftPos, setLeftPos] = useState({ x: 0, y: 0 });
   const [leftTilt, setLeftTilt] = useState(0);
   const [leftBlinking, setLeftBlinking] = useState(false);
-  const leftPctRef = useRef({ x: 20, y: 50 });
+  const leftPctRef = useRef({ x: 0, y: 50 });
 
   // Right Mochi state
   const [rightPos, setRightPos] = useState({ x: 0, y: 0 });
   const [rightTilt, setRightTilt] = useState(0);
   const [rightBlinking, setRightBlinking] = useState(false);
-  const rightPctRef = useRef({ x: 75, y: 50 });
+  const rightPctRef = useRef({ x: 95, y: 50 });
 
   // Shared kiss state
   const [kissState, setKissState] = useState<KissState>('idle');
@@ -356,33 +356,33 @@ export function DesktopPet() {
   );
 
   useEffect(() => {
-    setLeftPos(calcPixelPos(20, 50));
-    setRightPos(calcPixelPos(75, 50));
+    setLeftPos(calcPixelPos(0, 50));
+    setRightPos(calcPixelPos(95, 50));
     setMounted(true);
   }, [calcPixelPos]);
 
-  // Left drift: 5-40% X range
+  // Left drift: 0-40% X range
   const driftLeft = useCallback(() => {
-    const newXPct = 5 + Math.random() * 35;
+    const newXPct = Math.random() * 40;
     const newYPct = 20 + Math.random() * 50;
     const dx = newXPct - leftPctRef.current.x;
     const lean = Math.max(-3, Math.min(3, dx * 0.1));
     setLeftTilt(lean);
     setLeftPos(calcPixelPos(newXPct, newYPct));
     leftPctRef.current = { x: newXPct, y: newYPct };
-    setTimeout(() => setLeftTilt(0), 3500);
+    setTimeout(() => setLeftTilt(0), 1800);
   }, [calcPixelPos]);
 
-  // Right drift: 60-95% X range
+  // Right drift: 55-95% X range
   const driftRight = useCallback(() => {
-    const newXPct = 60 + Math.random() * 35;
+    const newXPct = 55 + Math.random() * 40;
     const newYPct = 20 + Math.random() * 50;
     const dx = newXPct - rightPctRef.current.x;
     const lean = Math.max(-3, Math.min(3, dx * 0.1));
     setRightTilt(lean);
     setRightPos(calcPixelPos(newXPct, newYPct));
     rightPctRef.current = { x: newXPct, y: newYPct };
-    setTimeout(() => setRightTilt(0), 3500);
+    setTimeout(() => setRightTilt(0), 1800);
   }, [calcPixelPos]);
 
   const spawnKissHearts = useCallback(
@@ -403,7 +403,7 @@ export function DesktopPet() {
       const baseTravelX = receiverPx.x + w / 2 - startX;
       const baseTravelY = receiverPx.y - senderPx.y - 30;
 
-      const count = 2 + Math.floor(Math.random() * 2);
+      const count = 3 + Math.floor(Math.random() * 3);
       const newHearts: HeartData[] = [];
       for (let i = 0; i < count; i++) {
         const wobble = -10 + Math.random() * 20;
@@ -435,10 +435,10 @@ export function DesktopPet() {
     setHearts((prev) => prev.filter((h) => h.id !== id));
   }, []);
 
-  // Left drift timer: 6-10s
+  // Left drift timer: 3-5s
   useEffect(() => {
     const scheduleNext = () => {
-      const delay = 6000 + Math.random() * 4000;
+      const delay = 3000 + Math.random() * 2000;
       return setTimeout(() => {
         driftLeft();
         timerId = scheduleNext();
@@ -448,10 +448,10 @@ export function DesktopPet() {
     return () => clearTimeout(timerId);
   }, [driftLeft]);
 
-  // Right drift timer: 6-10s (offset start)
+  // Right drift timer: 3-5s (offset start)
   useEffect(() => {
     const scheduleNext = () => {
-      const delay = 6000 + Math.random() * 4000;
+      const delay = 3000 + Math.random() * 2000;
       return setTimeout(() => {
         driftRight();
         timerId = scheduleNext();
@@ -462,7 +462,7 @@ export function DesktopPet() {
         driftRight();
         timerId = scheduleNext();
       },
-      3000 + Math.random() * 2000,
+      1500 + Math.random() * 1000,
     );
     return () => clearTimeout(timerId);
   }, [driftRight]);
@@ -471,7 +471,7 @@ export function DesktopPet() {
   useEffect(() => {
     let nextSender: MochiSide = 'left';
     const scheduleNext = () => {
-      const delay = 5000 + Math.random() * 3000;
+      const delay = 2000 + Math.random() * 1500;
       return setTimeout(() => {
         blowKiss(nextSender);
         nextSender = nextSender === 'left' ? 'right' : 'left';
@@ -482,7 +482,7 @@ export function DesktopPet() {
       blowKiss('left');
       nextSender = 'right';
       timerId = scheduleNext();
-    }, 4000);
+    }, 2000);
     return () => clearTimeout(timerId);
   }, [blowKiss]);
 

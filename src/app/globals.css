@@ -401,9 +401,9 @@ html {
 .desktop-pet-playground {
   position: relative;
   width: 100%;
-  max-width: 340px;
+  max-width: 220px;
   margin: 0 auto;
-  height: 280px;
+  height: 200px;
   overflow: visible;
   pointer-events: none;
   z-index: 1;
@@ -415,7 +415,7 @@ html {
   left: 0;
   width: 70px;
   height: 70px;
-  transition: transform 3.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 1.8s cubic-bezier(0.4, 0, 0.2, 1);
   will-change: transform;
 }
 
@@ -479,8 +479,8 @@ html {
 
 @media (max-width: 767px) {
   .desktop-pet-playground {
-    max-width: 220px;
-    height: 160px;
+    max-width: 160px;
+    height: 140px;
   }
 
   .desktop-pet-mover {
