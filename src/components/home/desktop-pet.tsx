@@ -2,13 +2,69 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 
+type MochiSide = 'left' | 'right';
+
+interface MochiPalette {
+  body: string;
+  outline: string;
+  highlight: string;
+  cheek: string;
+  feet: string;
+  eyeDark: string;
+  eyeShine: string;
+}
+
+interface LeftPalette extends MochiPalette {
+  wingOuter: string;
+  wingInner: string;
+  bow: string;
+  bowShadow: string;
+  bowCenter: string;
+}
+
+interface RightPalette extends MochiPalette {
+  cowlickBase: string;
+  cowlickTip: string;
+}
+
+const LEFT_PALETTE: LeftPalette = {
+  body: '#FFD6EC',
+  outline: '#CC6699',
+  highlight: '#FFF0F8',
+  wingOuter: '#FFF0F8',
+  wingInner: '#FFE0EF',
+  cheek: '#FF8FAB',
+  feet: '#FFB8D4',
+  eyeDark: '#1A0A2E',
+  eyeShine: '#4A2A5E',
+  bow: '#FF1493',
+  bowShadow: '#CC1177',
+  bowCenter: '#FFE0F0',
+};
+
+const RIGHT_PALETTE: RightPalette = {
+  body: '#C7A2F0',
+  outline: '#7A4FA8',
+  highlight: '#E4D0FF',
+  cheek: '#D88AE8',
+  feet: '#B090D8',
+  eyeDark: '#1A0A2E',
+  eyeShine: '#3A2060',
+  cowlickBase: '#9B6BBF',
+  cowlickTip: '#7A4FA8',
+};
+
 function MochiSprite({
+  side,
   isKissing,
   isBlinking,
 }: {
+  side: MochiSide;
   isKissing: boolean;
   isBlinking: boolean;
 }) {
+  const p: MochiPalette = side === 'left' ? LEFT_PALETTE : RIGHT_PALETTE;
+
   return (
     <svg
       viewBox="0 0 18 20"
@@ -16,82 +72,196 @@ function MochiSprite({
       shapeRendering="crispEdges"
       fill="none"
     >
-      {/* Wing buds */}
-      <rect x="3" y="0" width="2" height="1" fill="#FFF0F8" />
-      <rect x="4" y="1" width="1" height="1" fill="#FFE0EF" />
-      <rect x="13" y="0" width="2" height="1" fill="#FFF0F8" />
-      <rect x="13" y="1" width="1" height="1" fill="#FFE0EF" />
+      {side === 'left' ? (
+        <>
+          <rect
+            x="3"
+            y="0"
+            width="2"
+            height="1"
+            fill={LEFT_PALETTE.wingOuter}
+          />
+          <rect
+            x="4"
+            y="1"
+            width="1"
+            height="1"
+            fill={LEFT_PALETTE.wingInner}
+          />
+          <rect
+            x="13"
+            y="0"
+            width="2"
+            height="1"
+            fill={LEFT_PALETTE.wingOuter}
+          />
+          <rect
+            x="13"
+            y="1"
+            width="1"
+            height="1"
+            fill={LEFT_PALETTE.wingInner}
+          />
+        </>
+      ) : (
+        <>
+          {/* Cowlick — diagonal swoop, 2px base tapering to 1px */}
+          <rect
+            x="10"
+            y="0"
+            width="2"
+            height="1"
+            fill={RIGHT_PALETTE.cowlickBase}
+          />
+          <rect
+            x="11"
+            y="1"
+            width="2"
+            height="1"
+            fill={RIGHT_PALETTE.cowlickBase}
+          />
+          <rect
+            x="12"
+            y="0"
+            width="1"
+            height="1"
+            fill={RIGHT_PALETTE.cowlickTip}
+          />
+          <rect
+            x="13"
+            y="0"
+            width="1"
+            height="1"
+            fill={RIGHT_PALETTE.cowlickTip}
+          />
+          <rect
+            x="13"
+            y="-1"
+            width="1"
+            height="1"
+            fill={RIGHT_PALETTE.cowlickTip}
+          />
+        </>
+      )}
 
       {/* Body outline */}
-      <rect x="5" y="2" width="8" height="1" fill="#CC6699" />
-      <rect x="4" y="3" width="1" height="1" fill="#CC6699" />
-      <rect x="13" y="3" width="1" height="1" fill="#CC6699" />
-      <rect x="3" y="4" width="1" height="10" fill="#CC6699" />
-      <rect x="14" y="4" width="1" height="10" fill="#CC6699" />
-      <rect x="4" y="14" width="1" height="1" fill="#CC6699" />
-      <rect x="13" y="14" width="1" height="1" fill="#CC6699" />
-      <rect x="5" y="15" width="8" height="1" fill="#CC6699" />
+      <rect x="5" y="2" width="8" height="1" fill={p.outline} />
+      <rect x="4" y="3" width="1" height="1" fill={p.outline} />
+      <rect x="13" y="3" width="1" height="1" fill={p.outline} />
+      <rect x="3" y="4" width="1" height="10" fill={p.outline} />
+      <rect x="14" y="4" width="1" height="10" fill={p.outline} />
+      <rect x="4" y="14" width="1" height="1" fill={p.outline} />
+      <rect x="13" y="14" width="1" height="1" fill={p.outline} />
+      <rect x="5" y="15" width="8" height="1" fill={p.outline} />
 
       {/* Body fill */}
-      <rect x="5" y="3" width="8" height="1" fill="#FFD6EC" />
-      <rect x="4" y="4" width="10" height="10" fill="#FFD6EC" />
-      <rect x="5" y="14" width="8" height="1" fill="#FFD6EC" />
+      <rect x="5" y="3" width="8" height="1" fill={p.body} />
+      <rect x="4" y="4" width="10" height="10" fill={p.body} />
+      <rect x="5" y="14" width="8" height="1" fill={p.body} />
 
-      {/* Highlight pixel (shine) */}
-      <rect x="5" y="4" width="2" height="1" fill="#FFF0F8" />
-      <rect x="5" y="5" width="1" height="1" fill="#FFF0F8" />
+      {/* Highlight */}
+      <rect x="5" y="4" width="2" height="1" fill={p.highlight} />
+      <rect x="5" y="5" width="1" height="1" fill={p.highlight} />
 
       {/* Eyes */}
       {isBlinking ? (
         <>
-          <rect x="6" y="8" width="2" height="1" fill="#1A0A2E" />
-          <rect x="10" y="8" width="2" height="1" fill="#1A0A2E" />
+          <rect x="6" y="8" width="2" height="1" fill={p.eyeDark} />
+          <rect x="10" y="8" width="2" height="1" fill={p.eyeDark} />
         </>
       ) : (
         <>
-          <rect x="6" y="7" width="2" height="2" fill="#1A0A2E" />
-          <rect x="10" y="7" width="2" height="2" fill="#1A0A2E" />
-          {/* Eye shine */}
-          <rect x="6" y="7" width="1" height="1" fill="#4A2A5E" />
-          <rect x="10" y="7" width="1" height="1" fill="#4A2A5E" />
+          <rect x="6" y="7" width="2" height="2" fill={p.eyeDark} />
+          <rect x="10" y="7" width="2" height="2" fill={p.eyeDark} />
+          <rect x="6" y="7" width="1" height="1" fill={p.eyeShine} />
+          <rect x="10" y="7" width="1" height="1" fill={p.eyeShine} />
         </>
       )}
 
-      {/* Rosy cheeks */}
-      <rect x="5" y="10" width="2" height="1" fill="#FF8FAB" />
-      <rect x="11" y="10" width="2" height="1" fill="#FF8FAB" />
+      {/* Cheeks */}
+      <rect x="5" y="10" width="2" height="1" fill={p.cheek} />
+      <rect x="11" y="10" width="2" height="1" fill={p.cheek} />
 
-      {/* Mouth — smile or pucker */}
+      {/* Mouth */}
       {isKissing ? (
         <>
-          <rect x="8" y="11" width="2" height="2" fill="#CC6699" />
-          <rect x="9" y="11" width="1" height="1" fill="#FFD6EC" />
+          <rect x="8" y="11" width="2" height="2" fill={p.outline} />
+          <rect x="9" y="11" width="1" height="1" fill={p.body} />
         </>
       ) : (
         <>
-          <rect x="7" y="12" width="1" height="1" fill="#CC6699" />
-          <rect x="8" y="13" width="2" height="1" fill="#CC6699" />
-          <rect x="10" y="12" width="1" height="1" fill="#CC6699" />
+          <rect x="7" y="12" width="1" height="1" fill={p.outline} />
+          <rect x="8" y="13" width="2" height="1" fill={p.outline} />
+          <rect x="10" y="12" width="1" height="1" fill={p.outline} />
         </>
       )}
 
       {/* Arms */}
-      <rect x="2" y="10" width="1" height="2" fill="#FFD6EC" />
-      <rect x="2" y="10" width="1" height="1" fill="#CC6699" />
-      <rect x="15" y="10" width="1" height="2" fill="#FFD6EC" />
-      <rect x="15" y="10" width="1" height="1" fill="#CC6699" />
+      <rect x="2" y="10" width="1" height="2" fill={p.body} />
+      <rect x="2" y="10" width="1" height="1" fill={p.outline} />
+      <rect x="15" y="10" width="1" height="2" fill={p.body} />
+      <rect x="15" y="10" width="1" height="1" fill={p.outline} />
 
       {/* Feet */}
-      <rect x="6" y="16" width="2" height="1" fill="#FFB8D4" />
-      <rect x="10" y="16" width="2" height="1" fill="#FFB8D4" />
+      <rect x="6" y="16" width="2" height="1" fill={p.feet} />
+      <rect x="10" y="16" width="2" height="1" fill={p.feet} />
+
+      {/* Left Mochi bow */}
+      {side === 'left' && (
+        <>
+          <rect x="3" y="3" width="1" height="1" fill={LEFT_PALETTE.bow} />
+          <rect x="2" y="4" width="1" height="1" fill={LEFT_PALETTE.bow} />
+          <rect
+            x="3"
+            y="4"
+            width="1"
+            height="1"
+            fill={LEFT_PALETTE.bowShadow}
+          />
+          <rect
+            x="4"
+            y="3"
+            width="1"
+            height="2"
+            fill={LEFT_PALETTE.bowCenter}
+          />
+          <rect x="5" y="3" width="1" height="1" fill={LEFT_PALETTE.bow} />
+          <rect
+            x="5"
+            y="4"
+            width="1"
+            height="1"
+            fill={LEFT_PALETTE.bowShadow}
+          />
+          <rect x="6" y="4" width="1" height="1" fill={LEFT_PALETTE.bow} />
+          <rect
+            x="3"
+            y="5"
+            width="1"
+            height="1"
+            fill={LEFT_PALETTE.bowShadow}
+          />
+          <rect
+            x="5"
+            y="5"
+            width="1"
+            height="1"
+            fill={LEFT_PALETTE.bowShadow}
+          />
+        </>
+      )}
     </svg>
   );
 }
 
 function PixelHeart({
+  travelX,
+  travelY,
   style,
   onEnd,
 }: {
+  travelX: number;
+  travelY: number;
   style: React.CSSProperties;
   onEnd: () => void;
 }) {
@@ -99,11 +269,16 @@ function PixelHeart({
     <svg
       viewBox="0 0 7 7"
       className="desktop-pet-heart"
-      style={style}
+      style={
+        {
+          ...style,
+          '--heart-travel-x': `${travelX}px`,
+          '--heart-travel-y': `${travelY}px`,
+        } as React.CSSProperties
+      }
       shapeRendering="crispEdges"
       onAnimationEnd={onEnd}
     >
-      {/* Outline */}
       <rect x="1" y="0" width="2" height="1" fill="#CC1177" />
       <rect x="4" y="0" width="2" height="1" fill="#CC1177" />
       <rect x="0" y="1" width="1" height="2" fill="#CC1177" />
@@ -116,16 +291,12 @@ function PixelHeart({
       <rect x="2" y="5" width="1" height="1" fill="#CC1177" />
       <rect x="4" y="5" width="1" height="1" fill="#CC1177" />
       <rect x="3" y="6" width="1" height="1" fill="#CC1177" />
-
-      {/* Fill */}
       <rect x="1" y="1" width="2" height="1" fill="#FF1493" />
       <rect x="4" y="1" width="2" height="1" fill="#FF1493" />
       <rect x="1" y="2" width="5" height="1" fill="#FF1493" />
       <rect x="1" y="3" width="5" height="1" fill="#FF1493" />
       <rect x="2" y="4" width="3" height="1" fill="#FF1493" />
       <rect x="3" y="5" width="1" height="1" fill="#FF1493" />
-
-      {/* Shine pixel */}
       <rect x="1" y="1" width="1" height="1" fill="#FF69B4" />
     </svg>
   );
@@ -133,108 +304,209 @@ function PixelHeart({
 
 interface HeartData {
   id: number;
-  offsetX: number;
+  startX: number;
+  travelX: number;
+  travelY: number;
   delay: number;
   duration: number;
-  drift: number;
+  wobble: number;
 }
+
+type KissState = 'idle' | 'left-kissing' | 'right-kissing';
 
 export function DesktopPet() {
   const playgroundRef = useRef<HTMLDivElement>(null);
-  const [pos, setPos] = useState({ x: 0, y: 0 });
   const [mounted, setMounted] = useState(false);
-  const [tilt, setTilt] = useState(0);
-  const [isKissing, setIsKissing] = useState(false);
-  const [isBlinking, setIsBlinking] = useState(false);
+
+  // Left Mochi state
+  const [leftPos, setLeftPos] = useState({ x: 0, y: 0 });
+  const [leftTilt, setLeftTilt] = useState(0);
+  const [leftBlinking, setLeftBlinking] = useState(false);
+  const leftPctRef = useRef({ x: 20, y: 50 });
+
+  // Right Mochi state
+  const [rightPos, setRightPos] = useState({ x: 0, y: 0 });
+  const [rightTilt, setRightTilt] = useState(0);
+  const [rightBlinking, setRightBlinking] = useState(false);
+  const rightPctRef = useRef({ x: 75, y: 50 });
+
+  // Shared kiss state
+  const [kissState, setKissState] = useState<KissState>('idle');
   const [hearts, setHearts] = useState<HeartData[]>([]);
   const heartIdRef = useRef(0);
-  const prevPctRef = useRef({ x: 50, y: 50 });
 
-  const calcPixelPos = useCallback((xPct: number, yPct: number) => {
-    const el = playgroundRef.current;
-    if (!el) return { x: 0, y: 0 };
-    const petW = window.innerWidth < 768 ? 42 : 55;
-    const petH = petW;
-    const maxX = el.clientWidth - petW;
-    const maxY = el.clientHeight - petH;
-    return {
-      x: Math.round((xPct / 100) * maxX),
-      y: Math.round((yPct / 100) * maxY),
-    };
+  const petSize = useCallback(() => {
+    if (typeof window === 'undefined') return { w: 70, h: 70 };
+    return window.innerWidth < 768 ? { w: 55, h: 55 } : { w: 70, h: 70 };
   }, []);
 
+  const calcPixelPos = useCallback(
+    (xPct: number, yPct: number) => {
+      const el = playgroundRef.current;
+      if (!el) return { x: 0, y: 0 };
+      const { w, h } = petSize();
+      const maxX = el.clientWidth - w;
+      const maxY = el.clientHeight - h;
+      return {
+        x: Math.round((xPct / 100) * maxX),
+        y: Math.round((yPct / 100) * maxY),
+      };
+    },
+    [petSize],
+  );
+
   useEffect(() => {
-    const initial = calcPixelPos(50, 50);
-    setPos(initial);
+    setLeftPos(calcPixelPos(20, 50));
+    setRightPos(calcPixelPos(75, 50));
     setMounted(true);
   }, [calcPixelPos]);
 
-  const drift = useCallback(() => {
-    const newXPct = 10 + Math.random() * 80;
+  // Left drift: 5-40% X range
+  const driftLeft = useCallback(() => {
+    const newXPct = 5 + Math.random() * 35;
     const newYPct = 20 + Math.random() * 50;
-    const dx = newXPct - prevPctRef.current.x;
+    const dx = newXPct - leftPctRef.current.x;
     const lean = Math.max(-3, Math.min(3, dx * 0.1));
-    setTilt(lean);
-    const px = calcPixelPos(newXPct, newYPct);
-    setPos(px);
-    prevPctRef.current = { x: newXPct, y: newYPct };
-    setTimeout(() => setTilt(0), 3500);
+    setLeftTilt(lean);
+    setLeftPos(calcPixelPos(newXPct, newYPct));
+    leftPctRef.current = { x: newXPct, y: newYPct };
+    setTimeout(() => setLeftTilt(0), 3500);
   }, [calcPixelPos]);
 
-  const blowKiss = useCallback(() => {
-    setIsKissing(true);
-    const count = 2 + Math.floor(Math.random() * 3);
-    const newHearts: HeartData[] = [];
-    for (let i = 0; i < count; i++) {
-      newHearts.push({
-        id: ++heartIdRef.current,
-        offsetX: -8 + Math.random() * 16,
-        delay: i * 130,
-        duration: 2000 + Math.random() * 800,
-        drift: -12 + Math.random() * 24,
-      });
-    }
-    setHearts((prev) => [...prev, ...newHearts]);
-    setTimeout(() => setIsKissing(false), 400);
-  }, []);
+  // Right drift: 60-95% X range
+  const driftRight = useCallback(() => {
+    const newXPct = 60 + Math.random() * 35;
+    const newYPct = 20 + Math.random() * 50;
+    const dx = newXPct - rightPctRef.current.x;
+    const lean = Math.max(-3, Math.min(3, dx * 0.1));
+    setRightTilt(lean);
+    setRightPos(calcPixelPos(newXPct, newYPct));
+    rightPctRef.current = { x: newXPct, y: newYPct };
+    setTimeout(() => setRightTilt(0), 3500);
+  }, [calcPixelPos]);
+
+  const spawnKissHearts = useCallback(
+    (sender: MochiSide) => {
+      const el = playgroundRef.current;
+      if (!el) return;
+
+      const senderPct =
+        sender === 'left' ? leftPctRef.current : rightPctRef.current;
+      const receiverPct =
+        sender === 'left' ? rightPctRef.current : leftPctRef.current;
+      const { w } = petSize();
+
+      const senderPx = calcPixelPos(senderPct.x, senderPct.y);
+      const receiverPx = calcPixelPos(receiverPct.x, receiverPct.y);
+
+      const startX = senderPx.x + w / 2;
+      const baseTravelX = receiverPx.x + w / 2 - startX;
+      const baseTravelY = receiverPx.y - senderPx.y - 30;
+
+      const count = 2 + Math.floor(Math.random() * 2);
+      const newHearts: HeartData[] = [];
+      for (let i = 0; i < count; i++) {
+        const wobble = -10 + Math.random() * 20;
+        newHearts.push({
+          id: ++heartIdRef.current,
+          startX,
+          travelX: baseTravelX * (0.6 + Math.random() * 0.4) + wobble,
+          travelY: baseTravelY - 20 - Math.random() * 30,
+          delay: i * 150,
+          duration: 1800 + Math.random() * 600,
+          wobble,
+        });
+      }
+      setHearts((prev) => [...prev, ...newHearts]);
+    },
+    [calcPixelPos, petSize],
+  );
+
+  const blowKiss = useCallback(
+    (sender: MochiSide) => {
+      setKissState(`${sender}-kissing`);
+      spawnKissHearts(sender);
+      setTimeout(() => setKissState('idle'), 400);
+    },
+    [spawnKissHearts],
+  );
 
   const removeHeart = useCallback((id: number) => {
     setHearts((prev) => prev.filter((h) => h.id !== id));
   }, []);
 
-  // Drift timer: 6-10s
+  // Left drift timer: 6-10s
   useEffect(() => {
     const scheduleNext = () => {
       const delay = 6000 + Math.random() * 4000;
       return setTimeout(() => {
-        drift();
+        driftLeft();
         timerId = scheduleNext();
       }, delay);
     };
     let timerId = scheduleNext();
     return () => clearTimeout(timerId);
-  }, [drift]);
+  }, [driftLeft]);
 
-  // Kiss timer: 12-15s
+  // Right drift timer: 6-10s (offset start)
   useEffect(() => {
     const scheduleNext = () => {
-      const delay = 12000 + Math.random() * 3000;
+      const delay = 6000 + Math.random() * 4000;
       return setTimeout(() => {
-        blowKiss();
+        driftRight();
         timerId = scheduleNext();
       }, delay);
     };
-    let timerId = scheduleNext();
+    let timerId = setTimeout(
+      () => {
+        driftRight();
+        timerId = scheduleNext();
+      },
+      3000 + Math.random() * 2000,
+    );
+    return () => clearTimeout(timerId);
+  }, [driftRight]);
+
+  // Alternating kiss timer: left → right → left...
+  useEffect(() => {
+    let nextSender: MochiSide = 'left';
+    const scheduleNext = () => {
+      const delay = 5000 + Math.random() * 3000;
+      return setTimeout(() => {
+        blowKiss(nextSender);
+        nextSender = nextSender === 'left' ? 'right' : 'left';
+        timerId = scheduleNext();
+      }, delay);
+    };
+    let timerId = setTimeout(() => {
+      blowKiss('left');
+      nextSender = 'right';
+      timerId = scheduleNext();
+    }, 4000);
     return () => clearTimeout(timerId);
   }, [blowKiss]);
 
-  // Blink timer: 5-7s
+  // Left blink: 5-7s
   useEffect(() => {
     const scheduleNext = () => {
       const delay = 5000 + Math.random() * 2000;
       return setTimeout(() => {
-        setIsBlinking(true);
-        setTimeout(() => setIsBlinking(false), 150);
+        setLeftBlinking(true);
+        setTimeout(() => setLeftBlinking(false), 150);
+        timerId = scheduleNext();
+      }, delay);
+    };
+    let timerId = scheduleNext();
+    return () => clearTimeout(timerId);
+  }, []);
+
+  // Right blink: 4-6s (slightly different cadence)
+  useEffect(() => {
+    const scheduleNext = () => {
+      const delay = 4000 + Math.random() * 2000;
+      return setTimeout(() => {
+        setRightBlinking(true);
+        setTimeout(() => setRightBlinking(false), 150);
         timerId = scheduleNext();
       }, delay);
     };
@@ -248,43 +520,68 @@ export function DesktopPet() {
       ref={playgroundRef}
       aria-hidden="true"
     >
+      {/* Left Mochi */}
       <div
         className="desktop-pet-mover"
         style={
           mounted
-            ? {
-                transform: `translate(${pos.x}px, ${pos.y}px)`,
-              }
-            : {
-                transform: 'translate(-100px, -100px)',
-                opacity: 0,
-              }
+            ? { transform: `translate(${leftPos.x}px, ${leftPos.y}px)` }
+            : { transform: 'translate(-100px, -100px)', opacity: 0 }
         }
       >
         <div
           className="desktop-pet-tilter"
-          style={{ transform: `rotate(${tilt}deg)` }}
+          style={{ transform: `rotate(${leftTilt}deg)` }}
         >
           <div className="desktop-pet-bobber">
-            <MochiSprite isKissing={isKissing} isBlinking={isBlinking} />
+            <MochiSprite
+              side="left"
+              isKissing={kissState === 'left-kissing'}
+              isBlinking={leftBlinking}
+            />
           </div>
         </div>
-
-        {hearts.map((heart) => (
-          <PixelHeart
-            key={heart.id}
-            style={
-              {
-                '--heart-drift': `${heart.drift}px`,
-                '--heart-delay': `${heart.delay}ms`,
-                '--heart-duration': `${heart.duration}ms`,
-                left: `calc(50% + ${heart.offsetX}px)`,
-              } as React.CSSProperties
-            }
-            onEnd={() => removeHeart(heart.id)}
-          />
-        ))}
       </div>
+
+      {/* Right Mochi */}
+      <div
+        className="desktop-pet-mover"
+        style={
+          mounted
+            ? { transform: `translate(${rightPos.x}px, ${rightPos.y}px)` }
+            : { transform: 'translate(-100px, -100px)', opacity: 0 }
+        }
+      >
+        <div
+          className="desktop-pet-tilter"
+          style={{ transform: `rotate(${rightTilt}deg)` }}
+        >
+          <div className="desktop-pet-bobber">
+            <MochiSprite
+              side="right"
+              isKissing={kissState === 'right-kissing'}
+              isBlinking={rightBlinking}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Hearts — positioned absolutely within playground */}
+      {hearts.map((heart) => (
+        <PixelHeart
+          key={heart.id}
+          travelX={heart.travelX}
+          travelY={heart.travelY}
+          style={
+            {
+              '--heart-delay': `${heart.delay}ms`,
+              '--heart-duration': `${heart.duration}ms`,
+              left: `${heart.startX}px`,
+            } as React.CSSProperties
+          }
+          onEnd={() => removeHeart(heart.id)}
+        />
+      ))}
     </div>
   );
 }
