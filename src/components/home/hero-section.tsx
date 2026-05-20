@@ -183,7 +183,7 @@ export function HeroSection() {
               <TitlebarButtons />
             </div>
             <div className="win98-body">
-              <div className="min-h-[120px] md:min-h-[140px]">
+              <div className="min-h-[180px] md:min-h-[220px]">
                 <h1
                   className={`blink-cursor font-display text-[24px] font-semibold leading-snug tracking-tight transition-opacity duration-300 md:text-[32px] md:leading-tight ${
                     fading ? 'opacity-0' : 'opacity-100'
