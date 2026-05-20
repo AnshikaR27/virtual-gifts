@@ -59,12 +59,12 @@ export function Testimonials() {
         </h2>
         <div
           ref={revealRef}
-          className="scrollbar-hide -mx-4 mt-5 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2"
+          className="scrollbar-hide -mx-4 mt-5 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 md:mx-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0"
         >
           {quotes.map((q) => (
             <div
               key={q.username}
-              className="w-[270px] flex-shrink-0 snap-start md:w-[310px]"
+              className="w-[270px] flex-shrink-0 snap-start md:w-auto"
               data-reveal
               style={{
                 background: 'var(--win-chrome)',
