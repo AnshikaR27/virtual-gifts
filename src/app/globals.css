@@ -733,34 +733,11 @@ html {
   border-radius: 10px;
   min-height: 340px;
   padding: 24px 16px;
-  background-color: #fce4ec;
+  background-color: #fff;
   background-image:
-    linear-gradient(
-      45deg,
-      rgba(219, 112, 147, 0.18) 25%,
-      transparent 25%,
-      transparent 75%,
-      rgba(219, 112, 147, 0.18) 75%
-    ),
-    linear-gradient(
-      45deg,
-      rgba(219, 112, 147, 0.18) 25%,
-      transparent 25%,
-      transparent 75%,
-      rgba(219, 112, 147, 0.18) 75%
-    ),
-    linear-gradient(to right, rgba(219, 112, 147, 0.22) 50%, transparent 50%),
-    linear-gradient(to bottom, rgba(219, 112, 147, 0.22) 50%, transparent 50%);
-  background-size:
-    24px 24px,
-    24px 24px,
-    12px 12px,
-    12px 12px;
-  background-position:
-    0 0,
-    12px 12px,
-    0 0,
-    0 0;
+    linear-gradient(0deg, rgba(240, 140, 185, 0.45) 50%, transparent 50%),
+    linear-gradient(90deg, rgba(240, 140, 185, 0.45) 50%, transparent 50%);
+  background-size: 32px 32px;
   box-shadow:
     inset 0 2px 6px rgba(0, 0, 0, 0.08),
     inset 0 -1px 0 rgba(255, 255, 255, 0.15);
@@ -815,7 +792,7 @@ html {
   top: var(--pin-top);
   left: var(--pin-left);
   transform: rotate(var(--pin-tilt));
-  background: #fefcf6;
+  background: #fdfcf8;
   background-image: repeating-linear-gradient(
     transparent 0px,
     transparent 23px,
@@ -880,6 +857,28 @@ html {
   pointer-events: none;
 }
 
+/* Paper grain texture */
+.pin-board-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.06;
+  background-image:
+    linear-gradient(
+      45deg,
+      #000 25%,
+      transparent 25%,
+      transparent 75%,
+      #000 75%
+    ),
+    linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%);
+  background-size: 2px 2px;
+  background-position:
+    0 0,
+    1px 1px;
+  pointer-events: none;
+}
+
 /* Pushpin SVG at the top of each card */
 .pin-board-pushpin {
   position: absolute;
@@ -923,27 +922,27 @@ html {
 
 @media (max-width: 767px) {
   .pin-board-surface {
-    min-height: 520px;
+    min-height: 560px;
   }
 
   .pin-board-card {
     top: var(--pin-top-m) !important;
     left: var(--pin-left-m) !important;
-    width: 115px !important;
-    padding: 24px 10px 12px;
+    width: 135px !important;
+    padding: 28px 12px 14px;
   }
 
   .pin-board-card-emoji {
-    font-size: 28px;
+    font-size: 32px;
   }
 
   .pin-board-card-name {
-    font-size: 12px;
+    font-size: 14px;
   }
 
   .pin-board-card-desc {
-    font-size: 10px;
-    max-width: 95px;
+    font-size: 11px;
+    max-width: 110px;
   }
 }
 
