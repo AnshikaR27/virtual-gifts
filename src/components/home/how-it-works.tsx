@@ -55,23 +55,23 @@ export function HowItWorks() {
             <TitlebarButtons />
           </div>
           <div
-            className="border-2 bg-white p-4 md:p-6"
+            className="border-2 p-3 md:p-5"
             style={{
+              background: 'var(--win-chrome)',
               borderColor:
                 'var(--win-chrome-dark) var(--win-chrome-light) var(--win-chrome-light) var(--win-chrome-dark)',
             }}
           >
-            <div ref={revealRef} className="grid gap-6 md:grid-cols-3 md:gap-8">
+            <div ref={revealRef} className="grid gap-3 md:grid-cols-3 md:gap-4">
               {steps.map((step) => (
-                <div
-                  key={step.number}
-                  className="relative text-center"
-                  data-reveal
-                >
-                  <span className="pointer-events-none absolute -right-1 -top-2 select-none font-pixel text-[40px] leading-none text-[#C8A2E8]/30 md:text-[72px]">
-                    {step.number}
-                  </span>
-                  <div className="relative">
+                <div key={step.number} className="win98-window" data-reveal>
+                  <div className="win98-titlebar">
+                    <span>
+                      {step.emoji} Step_{step.number}.txt
+                    </span>
+                    <TitlebarButtons />
+                  </div>
+                  <div className="win98-body text-center">
                     <span className="text-3xl">{step.emoji}</span>
                     <h3 className="mt-3 font-display text-[18px] font-semibold text-ink">
                       {step.title}
