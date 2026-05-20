@@ -26,7 +26,7 @@ const pins: PinCard[] = [
     left: '6%',
     mobileTop: '3%',
     mobileLeft: '4%',
-    pinColor: '#FF1493',
+    pinColor: '#C4917B',
     width: '155px',
   },
   {
@@ -37,7 +37,7 @@ const pins: PinCard[] = [
     left: '34%',
     mobileTop: '3%',
     mobileLeft: '52%',
-    pinColor: '#FFD700',
+    pinColor: '#C4917B',
     width: '140px',
   },
   {
@@ -48,7 +48,7 @@ const pins: PinCard[] = [
     left: '18%',
     mobileTop: '36%',
     mobileLeft: '4%',
-    pinColor: '#8E44AD',
+    pinColor: '#C4917B',
   },
   {
     slug: 'spotify-wrapped',
@@ -58,7 +58,7 @@ const pins: PinCard[] = [
     left: '64%',
     mobileTop: '36%',
     mobileLeft: '52%',
-    pinColor: '#27AE60',
+    pinColor: '#C4917B',
     width: '150px',
   },
   {
@@ -69,7 +69,7 @@ const pins: PinCard[] = [
     left: '55%',
     mobileTop: '68%',
     mobileLeft: '28%',
-    pinColor: '#E91E8C',
+    pinColor: '#C4917B',
   },
 ];
 
@@ -172,8 +172,9 @@ export function PinBoard() {
         <div className="pin-board-frame">
           <div className="pin-board-surface">
             {/* Decorative sticker */}
-            <span className="pin-board-sticker font-pixel" aria-hidden>
-              &#9733; TOP 5 &#9733;
+            <span className="pin-board-sticker font-handwritten" aria-hidden>
+              <PushPin color="#C4917B" />
+              Top 5 ♥
             </span>
 
             {pins.map((pin, i) => {
