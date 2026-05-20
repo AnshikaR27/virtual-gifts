@@ -8,41 +8,42 @@ import { allGifts, heroGiftDescriptions } from './gift-catalog';
 interface PinCard {
   slug: string;
   emoji: string;
+  label: string;
   tilt: number;
   top: string;
   left: string;
   mobileTop: string;
   mobileLeft: string;
   pinColor: string;
-  width?: string;
 }
 
 const pins: PinCard[] = [
   {
     slug: 'the-proposal',
     emoji: '\u{1F48D}',
+    label: 'Proposal',
     tilt: -3,
     top: '12%',
     left: '6%',
     mobileTop: '3%',
     mobileLeft: '4%',
     pinColor: '#C4917B',
-    width: '155px',
   },
   {
     slug: 'love-jar',
     emoji: '\u{1FAD9}',
+    label: 'Love Jar',
     tilt: 2,
     top: '8%',
     left: '34%',
     mobileTop: '3%',
     mobileLeft: '52%',
     pinColor: '#C4917B',
-    width: '140px',
   },
   {
     slug: 'wishing-dandelion',
     emoji: '\u{1F32C}️',
+    label: 'Dandelion',
     tilt: -1.5,
     top: '38%',
     left: '18%',
@@ -53,17 +54,18 @@ const pins: PinCard[] = [
   {
     slug: 'spotify-wrapped',
     emoji: '\u{1F4CA}',
+    label: 'Wrapped',
     tilt: 3.5,
     top: '10%',
     left: '64%',
     mobileTop: '36%',
     mobileLeft: '52%',
     pinColor: '#C4917B',
-    width: '150px',
   },
   {
     slug: 'sorry-puppy',
     emoji: '\u{1F97A}',
+    label: 'Puppy',
     tilt: -2,
     top: '42%',
     left: '55%',
@@ -107,12 +109,18 @@ function PushPin({ color }: { color: string }) {
 }
 
 export function PinBoard() {
+  const [flippedSlug, setFlippedSlug] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const targetSlug = useRef('');
   const router = useRouter();
 
+  const handleFlip = useCallback((slug: string) => {
+    setFlippedSlug((prev) => (prev === slug ? null : slug));
+  }, []);
+
   const handleNavigate = useCallback(
-    (slug: string) => {
+    (slug: string, e: React.MouseEvent) => {
+      e.stopPropagation();
       targetSlug.current = slug;
       router.prefetch(`/gift/${slug}`);
       setLoading(true);
@@ -171,6 +179,20 @@ export function PinBoard() {
 
         <div className="pin-board-frame">
           <div className="pin-board-surface">
+            {/* Heart clip-path definition */}
+            <svg
+              width="0"
+              height="0"
+              style={{ position: 'absolute' }}
+              aria-hidden="true"
+            >
+              <defs>
+                <clipPath id="heart-clip" clipPathUnits="objectBoundingBox">
+                  <path d="M0.5,0.2 C0.5,0.08 0.33,0 0.2,0.07 C0.07,0.14 0,0.32 0.02,0.48 C0.06,0.72 0.28,0.88 0.5,1.0 C0.72,0.88 0.94,0.72 0.98,0.48 C1.0,0.32 0.93,0.14 0.8,0.07 C0.67,0 0.5,0.08 0.5,0.2 Z" />
+                </clipPath>
+              </defs>
+            </svg>
+
             {/* Decorative sticker */}
             <span className="pin-board-sticker font-handwritten" aria-hidden>
               <PushPin color="#C4917B" />
@@ -179,10 +201,11 @@ export function PinBoard() {
 
             {pins.map((pin, i) => {
               const gift = allGifts.find((g) => g.slug === pin.slug)!;
+              const isFlipped = flippedSlug === pin.slug;
               return (
-                <button
+                <div
                   key={pin.slug}
-                  className="pin-board-card"
+                  className="pin-board-card-wrapper"
                   style={
                     {
                       '--pin-tilt': `${pin.tilt}deg`,
@@ -190,22 +213,43 @@ export function PinBoard() {
                       '--pin-left': pin.left,
                       '--pin-top-m': pin.mobileTop,
                       '--pin-left-m': pin.mobileLeft,
-                      width: pin.width ?? '135px',
                     } as React.CSSProperties
                   }
-                  onClick={() => handleNavigate(pin.slug)}
-                  aria-label={`Create ${gift.name} gift`}
+                  onClick={() => handleFlip(pin.slug)}
                 >
                   <PushPin color={pin.pinColor} />
-                  <span className="pin-board-rank font-pixel">{i + 1}</span>
-                  <span className="pin-board-card-emoji">{pin.emoji}</span>
-                  <span className="pin-board-card-name font-handwritten">
-                    {gift.name}
-                  </span>
-                  <span className="pin-board-card-desc font-body">
-                    {heroGiftDescriptions[pin.slug] || gift.description}
-                  </span>
-                </button>
+                  <div
+                    className={`pin-board-card-flipper${isFlipped ? ' is-flipped' : ''}`}
+                  >
+                    <div className="pin-board-card-front">
+                      <div className="pin-board-heart-shape">
+                        <span className="pin-board-rank font-handwritten">
+                          {i + 1}
+                        </span>
+                        <span className="pin-board-card-emoji">
+                          {pin.emoji}
+                        </span>
+                        <span className="pin-board-card-name font-handwritten">
+                          {pin.label}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="pin-board-card-back">
+                      <div className="pin-board-heart-shape">
+                        <span className="pin-board-card-back-desc font-body">
+                          {heroGiftDescriptions[pin.slug] || gift.description}
+                        </span>
+                        <button
+                          className="pin-board-card-back-btn font-handwritten"
+                          onClick={(e) => handleNavigate(pin.slug, e)}
+                          aria-label={`Open ${gift.name}`}
+                        >
+                          Open &rarr;
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               );
             })}
           </div>
