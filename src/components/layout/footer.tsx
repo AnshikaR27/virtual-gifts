@@ -33,6 +33,31 @@ export function Footer() {
                 'var(--win-chrome-dark) var(--win-chrome-light) var(--win-chrome-light) var(--win-chrome-dark)',
             }}
           >
+            {/* System stats bar */}
+            <div
+              className="mb-5 flex flex-wrap justify-between gap-x-4 gap-y-2 border-b-2 pb-5 font-body text-[13px]"
+              style={{ borderColor: 'var(--win-chrome-dark)' }}
+            >
+              <span className="text-ink/60">
+                💕 Gifts created{' '}
+                <strong className="text-ink">0 (so far)</strong>
+              </span>
+              <span className="text-ink/60">
+                😭 Happy tears <strong className="text-ink">∞</strong>
+              </span>
+              <span className="text-ink/60">
+                📊 Hearts crashed{' '}
+                <strong className="text-ink">(lovingly)</strong>
+              </span>
+              <span className="text-ink/60">
+                💾 Storage <strong className="text-ink">Unlimited</strong>
+              </span>
+              <span className="text-ink/60">
+                ⏰ Uptime{' '}
+                <strong className="text-ink">Since you got here</strong>
+              </span>
+            </div>
+
             <div className="grid gap-6 text-sm md:grid-cols-4 md:gap-8">
               {/* Brand */}
               <div>
