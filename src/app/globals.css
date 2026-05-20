@@ -786,7 +786,7 @@ html {
   }
 }
 
-/* Heart-shaped pinned card */
+/* Heart-shaped pinned card — locket hinge */
 .pin-board-card-wrapper {
   position: absolute;
   top: var(--pin-top);
@@ -795,7 +795,7 @@ html {
   height: 130px;
   z-index: 2;
   cursor: pointer;
-  perspective: 600px;
+  perspective: 800px;
   filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.18));
   transition: filter 0.3s;
 }
@@ -805,84 +805,119 @@ html {
   filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.24));
 }
 
-.pin-board-card-flipper {
+.pin-board-card-inner {
   position: relative;
   width: 100%;
   height: 100%;
+  transform: rotate(var(--pin-tilt));
   -webkit-transform-style: preserve-3d;
   transform-style: preserve-3d;
-  transform: rotate(var(--pin-tilt));
-  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.pin-board-card-flipper.is-flipped {
-  transform: rotateY(180deg);
+.pin-board-card-wrapper:not(.is-open):hover .pin-board-card-inner {
+  transform: rotate(var(--pin-tilt)) translateY(-3px) scale(1.03);
+  transition: transform 0.3s ease;
 }
 
-.pin-board-card-flipper:not(.is-flipped):hover {
-  transform: rotate(0deg) translateY(-4px) scale(1.05);
-}
-
-.pin-board-card-front,
-.pin-board-card-back {
+/* Base layer — full heart, description content */
+.heart-base {
   position: absolute;
   inset: 0;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-}
-
-.pin-board-card-back {
-  -webkit-transform: rotateY(180deg);
-  transform: rotateY(180deg);
-}
-
-.pin-board-heart-shape {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  clip-path: url(#heart-clip);
+  clip-path: url(#heart-full);
+  background: #ffd6e5;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-}
-
-.pin-board-card-front .pin-board-heart-shape {
-  background: #fdfcf8;
-  padding: 18px 20px 30px;
-  gap: 2px;
-}
-
-.pin-board-card-back .pin-board-heart-shape {
-  background: #fff5f8;
-  padding: 26px 22px 36px;
+  padding: 20px 20px 30px;
   gap: 6px;
 }
 
-/* Paper grain on front */
-.pin-board-card-front .pin-board-heart-shape::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  opacity: 0.06;
-  background-image:
-    linear-gradient(
-      45deg,
-      #000 25%,
-      transparent 25%,
-      transparent 75%,
-      #000 75%
-    ),
-    linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%);
-  background-size: 2px 2px;
-  background-position:
-    0 0,
-    1px 1px;
-  pointer-events: none;
+.heart-base-desc {
+  font-size: 12px;
+  color: #5a3040;
+  line-height: 1.4;
+  max-width: 90px;
 }
 
-/* Pushpin SVG at V-dip between lobes */
+.heart-base-btn {
+  font-size: 13px;
+  color: #d4477a;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 0;
+  font-weight: 600;
+}
+
+.heart-base-btn:hover {
+  text-decoration: underline;
+}
+
+/* Right cover — right half, gradient, front design */
+.heart-right-cover {
+  position: absolute;
+  inset: 0;
+  clip-path: url(#heart-right);
+  background: linear-gradient(145deg, #ffb8d4, #ff85c8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 14px 20px 28px;
+  transition: opacity 0.3s;
+}
+
+.pin-board-card-wrapper.is-open .heart-right-cover {
+  opacity: 0;
+  transition: opacity 0.3s 0.2s;
+}
+
+/* Left lid container — hinges open to left */
+.heart-lid {
+  position: absolute;
+  inset: 0;
+  transform-origin: 100% 50%;
+  -webkit-transform-style: preserve-3d;
+  transform-style: preserve-3d;
+  transition: transform 0.6s ease-in-out;
+}
+
+.pin-board-card-wrapper.is-open .heart-lid {
+  transform: rotateY(-120deg);
+}
+
+/* Lid front face */
+.heart-lid-front {
+  position: absolute;
+  inset: 0;
+  clip-path: url(#heart-left);
+  background: linear-gradient(145deg, #ffb8d4, #ff85c8);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 14px 20px 28px;
+}
+
+/* Lid inner face (underside visible when open) */
+.heart-lid-inner {
+  position: absolute;
+  inset: 0;
+  clip-path: url(#heart-left);
+  background: linear-gradient(145deg, #e8a0c4, #d480aa);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-transform: rotateY(180deg);
+  transform: rotateY(180deg);
+}
+
+/* Pushpin SVG at V-dip */
 .pin-board-pushpin {
   position: absolute;
   top: -8px;
@@ -895,51 +930,32 @@ html {
 }
 
 .pin-board-card-wrapper > .pin-board-pushpin {
-  top: 6px;
+  top: -4px;
 }
 
 /* Rank number in left lobe */
 .pin-board-rank {
   position: absolute;
-  top: 16px;
-  left: 20px;
+  top: 14px;
+  left: 18px;
   font-size: 13px;
-  color: rgba(0, 0, 0, 0.18);
+  color: rgba(255, 255, 255, 0.5);
   pointer-events: none;
   z-index: 1;
 }
 
-.pin-board-card-emoji {
+/* Front design content (shared by right cover + lid front) */
+.heart-cover-emoji {
   font-size: 34px;
   line-height: 1;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
 }
 
-.pin-board-card-name {
+.heart-cover-name {
   font-size: 14px;
-  color: #3d2b1f;
+  color: #fff;
   white-space: nowrap;
-}
-
-.pin-board-card-back-desc {
-  font-size: 11px;
-  color: #5a3e4e;
-  line-height: 1.35;
-  max-width: 85px;
-}
-
-.pin-board-card-back-btn {
-  font-size: 12px;
-  color: #d4477a;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 2px 0;
-  font-weight: 600;
-}
-
-.pin-board-card-back-btn:hover {
-  text-decoration: underline;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
 }
 
 @media (max-width: 767px) {
@@ -954,40 +970,44 @@ html {
     height: 100px !important;
   }
 
-  .pin-board-card-emoji {
+  .heart-cover-emoji {
     font-size: 26px;
   }
 
-  .pin-board-card-name {
+  .heart-cover-name {
     font-size: 11px;
   }
 
   .pin-board-rank {
     top: 10px;
-    left: 14px;
+    left: 12px;
     font-size: 11px;
   }
 
-  .pin-board-card-back-desc {
-    font-size: 9px;
-    max-width: 65px;
+  .heart-base {
+    padding: 16px 14px 24px;
   }
 
-  .pin-board-card-back-btn {
+  .heart-base-desc {
     font-size: 10px;
+    max-width: 70px;
   }
 
-  .pin-board-card-front .pin-board-heart-shape {
-    padding: 14px 16px 24px;
+  .heart-base-btn {
+    font-size: 11px;
   }
 
-  .pin-board-card-back .pin-board-heart-shape {
-    padding: 20px 16px 28px;
+  .heart-right-cover,
+  .heart-lid-front {
+    padding: 10px 16px 22px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .pin-board-card-flipper {
+  .heart-lid {
+    transition: none !important;
+  }
+  .heart-right-cover {
     transition: none !important;
   }
 }

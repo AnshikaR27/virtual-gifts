@@ -108,14 +108,40 @@ function PushPin({ color }: { color: string }) {
   );
 }
 
+function HeartClipDefs() {
+  return (
+    <svg
+      width="0"
+      height="0"
+      style={{ position: 'absolute' }}
+      aria-hidden="true"
+    >
+      <defs>
+        {/* Full heart — fuller lobes, shallower V-dip */}
+        <clipPath id="heart-full" clipPathUnits="objectBoundingBox">
+          <path d="M0.5,0.12 C0.5,0.04 0.37,0 0.25,0.015 C0.1,0.04 0,0.2 0,0.35 C0,0.55 0.15,0.78 0.5,1.0 C0.85,0.78 1.0,0.55 1.0,0.35 C1.0,0.2 0.9,0.04 0.75,0.015 C0.63,0 0.5,0.04 0.5,0.12 Z" />
+        </clipPath>
+        {/* Left half — V-dip, left lobe, left side, bottom point, straight back */}
+        <clipPath id="heart-left" clipPathUnits="objectBoundingBox">
+          <path d="M0.5,0.12 C0.5,0.04 0.37,0 0.25,0.015 C0.1,0.04 0,0.2 0,0.35 C0,0.55 0.15,0.78 0.5,1.0 Z" />
+        </clipPath>
+        {/* Right half — V-dip, straight to bottom, right side, right lobe, back */}
+        <clipPath id="heart-right" clipPathUnits="objectBoundingBox">
+          <path d="M0.5,0.12 L0.5,1.0 C0.85,0.78 1.0,0.55 1.0,0.35 C1.0,0.2 0.9,0.04 0.75,0.015 C0.63,0 0.5,0.04 0.5,0.12 Z" />
+        </clipPath>
+      </defs>
+    </svg>
+  );
+}
+
 export function PinBoard() {
-  const [flippedSlug, setFlippedSlug] = useState<string | null>(null);
+  const [openSlug, setOpenSlug] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const targetSlug = useRef('');
   const router = useRouter();
 
-  const handleFlip = useCallback((slug: string) => {
-    setFlippedSlug((prev) => (prev === slug ? null : slug));
+  const handleToggle = useCallback((slug: string) => {
+    setOpenSlug((prev) => (prev === slug ? null : slug));
   }, []);
 
   const handleNavigate = useCallback(
@@ -179,19 +205,7 @@ export function PinBoard() {
 
         <div className="pin-board-frame">
           <div className="pin-board-surface">
-            {/* Heart clip-path definition */}
-            <svg
-              width="0"
-              height="0"
-              style={{ position: 'absolute' }}
-              aria-hidden="true"
-            >
-              <defs>
-                <clipPath id="heart-clip" clipPathUnits="objectBoundingBox">
-                  <path d="M0.5,0.2 C0.5,0.08 0.33,0 0.2,0.07 C0.07,0.14 0,0.32 0.02,0.48 C0.06,0.72 0.28,0.88 0.5,1.0 C0.72,0.88 0.94,0.72 0.98,0.48 C1.0,0.32 0.93,0.14 0.8,0.07 C0.67,0 0.5,0.08 0.5,0.2 Z" />
-                </clipPath>
-              </defs>
-            </svg>
+            <HeartClipDefs />
 
             {/* Decorative sticker */}
             <span className="pin-board-sticker font-handwritten" aria-hidden>
@@ -201,11 +215,11 @@ export function PinBoard() {
 
             {pins.map((pin, i) => {
               const gift = allGifts.find((g) => g.slug === pin.slug)!;
-              const isFlipped = flippedSlug === pin.slug;
+              const isOpen = openSlug === pin.slug;
               return (
                 <div
                   key={pin.slug}
-                  className="pin-board-card-wrapper"
+                  className={`pin-board-card-wrapper${isOpen ? ' is-open' : ''}`}
                   style={
                     {
                       '--pin-tilt': `${pin.tilt}deg`,
@@ -215,38 +229,44 @@ export function PinBoard() {
                       '--pin-left-m': pin.mobileLeft,
                     } as React.CSSProperties
                   }
-                  onClick={() => handleFlip(pin.slug)}
+                  onClick={() => handleToggle(pin.slug)}
                 >
                   <PushPin color={pin.pinColor} />
-                  <div
-                    className={`pin-board-card-flipper${isFlipped ? ' is-flipped' : ''}`}
-                  >
-                    <div className="pin-board-card-front">
-                      <div className="pin-board-heart-shape">
+                  <div className="pin-board-card-inner">
+                    {/* Base: full heart, description (revealed when lid opens) */}
+                    <div className="heart-base">
+                      <span className="heart-base-desc font-handwritten">
+                        {heroGiftDescriptions[pin.slug] || gift.description}
+                      </span>
+                      <button
+                        className="heart-base-btn font-handwritten"
+                        onClick={(e) => handleNavigate(pin.slug, e)}
+                        aria-label={`Open ${gift.name}`}
+                      >
+                        Open &rarr;
+                      </button>
+                    </div>
+
+                    {/* Right cover: right half of front design */}
+                    <div className="heart-right-cover">
+                      <span className="heart-cover-emoji">{pin.emoji}</span>
+                      <span className="heart-cover-name font-handwritten">
+                        {pin.label}
+                      </span>
+                    </div>
+
+                    {/* Left lid: hinges open to the left */}
+                    <div className="heart-lid">
+                      <div className="heart-lid-front">
                         <span className="pin-board-rank font-handwritten">
                           {i + 1}
                         </span>
-                        <span className="pin-board-card-emoji">
-                          {pin.emoji}
-                        </span>
-                        <span className="pin-board-card-name font-handwritten">
+                        <span className="heart-cover-emoji">{pin.emoji}</span>
+                        <span className="heart-cover-name font-handwritten">
                           {pin.label}
                         </span>
                       </div>
-                    </div>
-                    <div className="pin-board-card-back">
-                      <div className="pin-board-heart-shape">
-                        <span className="pin-board-card-back-desc font-body">
-                          {heroGiftDescriptions[pin.slug] || gift.description}
-                        </span>
-                        <button
-                          className="pin-board-card-back-btn font-handwritten"
-                          onClick={(e) => handleNavigate(pin.slug, e)}
-                          aria-label={`Open ${gift.name}`}
-                        >
-                          Open &rarr;
-                        </button>
-                      </div>
+                      <div className="heart-lid-inner" />
                     </div>
                   </div>
                 </div>
