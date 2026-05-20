@@ -318,7 +318,7 @@
 }
 
 .blink-cursor::after {
-  content: 'â–ˆ';
+  content: '\2588';
   animation: blink-cursor 1s step-end infinite;
   margin-left: 2px;
   color: var(--win-magenta);

@@ -105,7 +105,7 @@ export function Footer() {
               className="mt-6 border-t-2 pt-4 text-center font-body text-[13px] text-ink/40"
               style={{ borderColor: 'var(--win-chrome-dark)' }}
             >
-              &copy; 2026 {BRAND_NAME}.exe — Made with 💕 ��� Vadodara, India
+              &copy; 2026 {BRAND_NAME}.exe — Made with 💕 from Vadodara, India
             </div>
           </div>
         </div>
