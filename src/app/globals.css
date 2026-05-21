@@ -855,18 +855,55 @@ html {
   text-decoration: underline;
 }
 
-/* Lid — full heart, hinges up from bottom tip like a safety pin */
+/* Lid — swings from pushpin like a pendulum */
 .heart-lid {
   position: absolute;
   inset: 0;
-  transform-origin: 50% 100%;
+  transform-origin: 50% 0%;
   -webkit-transform-style: preserve-3d;
   transform-style: preserve-3d;
   transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+@keyframes pendulum-open {
+  0% {
+    transform: rotateX(0deg);
+  }
+  40% {
+    transform: rotateX(170deg);
+  }
+  65% {
+    transform: rotateX(155deg);
+  }
+  82% {
+    transform: rotateX(165deg);
+  }
+  100% {
+    transform: rotateX(160deg);
+  }
+}
+
+@keyframes pendulum-close {
+  0% {
+    transform: rotateX(160deg);
+  }
+  45% {
+    transform: rotateX(-8deg);
+  }
+  70% {
+    transform: rotateX(5deg);
+  }
+  100% {
+    transform: rotateX(0deg);
+  }
+}
+
 .pin-board-card-wrapper.is-open .heart-lid {
-  transform: rotateX(-150deg);
+  animation: pendulum-open 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.pin-board-card-wrapper.is-closing .heart-lid {
+  animation: pendulum-close 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 /* Lid front face */
@@ -985,6 +1022,7 @@ html {
 @media (prefers-reduced-motion: reduce) {
   .heart-lid {
     transition: none !important;
+    animation: none !important;
   }
 }
 

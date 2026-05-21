@@ -127,12 +127,24 @@ function HeartClipDefs() {
 
 export function PinBoard() {
   const [openSlug, setOpenSlug] = useState<string | null>(null);
+  const [closingSlug, setClosingSlug] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const targetSlug = useRef('');
   const router = useRouter();
 
   const handleToggle = useCallback((slug: string) => {
-    setOpenSlug((prev) => (prev === slug ? null : slug));
+    setOpenSlug((prev) => {
+      if (prev === slug) {
+        setClosingSlug(slug);
+        setTimeout(() => setClosingSlug(null), 700);
+        return null;
+      }
+      if (prev) {
+        setClosingSlug(prev);
+        setTimeout(() => setClosingSlug(null), 700);
+      }
+      return slug;
+    });
   }, []);
 
   const handleNavigate = useCallback(
@@ -207,10 +219,11 @@ export function PinBoard() {
             {pins.map((pin, i) => {
               const gift = allGifts.find((g) => g.slug === pin.slug)!;
               const isOpen = openSlug === pin.slug;
+              const isClosing = closingSlug === pin.slug;
               return (
                 <div
                   key={pin.slug}
-                  className={`pin-board-card-wrapper${isOpen ? ' is-open' : ''}`}
+                  className={`pin-board-card-wrapper${isOpen ? ' is-open' : ''}${isClosing ? ' is-closing' : ''}`}
                   style={
                     {
                       '--pin-tilt': `${pin.tilt}deg`,
