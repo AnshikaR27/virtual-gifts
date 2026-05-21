@@ -3,75 +3,51 @@
 import { useCallback, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GiftLoading } from '@/components/gift-loading';
-import { allGifts, heroGiftDescriptions } from './gift-catalog';
+import { heroGiftDescriptions } from './gift-catalog';
 
 interface PinCard {
   slug: string;
   emoji: string;
-  label: string;
+  title: string;
+  description: string;
   tilt: number;
-  top: string;
-  left: string;
-  mobileTop: string;
-  mobileLeft: string;
-  pinColor: string;
 }
 
 const pins: PinCard[] = [
   {
     slug: 'the-proposal',
     emoji: '\u{1F48D}',
-    label: 'Proposal',
+    title: 'The Proposal',
+    description: 'The "No" button runs away',
     tilt: -3,
-    top: '12%',
-    left: '6%',
-    mobileTop: '3%',
-    mobileLeft: '4%',
-    pinColor: '#C4917B',
   },
   {
     slug: 'love-jar',
     emoji: '\u{1FAD9}',
-    label: 'Love Jar',
+    title: 'Love Jar',
+    description: 'Shake to pull random love notes',
     tilt: 2,
-    top: '8%',
-    left: '34%',
-    mobileTop: '3%',
-    mobileLeft: '52%',
-    pinColor: '#C4917B',
   },
   {
     slug: 'wishing-dandelion',
     emoji: '\u{1F32C}️',
-    label: 'Dandelion',
+    title: 'Wishing Dandelion',
+    description: 'Blow to scatter seeds of wishes',
     tilt: -1.5,
-    top: '38%',
-    left: '18%',
-    mobileTop: '36%',
-    mobileLeft: '4%',
-    pinColor: '#C4917B',
   },
   {
     slug: 'spotify-wrapped',
     emoji: '\u{1F4CA}',
-    label: 'Wrapped',
-    tilt: 3.5,
-    top: '10%',
-    left: '64%',
-    mobileTop: '36%',
-    mobileLeft: '52%',
-    pinColor: '#C4917B',
+    title: 'Spotify Wrapped',
+    description: 'Your relationship, Wrapped-style',
+    tilt: 3,
   },
   {
     slug: 'sorry-puppy',
     emoji: '\u{1F97A}',
-    label: 'Puppy',
+    title: 'Sorry Puppy',
+    description: 'Your taps clear the rain away',
     tilt: -2,
-    top: '42%',
-    left: '55%',
-    mobileTop: '68%',
-    mobileLeft: '28%',
-    pinColor: '#C4917B',
   },
 ];
 
@@ -108,48 +84,13 @@ function PushPin({ color }: { color: string }) {
   );
 }
 
-function HeartClipDefs() {
-  return (
-    <svg
-      width="0"
-      height="0"
-      style={{ position: 'absolute' }}
-      aria-hidden="true"
-    >
-      <defs>
-        <clipPath id="heart-full" clipPathUnits="objectBoundingBox">
-          <path d="M0.5,0.12 C0.5,0.04 0.37,0 0.25,0.015 C0.1,0.04 0,0.2 0,0.35 C0,0.55 0.15,0.78 0.5,1.0 C0.85,0.78 1.0,0.55 1.0,0.35 C1.0,0.2 0.9,0.04 0.75,0.015 C0.63,0 0.5,0.04 0.5,0.12 Z" />
-        </clipPath>
-      </defs>
-    </svg>
-  );
-}
-
 export function PinBoard() {
-  const [openSlug, setOpenSlug] = useState<string | null>(null);
-  const [closingSlug, setClosingSlug] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const targetSlug = useRef('');
   const router = useRouter();
 
-  const handleToggle = useCallback((slug: string) => {
-    setOpenSlug((prev) => {
-      if (prev === slug) {
-        setClosingSlug(slug);
-        setTimeout(() => setClosingSlug(null), 700);
-        return null;
-      }
-      if (prev) {
-        setClosingSlug(prev);
-        setTimeout(() => setClosingSlug(null), 700);
-      }
-      return slug;
-    });
-  }, []);
-
   const handleNavigate = useCallback(
-    (slug: string, e: React.MouseEvent) => {
-      e.stopPropagation();
+    (slug: string) => {
       targetSlug.current = slug;
       router.prefetch(`/gift/${slug}`);
       setLoading(true);
@@ -208,65 +149,37 @@ export function PinBoard() {
 
         <div className="pin-board-frame">
           <div className="pin-board-surface">
-            <HeartClipDefs />
-
-            {/* Decorative sticker */}
             <span className="pin-board-sticker font-handwritten" aria-hidden>
               <PushPin color="#C4917B" />
               Top 5 ♥
             </span>
 
-            {pins.map((pin, i) => {
-              const gift = allGifts.find((g) => g.slug === pin.slug)!;
-              const isOpen = openSlug === pin.slug;
-              const isClosing = closingSlug === pin.slug;
-              return (
+            <div className="pin-board-cards">
+              {pins.map((pin, i) => (
                 <div
                   key={pin.slug}
-                  className={`pin-board-card-wrapper${isOpen ? ' is-open' : ''}${isClosing ? ' is-closing' : ''}`}
+                  className="pin-board-card"
                   style={
-                    {
-                      '--pin-tilt': `${pin.tilt}deg`,
-                      '--pin-top': pin.top,
-                      '--pin-left': pin.left,
-                      '--pin-top-m': pin.mobileTop,
-                      '--pin-left-m': pin.mobileLeft,
-                    } as React.CSSProperties
+                    { '--card-tilt': `${pin.tilt}deg` } as React.CSSProperties
                   }
-                  onClick={() => handleToggle(pin.slug)}
+                  onClick={() => handleNavigate(pin.slug)}
                 >
-                  <PushPin color={pin.pinColor} />
-                  <div className="pin-board-card-inner">
-                    {/* Base: full heart, description (revealed when lid lifts) */}
-                    <div className="heart-base">
-                      <span className="heart-base-desc font-handwritten">
-                        {heroGiftDescriptions[pin.slug] || gift.description}
-                      </span>
-                      <button
-                        className="heart-base-btn font-handwritten"
-                        onClick={(e) => handleNavigate(pin.slug, e)}
-                        aria-label={`Open ${gift.name}`}
-                      >
-                        Open &rarr;
-                      </button>
-                    </div>
-
-                    {/* Lid: swings aside like a pendulum from the pushpin */}
-                    <div className="heart-lid">
-                      <div className="heart-lid-front">
-                        <span className="pin-board-rank font-handwritten">
-                          {i + 1}
-                        </span>
-                        <span className="heart-cover-emoji">{pin.emoji}</span>
-                        <span className="heart-cover-name font-handwritten">
-                          {pin.label}
-                        </span>
-                      </div>
-                    </div>
+                  <PushPin color="#C4917B" />
+                  <div className="pin-board-card-body">
+                    <span className="pin-board-card-rank font-handwritten">
+                      {i + 1}
+                    </span>
+                    <span className="pin-board-card-emoji">{pin.emoji}</span>
+                    <span className="pin-board-card-title font-handwritten">
+                      {pin.title}
+                    </span>
+                    <span className="pin-board-card-desc font-handwritten">
+                      {pin.description}
+                    </span>
                   </div>
                 </div>
-              );
-            })}
+              ))}
+            </div>
           </div>
         </div>
 
