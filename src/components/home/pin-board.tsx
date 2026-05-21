@@ -3,7 +3,6 @@
 import { useCallback, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GiftLoading } from '@/components/gift-loading';
-import { heroGiftDescriptions } from './gift-catalog';
 
 interface PinCard {
   slug: string;
@@ -11,6 +10,7 @@ interface PinCard {
   title: string;
   description: string;
   tilt: number;
+  color: string;
 }
 
 const pins: PinCard[] = [
@@ -18,8 +18,9 @@ const pins: PinCard[] = [
     slug: 'the-proposal',
     emoji: '\u{1F48D}',
     title: 'The Proposal',
-    description: 'The "No" button runs away',
+    description: 'The “No” button runs away',
     tilt: -3,
+    color: '#FFD6E5',
   },
   {
     slug: 'love-jar',
@@ -27,6 +28,7 @@ const pins: PinCard[] = [
     title: 'Love Jar',
     description: 'Shake to pull random love notes',
     tilt: 2,
+    color: '#DCC9F0',
   },
   {
     slug: 'wishing-dandelion',
@@ -34,6 +36,7 @@ const pins: PinCard[] = [
     title: 'Wishing Dandelion',
     description: 'Blow to scatter seeds of wishes',
     tilt: -1.5,
+    color: '#C9F0DC',
   },
   {
     slug: 'spotify-wrapped',
@@ -41,6 +44,7 @@ const pins: PinCard[] = [
     title: 'Spotify Wrapped',
     description: 'Your relationship, Wrapped-style',
     tilt: 3,
+    color: '#FFE5A3',
   },
   {
     slug: 'sorry-puppy',
@@ -48,6 +52,7 @@ const pins: PinCard[] = [
     title: 'Sorry Puppy',
     description: 'Your taps clear the rain away',
     tilt: -2,
+    color: '#FFCBA4',
   },
 ];
 
@@ -155,7 +160,7 @@ export function PinBoard() {
             </span>
 
             <div className="pin-board-cards">
-              {pins.map((pin, i) => (
+              {pins.map((pin) => (
                 <div
                   key={pin.slug}
                   className="pin-board-card"
@@ -165,17 +170,21 @@ export function PinBoard() {
                   onClick={() => handleNavigate(pin.slug)}
                 >
                   <PushPin color="#C4917B" />
-                  <div className="pin-board-card-body">
-                    <span className="pin-board-card-rank font-handwritten">
-                      {i + 1}
-                    </span>
-                    <span className="pin-board-card-emoji">{pin.emoji}</span>
-                    <span className="pin-board-card-title font-handwritten">
-                      {pin.title}
-                    </span>
-                    <span className="pin-board-card-desc font-handwritten">
-                      {pin.description}
-                    </span>
+                  <div className="pin-board-polaroid">
+                    <div
+                      className="pin-board-photo"
+                      style={{ background: pin.color }}
+                    >
+                      <span className="pin-board-card-emoji">{pin.emoji}</span>
+                    </div>
+                    <div className="pin-board-caption">
+                      <span className="pin-board-card-title font-display">
+                        {pin.title}
+                      </span>
+                      <span className="pin-board-card-desc font-handwritten">
+                        {pin.description}
+                      </span>
+                    </div>
                   </div>
                 </div>
               ))}
