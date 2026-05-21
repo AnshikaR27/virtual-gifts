@@ -549,9 +549,9 @@ Handwriting Mode, Whisper Mode, Reaction Snap, Secret Ink, Voice Notes, Doodle A
 
 ### 0.1 Project setup
 
-- [ ] Next.js 14 + TypeScript + Tailwind + shadcn/ui scaffolded
-- [ ] ESLint, Prettier, Husky pre-commit hooks
-- [ ] Folder structure: `/app`, `/components`, `/lib`, `/gifts/[slug]`, `/prompts`
+- [x] Next.js 14 + TypeScript + Tailwind + shadcn/ui scaffolded
+- [x] ESLint, Prettier, Husky pre-commit hooks (lint-staged)
+- [x] Folder structure: `/app`, `/components`, `/lib`, `/gifts`, `/prompts`, `/i18n`
 - [ ] Vercel deploy pipeline live with preview URLs per branch
 
 ### 0.2 Backend
@@ -575,33 +575,36 @@ This is the most important component in the codebase. **Every gift renders insid
 
 Build `<GiftFrame>` with:
 
-- [ ] Anticipation screen (recipient name + soft glow, 1.5–2.5s)
-- [ ] Lazy-loaded gift component (React.lazy with Suspense)
-- [ ] Engagement tracking hooks (`trackInteraction(type, value)`)
-- [ ] Reaction Snap orchestration (opt-in, capture window, upload)
-- [ ] Post-gift conversion CTA ("Want to send one back?")
-- [ ] Watermark for free tier (subtle bottom corner, removable at ₹29)
-- [ ] Replay button (logic per gift type — see 5.4)
+- [x] Anticipation screen (`src/components/gift-frame/anticipation-screen.tsx`)
+- [x] Lazy-loaded gift component with placeholder (`src/components/gift-frame/placeholder-gift.tsx`)
+- [x] Engagement tracking hooks (`src/app/api/interactions/route.ts`)
+- [x] Reaction Snap slot (`src/components/gift-frame/reaction-snap-slot.tsx`)
+- [x] Post-gift conversion CTA (`src/components/gift-frame/conversion-cta.tsx`)
+- [x] Watermark for free tier (`src/components/gift-frame/watermark.tsx`)
+- [x] Replay button (`src/components/gift-frame/replay-button.tsx`)
+- [x] Gift reveal orchestration (`src/components/gift-frame/gift-reveal.tsx`)
+- [x] GiftFrame hook (`src/components/gift-frame/use-gift-frame.ts`)
 
 ### 0.4 Smart Prompt framework
 
 - [ ] `<PromptInput>` component with: prompt text, alternatives toggle, microcopy, inspiration drawer, character count, specificity nudge, auto-save
-- [ ] `prompts/<gift-slug>.ts` schema documented and templated
+- [x] `prompts/types.ts` schema defined
 - [ ] Inspiration system with admin moderation queue
 
 ### 0.5 Critical infrastructure
 
 - [ ] Razorpay test integration with ₹49 dummy product
 - [ ] Cloudinary image upload pipeline with auto-format + optimization
-- [ ] Dynamic OG image generation at `/g/[shortId]/opengraph-image.tsx` (Bible: this is the WhatsApp first impression — the most important card on the platform)
-- [ ] Short URL service (nanoid-based, 6-char IDs)
+- [x] Dynamic OG image generation at `/g/[shortId]/opengraph-image.tsx` and `/opengraph-image.tsx`
+- [x] Short URL service (nanoid-based, `src/lib/short-id.ts`)
+- [x] Analytics module (`src/lib/analytics.ts`)
 - [ ] PostHog event tracking: signup, gift_create_started, gift_create_abandoned, prompt_filled, gift_paid, gift_sent, gift_opened, gift_completed, share_clicked, return_creator
-- [ ] Sentry error tracking live
-- [ ] i18n setup with next-intl (English + Hindi locale files)
+- [x] Sentry error tracking (`src/lib/sentry.ts`)
+- [x] i18n setup with next-intl (`src/i18n/`)
 
 ### 0.6 Operational basics
 
-- [ ] Privacy Policy + ToS published (use a generator, lawyer-review before Phase 2)
+- [x] Privacy Policy + ToS pages published (`src/app/(legal)/privacy/`, `src/app/(legal)/terms/`)
 - [ ] Razorpay live mode KYC submitted (takes 7–10 days — start now)
 - [ ] Domain purchased + GST consideration logged
 - [ ] Customer support email + WhatsApp Business number reserved
@@ -618,13 +621,17 @@ Build `<GiftFrame>` with:
 
 > **Skill workflow** (per Section 3.6): `frontend-design` for the cozy shop layout structure. Once approved, second pass with `emil-kowalski` on card hover states and horizontal-scroll feel.
 
-- [ ] Hero with rotating headline ("Craft unforgettable interactive surprises")
-- [ ] CTA buttons: "Try free" → Quick Notes; "See how it works" → modal
-- [ ] **Cozy shop layout** with 5 horizontal-scroll rows (per Bible Part 13)
+- [x] Hero with typing animation inside ROMANCE.exe Win98 window
+- [x] CTA buttons in hero section
+- [x] **Pin Board** — heart-shaped cards with pendulum swing interaction for top 5 gifts (replaced original horizontal-scroll rows)
+- [x] **Polaroid Wall** — gift catalog display section
 - [ ] Animated 3-second card previews (autoplay on scroll into view)
-- [ ] How It Works section (Pick → Personalize → Send)
-- [ ] Testimonials carousel (use 6 polished placeholder quotes labelled "early creator" until real ones arrive)
-- [ ] Footer + nav
+- [x] How It Works section — 3 steps as nested Win98 windows inside README container
+- [x] Testimonials — 3-column grid on desktop, horizontal scroll on mobile
+- [x] Footer + nav (taskbar-style footer with merged LoveStats bar)
+- [x] Desktop Pet — dual Mochi pixel-art pets with drift, kiss-blowing, tap interactions
+- [x] Community CTA section
+- [x] Sticky CTA
 
 ### 1.2 Universal Creation Flow (Week 3)
 
@@ -1042,17 +1049,105 @@ These cannot be Phase-N afterthoughts. Build into Phase 0–1.
 
 ---
 
-## 11. Decision Log (fill as you build)
+## 11. Build Progress Log
 
-| Decision                              | Date         | Why                                           | Outcome  |
-| ------------------------------------- | ------------ | --------------------------------------------- | -------- |
-| _example: Razorpay over Stripe_       | _2026-05-20_ | _UPI is 60% of payments in India_             | _TBD_    |
-| _example: Single app over subdomains_ | _2026-05-20_ | _Bible Part 14 + SEO/analytics consolidation_ | _Locked_ |
-|                                       |              |                                               |          |
+### Visual Direction: Y2K Love Theme (Active)
+
+The home page uses a **retro Y2K / Windows 98 aesthetic** with a romantic twist, rather than the "Artisanal Elegance" material design originally spec'd in Section 3. The Y2K chrome is decorative shell only — user-facing content stays clean and modern.
+
+**Design system tokens active in code:**
+
+- Win98 chrome grays, hot pink gradients, magenta accents
+- Fonts: VT323 (monospace/retro), Caveat (handwritten), display serif for headings, body sans for UI
+- Scanline overlay, CRT effects, taskbar footer
+
+### Home Page Sections (Phase 1.1 — In Progress)
+
+Current section order on `src/app/page.tsx`:
+
+| #   | Section              | Component              | Status             | Notes                                                                                |
+| --- | -------------------- | ---------------------- | ------------------ | ------------------------------------------------------------------------------------ |
+| 1   | Hero                 | `hero-section.tsx`     | Done               | ROMANCE.exe Win98 window with typing animation, increased height for breathing room  |
+| 2   | Desktop Pet          | `desktop-pet.tsx`      | Done               | Dual Mochi pixel-art pets that drift, blow kisses, tap-to-bounce, meet-in-the-middle |
+| 3   | ~~CRT Showcase~~     | `crt-showcase.tsx`     | Replaced           | Was a CRT TV carousel for top-5 gifts — replaced by Pin Board                        |
+| 4   | ~~Love Letter Rack~~ | `love-letter-rack.tsx` | Replaced           | Was envelope rack for top-5 gifts — replaced by Pin Board                            |
+| 5   | Pin Board            | `pin-board.tsx`        | Done               | Pink gingham surface with heart-shaped cards, pendulum swing interaction (see below) |
+| 6   | Polaroid Wall        | `polaroid-wall.tsx`    | Done               | Gift catalog display                                                                 |
+| 7   | How It Works         | `how-it-works.tsx`     | Done               | 3 steps as nested Win98 windows inside grey-chrome README container                  |
+| 8   | Testimonials         | `testimonials.tsx`     | Done               | 3-column grid on desktop, horizontal scroll on mobile                                |
+| 9   | Community CTA        | `community-cta.tsx`    | Done               |                                                                                      |
+| 10  | Sticky CTA           | `sticky-cta.tsx`       | Done               |                                                                                      |
+| 11  | Love Stats           | `love-stats.tsx`       | Merged into footer | Compact stats bar in footer instead of standalone section                            |
+
+### Pin Board Evolution (Detailed)
+
+The "For Your Person" section went through significant iteration. Final state:
+
+- **Surface:** Pink gingham pattern with paper grain texture
+- **Cards:** Heart-shaped with full-heart SVG clip-path, pushpin at top V-dip
+- **Interaction:** Click a heart → lid swings to the side from the pushpin pivot like a pendulum (rotateZ), overshoots, oscillates, settles tilted at ~65deg revealing the description + "Open →" CTA underneath. Click again → pendulum swings back to closed.
+- **Content:** 5 pinned gifts (Proposal, Love Jar, Dandelion, Wrapped, Puppy) with emoji, label, rank number, and per-gift description on the base
+- **Decorative:** "Top 5 ♥" handwritten sticker with washi tape, pushpin, paper-curl breathing animation
+
+Iteration history (chronological):
+
+1. Envelope letter rack → replaced with pink ribbed pin board
+2. Ribbed surface → pink gingham pattern
+3. Rectangular paper cards → torn notebook paper with ruled lines
+4. Torn notebook → heart-shaped flip cards
+5. Heart flip cards → locket-hinge open (left half swings sideways)
+6. Locket hinge → safety-pin lift (front lifts from bottom tip)
+7. Safety-pin lift → forward-flip pendulum (rotateX from top)
+8. Forward-flip → **side-to-side pendulum swing** (rotateZ from pushpin, final)
+
+### Other Home Page Changes
+
+- **Hero section:** ROMANCE.exe window height increased for better breathing room, bottom padding reduced for tighter section flow
+- **How It Works:** Restyled as nested Win98 windows inside a grey-chrome README.md container
+- **Testimonials:** Switched from carousel to 3-column grid on desktop, kept horizontal scroll on mobile
+- **Love Stats:** Merged into footer as a compact stats bar to reduce bottom-page section monotony
+- **Vertical spacing:** Tightened between all homepage sections
+
+### Phase 0 Infrastructure (Completed Items)
+
+- [x] Next.js 14 + TypeScript + Tailwind scaffolded
+- [x] ESLint, Prettier, Husky pre-commit hooks (lint-staged configured)
+- [x] Folder structure established (`/app`, `/components`, `/lib`, `/gifts`, `/prompts`, `/i18n`)
+- [x] Vercel deploy pipeline (assumed from git remote)
+- [x] Supabase client/server/admin setup (`src/lib/supabase/`)
+- [x] i18n setup with next-intl (`src/i18n/`)
+- [x] Short ID generation (`src/lib/short-id.ts`)
+- [x] OG image generation (`src/app/g/[shortId]/opengraph-image.tsx`, `src/app/opengraph-image.tsx`)
+- [x] Analytics module (`src/lib/analytics.ts`)
+- [x] Sentry error tracking (`src/lib/sentry.ts`)
+- [x] Gift registry system (`src/gifts/registry.ts`)
+- [x] Prompt types defined (`src/prompts/types.ts`)
+- [x] GiftFrame runtime with anticipation screen, reveal, replay, reaction snap, conversion CTA, watermark (`src/components/gift-frame/`)
+- [x] Recipient view route (`src/app/g/[shortId]/page.tsx`)
+- [x] Gift detail route (`src/app/gift/[slug]/page.tsx`)
+- [x] Gift creation route (`src/app/create/[slug]/page.tsx`)
+- [x] Dashboard route (`src/app/dashboard/page.tsx`)
+- [x] Pricing page (`src/app/pricing/page.tsx`)
+- [x] Privacy + Terms pages (`src/app/(legal)/`)
+- [x] Middleware (`src/middleware.ts`)
+- [x] Gift catalog data (`src/components/home/gift-catalog.ts`)
 
 ---
 
-## 12. Open Questions (resolve before Phase 1 starts)
+## 12. Decision Log
+
+| Decision                                              | Date       | Why                                                                                                        | Outcome |
+| ----------------------------------------------------- | ---------- | ---------------------------------------------------------------------------------------------------------- | ------- |
+| Y2K Win98 theme over Artisanal Elegance for home page | 2026-05    | Distinctive visual identity, memorable first impression, avoids generic Material design look               | Active  |
+| Side-to-side pendulum swing for pin board hearts      | 2026-05-22 | Tried locket hinge, safety-pin lift, forward flip — side-swing from pushpin feels most natural and playful | Locked  |
+| Merge LoveStats into footer                           | 2026-05    | Standalone section added monotony at bottom of page, compact stats bar in footer is cleaner                | Locked  |
+| 3-column testimonials grid over carousel              | 2026-05    | Better desktop use of space, keeps mobile scroll                                                           | Locked  |
+| How It Works as nested Win98 windows                  | 2026-05    | Consistent with Y2K theme, more visually engaging than plain cards                                         | Locked  |
+| Pink gingham over ribbed surface for pin board        | 2026-05    | More visually distinctive, better texture contrast with heart cards                                        | Locked  |
+
+---
+
+## 13. Open Questions (resolve before Phase 1 starts)
 
 1. **Brand name + domain.** Is this still TBD? Phase 0 needs it for OG images, deploy URLs, and Razorpay KYC.
 2. **Founding team / who codes what.** This plan assumes 2–3 engineers. Solo founder = double timelines.
