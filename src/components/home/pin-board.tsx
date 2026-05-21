@@ -117,17 +117,8 @@ function HeartClipDefs() {
       aria-hidden="true"
     >
       <defs>
-        {/* Full heart — fuller lobes, shallower V-dip */}
         <clipPath id="heart-full" clipPathUnits="objectBoundingBox">
           <path d="M0.5,0.12 C0.5,0.04 0.37,0 0.25,0.015 C0.1,0.04 0,0.2 0,0.35 C0,0.55 0.15,0.78 0.5,1.0 C0.85,0.78 1.0,0.55 1.0,0.35 C1.0,0.2 0.9,0.04 0.75,0.015 C0.63,0 0.5,0.04 0.5,0.12 Z" />
-        </clipPath>
-        {/* Left half — V-dip, left lobe, left side, bottom point, straight back */}
-        <clipPath id="heart-left" clipPathUnits="objectBoundingBox">
-          <path d="M0.5,0.12 C0.5,0.04 0.37,0 0.25,0.015 C0.1,0.04 0,0.2 0,0.35 C0,0.55 0.15,0.78 0.5,1.0 Z" />
-        </clipPath>
-        {/* Right half — V-dip, straight to bottom, right side, right lobe, back */}
-        <clipPath id="heart-right" clipPathUnits="objectBoundingBox">
-          <path d="M0.5,0.12 L0.5,1.0 C0.85,0.78 1.0,0.55 1.0,0.35 C1.0,0.2 0.9,0.04 0.75,0.015 C0.63,0 0.5,0.04 0.5,0.12 Z" />
         </clipPath>
       </defs>
     </svg>
@@ -233,7 +224,7 @@ export function PinBoard() {
                 >
                   <PushPin color={pin.pinColor} />
                   <div className="pin-board-card-inner">
-                    {/* Base: full heart, description (revealed when lid opens) */}
+                    {/* Base: full heart, description (revealed when lid lifts) */}
                     <div className="heart-base">
                       <span className="heart-base-desc font-handwritten">
                         {heroGiftDescriptions[pin.slug] || gift.description}
@@ -247,15 +238,7 @@ export function PinBoard() {
                       </button>
                     </div>
 
-                    {/* Right cover: right half of front design */}
-                    <div className="heart-right-cover">
-                      <span className="heart-cover-emoji">{pin.emoji}</span>
-                      <span className="heart-cover-name font-handwritten">
-                        {pin.label}
-                      </span>
-                    </div>
-
-                    {/* Left lid: hinges open to the left */}
+                    {/* Lid: full heart, hinges up from bottom tip like a safety pin */}
                     <div className="heart-lid">
                       <div className="heart-lid-front">
                         <span className="pin-board-rank font-handwritten">

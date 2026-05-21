@@ -855,45 +855,25 @@ html {
   text-decoration: underline;
 }
 
-/* Right cover — right half, gradient, front design */
-.heart-right-cover {
-  position: absolute;
-  inset: 0;
-  clip-path: url(#heart-right);
-  background: linear-gradient(145deg, #ffb8d4, #ff85c8);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  padding: 14px 20px 28px;
-  transition: opacity 0.3s;
-}
-
-.pin-board-card-wrapper.is-open .heart-right-cover {
-  opacity: 0;
-  transition: opacity 0.3s 0.2s;
-}
-
-/* Left lid container — hinges open to left */
+/* Lid — full heart, hinges up from bottom tip like a safety pin */
 .heart-lid {
   position: absolute;
   inset: 0;
-  transform-origin: 100% 50%;
+  transform-origin: 50% 100%;
   -webkit-transform-style: preserve-3d;
   transform-style: preserve-3d;
-  transition: transform 0.6s ease-in-out;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .pin-board-card-wrapper.is-open .heart-lid {
-  transform: rotateY(-120deg);
+  transform: rotateX(-150deg);
 }
 
 /* Lid front face */
 .heart-lid-front {
   position: absolute;
   inset: 0;
-  clip-path: url(#heart-left);
+  clip-path: url(#heart-full);
   background: linear-gradient(145deg, #ffb8d4, #ff85c8);
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
@@ -909,12 +889,12 @@ html {
 .heart-lid-inner {
   position: absolute;
   inset: 0;
-  clip-path: url(#heart-left);
+  clip-path: url(#heart-full);
   background: linear-gradient(145deg, #e8a0c4, #d480aa);
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
-  -webkit-transform: rotateY(180deg);
-  transform: rotateY(180deg);
+  -webkit-transform: rotateX(180deg);
+  transform: rotateX(180deg);
 }
 
 /* Pushpin SVG at V-dip */
@@ -997,7 +977,6 @@ html {
     font-size: 11px;
   }
 
-  .heart-right-cover,
   .heart-lid-front {
     padding: 10px 16px 22px;
   }
@@ -1005,9 +984,6 @@ html {
 
 @media (prefers-reduced-motion: reduce) {
   .heart-lid {
-    transition: none !important;
-  }
-  .heart-right-cover {
     transition: none !important;
   }
 }
