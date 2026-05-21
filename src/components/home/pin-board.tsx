@@ -56,30 +56,39 @@ const pins: PinCard[] = [
   },
 ];
 
-function PushPin({ color }: { color: string }) {
+function HeartPin({ color }: { color: string }) {
   return (
     <svg
       className="pin-board-pushpin"
-      viewBox="0 0 20 24"
+      viewBox="0 0 22 26"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <circle cx="10" cy="8" r="7" fill={color} />
-      <circle
-        cx="10"
-        cy="8"
-        r="7"
-        fill="none"
-        stroke="rgba(0,0,0,0.15)"
-        strokeWidth="0.8"
+      <path
+        d="M11 14C10.2 13 4 8.5 3 5.5C2 2.5 4 0.5 6.5 0.6C8 0.65 9.5 1.8 11 3.5C12.3 2 14 0.8 15.5 0.8C18 0.9 20 2.8 19.5 5.5C18.8 8.5 11.8 13 11 14Z"
+        fill={color}
       />
-      <ellipse cx="8" cy="6" rx="2.5" ry="1.8" fill="white" opacity="0.35" />
-      <rect x="9" y="14" width="2" height="8" rx="1" fill="#999" />
+      <path
+        d="M11 14C10.2 13 4 8.5 3 5.5C2 2.5 4 0.5 6.5 0.6C8 0.65 9.5 1.8 11 3.5C12.3 2 14 0.8 15.5 0.8C18 0.9 20 2.8 19.5 5.5C18.8 8.5 11.8 13 11 14Z"
+        fill="none"
+        stroke="rgba(0,0,0,0.12)"
+        strokeWidth="0.6"
+      />
+      <ellipse
+        cx="7"
+        cy="4"
+        rx="2"
+        ry="1.4"
+        fill="white"
+        opacity="0.3"
+        transform="rotate(-15 7 4)"
+      />
+      <rect x="10" y="13" width="2" height="10" rx="1" fill="#999" />
       <rect
-        x="9"
-        y="14"
+        x="10"
+        y="13"
         width="2"
-        height="8"
+        height="10"
         rx="1"
         fill="none"
         stroke="rgba(0,0,0,0.1)"
@@ -155,7 +164,7 @@ export function PinBoard() {
         <div className="pin-board-frame">
           <div className="pin-board-surface">
             <span className="pin-board-sticker font-handwritten" aria-hidden>
-              <PushPin color="#C4917B" />
+              <HeartPin color="#E8607A" />
               Top 5 ♥
             </span>
 
@@ -169,7 +178,7 @@ export function PinBoard() {
                   }
                   onClick={() => handleNavigate(pin.slug)}
                 >
-                  <PushPin color="#C4917B" />
+                  <HeartPin color="#E8607A" />
                   <div className="pin-board-polaroid">
                     <div
                       className="pin-board-photo"
@@ -180,9 +189,6 @@ export function PinBoard() {
                     <div className="pin-board-caption">
                       <span className="pin-board-card-title font-display">
                         {pin.title}
-                      </span>
-                      <span className="pin-board-card-desc font-handwritten">
-                        {pin.description}
                       </span>
                     </div>
                   </div>
