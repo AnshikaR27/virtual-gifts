@@ -251,7 +251,7 @@ export function PinBoard() {
                       </button>
                     </div>
 
-                    {/* Lid: full heart, hinges up from bottom tip like a safety pin */}
+                    {/* Lid: swings aside like a pendulum from the pushpin */}
                     <div className="heart-lid">
                       <div className="heart-lid-front">
                         <span className="pin-board-rank font-handwritten">
@@ -262,7 +262,6 @@ export function PinBoard() {
                           {pin.label}
                         </span>
                       </div>
-                      <div className="heart-lid-inner" />
                     </div>
                   </div>
                 </div>

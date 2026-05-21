@@ -786,7 +786,7 @@ html {
   }
 }
 
-/* Heart-shaped pinned card — locket hinge */
+/* Heart-shaped pinned card — pendulum swing */
 .pin-board-card-wrapper {
   position: absolute;
   top: var(--pin-top);
@@ -795,7 +795,6 @@ html {
   height: 130px;
   z-index: 2;
   cursor: pointer;
-  perspective: 800px;
   filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.18));
   transition: filter 0.3s;
 }
@@ -810,11 +809,10 @@ html {
   width: 100%;
   height: 100%;
   transform: rotate(var(--pin-tilt));
-  -webkit-transform-style: preserve-3d;
-  transform-style: preserve-3d;
 }
 
-.pin-board-card-wrapper:not(.is-open):hover .pin-board-card-inner {
+.pin-board-card-wrapper:not(.is-open):not(.is-closing):hover
+  .pin-board-card-inner {
   transform: rotate(var(--pin-tilt)) translateY(-3px) scale(1.03);
   transition: transform 0.3s ease;
 }
@@ -855,55 +853,60 @@ html {
   text-decoration: underline;
 }
 
-/* Lid — swings from pushpin like a pendulum */
+/* Lid — swings side-to-side from pushpin like a pendulum */
 .heart-lid {
   position: absolute;
   inset: 0;
   transform-origin: 50% 0%;
   -webkit-transform-style: preserve-3d;
   transform-style: preserve-3d;
-  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @keyframes pendulum-open {
   0% {
-    transform: rotateX(0deg);
+    transform: rotate(0deg);
   }
-  40% {
-    transform: rotateX(170deg);
+  30% {
+    transform: rotate(75deg);
   }
-  65% {
-    transform: rotateX(155deg);
+  50% {
+    transform: rotate(55deg);
+  }
+  68% {
+    transform: rotate(70deg);
   }
   82% {
-    transform: rotateX(165deg);
+    transform: rotate(62deg);
   }
   100% {
-    transform: rotateX(160deg);
+    transform: rotate(65deg);
   }
 }
 
 @keyframes pendulum-close {
   0% {
-    transform: rotateX(160deg);
+    transform: rotate(65deg);
   }
-  45% {
-    transform: rotateX(-8deg);
+  35% {
+    transform: rotate(-10deg);
   }
-  70% {
-    transform: rotateX(5deg);
+  55% {
+    transform: rotate(6deg);
+  }
+  72% {
+    transform: rotate(-3deg);
   }
   100% {
-    transform: rotateX(0deg);
+    transform: rotate(0deg);
   }
 }
 
 .pin-board-card-wrapper.is-open .heart-lid {
-  animation: pendulum-open 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: pendulum-open 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 .pin-board-card-wrapper.is-closing .heart-lid {
-  animation: pendulum-close 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: pendulum-close 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 /* Lid front face */
@@ -912,8 +915,6 @@ html {
   inset: 0;
   clip-path: url(#heart-full);
   background: linear-gradient(145deg, #ffb8d4, #ff85c8);
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -922,16 +923,9 @@ html {
   padding: 14px 20px 28px;
 }
 
-/* Lid inner face (underside visible when open) */
+/* Lid inner face — hidden for side-swing */
 .heart-lid-inner {
-  position: absolute;
-  inset: 0;
-  clip-path: url(#heart-full);
-  background: linear-gradient(145deg, #e8a0c4, #d480aa);
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  -webkit-transform: rotateX(180deg);
-  transform: rotateX(180deg);
+  display: none;
 }
 
 /* Pushpin SVG at V-dip */
