@@ -742,33 +742,6 @@ html {
   overflow: hidden;
 }
 
-/* Hand-drawn scribble circle around favorite card */
-.pin-board-card--circled {
-  z-index: 2;
-}
-
-.pin-board-scribble-circle {
-  position: absolute;
-  top: -10px;
-  left: -12px;
-  width: calc(100% + 24px);
-  height: calc(100% + 20px);
-  z-index: 5;
-  pointer-events: none;
-}
-
-.pin-board-scribble-note {
-  position: absolute;
-  bottom: -8px;
-  right: -32px;
-  z-index: 10;
-  font-size: 15px;
-  color: #e8607a;
-  transform: rotate(-5deg);
-  white-space: nowrap;
-  pointer-events: none;
-}
-
 /* Card grid — 5 across desktop, 3+2 mobile */
 .pin-board-cards {
   display: flex;
@@ -915,12 +888,6 @@ html {
 
   .pin-board-card-title {
     font-size: 11px;
-  }
-
-  .pin-board-scribble-note {
-    font-size: 12px;
-    bottom: -6px;
-    right: -20px;
   }
 }
 

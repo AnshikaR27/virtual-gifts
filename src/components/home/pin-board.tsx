@@ -113,12 +113,12 @@ function Clothespin() {
       />
       <path
         d="M14 17C13.2 16 9 13 8 10.5C7 8 8.5 6 10.5 6.1C11.8 6.15 12.8 7 14 8.5C15 7.2 16.2 6.3 17.5 6.3C19.5 6.4 21 8.2 20.5 10.5C19.8 13 14.8 16 14 17Z"
-        fill="#F2A5B6"
+        fill="white"
       />
       <path
         d="M14 17C13.2 16 9 13 8 10.5C7 8 8.5 6 10.5 6.1C11.8 6.15 12.8 7 14 8.5C15 7.2 16.2 6.3 17.5 6.3C19.5 6.4 21 8.2 20.5 10.5C19.8 13 14.8 16 14 17Z"
         fill="none"
-        stroke="#E8899E"
+        stroke="rgba(0,0,0,0.08)"
         strokeWidth="0.5"
       />
       <ellipse
@@ -127,7 +127,7 @@ function Clothespin() {
         rx="1.8"
         ry="1.2"
         fill="white"
-        opacity="0.25"
+        opacity="0.35"
         transform="rotate(-15 11 9.5)"
       />
     </svg>
@@ -202,37 +202,12 @@ export function PinBoard() {
             {pins.map((pin) => (
               <div
                 key={pin.slug}
-                className={`pin-board-card${pin.slug === 'wishing-dandelion' ? ' pin-board-card--circled' : ''}`}
+                className="pin-board-card"
                 style={
                   { '--card-tilt': `${pin.tilt}deg` } as React.CSSProperties
                 }
                 onClick={() => handleNavigate(pin.slug)}
               >
-                {pin.slug === 'wishing-dandelion' && (
-                  <>
-                    <svg
-                      className="pin-board-scribble-circle"
-                      viewBox="0 0 180 220"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      aria-hidden="true"
-                    >
-                      <path
-                        d="M88 10C130 4 165 25 170 65C176 110 172 155 162 185C150 210 115 218 85 215C45 212 15 195 10 160C4 120 8 75 20 45C35 15 60 8 92 12"
-                        stroke="#E8607A"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                    <span
-                      className="pin-board-scribble-note font-handwritten"
-                      aria-hidden="true"
-                    >
-                      send this one
-                    </span>
-                  </>
-                )}
                 <Clothespin />
                 <div className="pin-board-polaroid">
                   <div
