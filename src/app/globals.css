@@ -795,16 +795,16 @@ html {
   filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.2));
 }
 
-/* Pushpin at top-center */
-.pin-board-pushpin {
+/* Clothespin at top-center */
+.pin-board-clothespin {
   position: absolute;
-  top: -8px;
+  top: -18px;
   left: 50%;
   transform: translateX(-50%);
-  width: 18px;
-  height: 22px;
+  width: 24px;
+  height: 36px;
   z-index: 6;
-  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.25));
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.2));
 }
 
 /* White polaroid frame */
