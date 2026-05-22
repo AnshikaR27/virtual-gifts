@@ -161,40 +161,58 @@ export function PinBoard() {
           </h2>
         </div>
 
-        <div className="pin-board-frame">
-          <div className="pin-board-surface">
-            <span className="pin-board-sticker font-handwritten" aria-hidden>
-              <HeartPin color="#E8607A" />
-              Top 5 ♥
-            </span>
-
-            <div className="pin-board-cards">
-              {pins.map((pin) => (
-                <div
-                  key={pin.slug}
-                  className="pin-board-card"
-                  style={
-                    { '--card-tilt': `${pin.tilt}deg` } as React.CSSProperties
-                  }
-                  onClick={() => handleNavigate(pin.slug)}
-                >
-                  <HeartPin color="#E8607A" />
-                  <div className="pin-board-polaroid">
-                    <div
-                      className="pin-board-photo"
-                      style={{ background: pin.color }}
+        <div className="pin-board-surface">
+          <div className="pin-board-cards">
+            {pins.map((pin) => (
+              <div
+                key={pin.slug}
+                className={`pin-board-card${pin.slug === 'wishing-dandelion' ? ' pin-board-card--circled' : ''}`}
+                style={
+                  { '--card-tilt': `${pin.tilt}deg` } as React.CSSProperties
+                }
+                onClick={() => handleNavigate(pin.slug)}
+              >
+                {pin.slug === 'wishing-dandelion' && (
+                  <>
+                    <svg
+                      className="pin-board-scribble-circle"
+                      viewBox="0 0 180 220"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      aria-hidden="true"
                     >
-                      <span className="pin-board-card-emoji">{pin.emoji}</span>
-                    </div>
-                    <div className="pin-board-caption">
-                      <span className="pin-board-card-title font-display">
-                        {pin.title}
-                      </span>
-                    </div>
+                      <path
+                        d="M88 10C130 4 165 25 170 65C176 110 172 155 162 185C150 210 115 218 85 215C45 212 15 195 10 160C4 120 8 75 20 45C35 15 60 8 92 12"
+                        stroke="#E8607A"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    <span
+                      className="pin-board-scribble-note font-handwritten"
+                      aria-hidden="true"
+                    >
+                      send this one
+                    </span>
+                  </>
+                )}
+                <HeartPin color="#E8607A" />
+                <div className="pin-board-polaroid">
+                  <div
+                    className="pin-board-photo"
+                    style={{ background: pin.color }}
+                  >
+                    <span className="pin-board-card-emoji">{pin.emoji}</span>
+                  </div>
+                  <div className="pin-board-caption">
+                    <span className="pin-board-card-title font-display">
+                      {pin.title}
+                    </span>
                   </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
         </div>
 

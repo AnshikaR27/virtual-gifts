@@ -717,26 +717,18 @@ html {
   color: rgba(26, 10, 46, 0.6);
 }
 
-/* Board frame */
-.pin-board-frame {
-  border-radius: 14px;
-  padding: 6px;
-  background: linear-gradient(145deg, #e8ddd0, #c4b49a);
-  box-shadow:
-    0 8px 28px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.25);
-}
-
 /* Solid pastel pink surface */
 .pin-board-surface {
   position: relative;
-  border-radius: 10px;
+  border-radius: 14px;
   padding: 32px 20px 24px;
   background: #efafcc;
   box-shadow:
+    0 6px 24px rgba(0, 0, 0, 0.12),
+    0 2px 6px rgba(0, 0, 0, 0.06),
     inset 0 2px 6px rgba(0, 0, 0, 0.06),
     inset 0 -1px 0 rgba(255, 255, 255, 0.2);
-  overflow: hidden;
+  overflow: visible;
 }
 
 /* Subtle grain overlay */
@@ -744,37 +736,37 @@ html {
   content: '';
   position: absolute;
   inset: 0;
-  border-radius: 10px;
+  border-radius: 14px;
   background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* Hand-drawn scribble circle around favorite card */
+.pin-board-card--circled {
+  z-index: 2;
+}
+
+.pin-board-scribble-circle {
+  position: absolute;
+  top: -10px;
+  left: -12px;
+  width: calc(100% + 24px);
+  height: calc(100% + 20px);
+  z-index: 5;
   pointer-events: none;
 }
 
-/* "Top 5 ♥" sticker */
-.pin-board-sticker {
+.pin-board-scribble-note {
   position: absolute;
-  top: 10px;
-  right: 14px;
+  bottom: -8px;
+  right: -32px;
   z-index: 10;
-  padding: 18px 14px 5px;
-  background: #fffdf8;
-  color: #1a0a2e;
   font-size: 15px;
-  border-radius: 4px;
-  transform: rotate(4deg);
-  box-shadow:
-    0 2px 6px rgba(0, 0, 0, 0.12),
-    0 1px 2px rgba(0, 0, 0, 0.06);
-  border: 1px solid rgba(0, 0, 0, 0.06);
-}
-
-.pin-board-sticker .pin-board-pushpin {
-  position: absolute;
-  top: -8px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 16px;
-  height: 20px;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.15));
+  color: #e8607a;
+  transform: rotate(-5deg);
+  white-space: nowrap;
+  pointer-events: none;
 }
 
 /* Card grid — 5 across desktop, 3+2 mobile */
@@ -884,11 +876,6 @@ html {
   .pin-board-card-desc {
     font-size: 11px;
   }
-
-  .pin-board-sticker {
-    font-size: 17px;
-    padding: 20px 16px 6px;
-  }
 }
 
 /* ── Mobile: 3 + 2 stagger, no scroll ── */
@@ -930,11 +917,10 @@ html {
     font-size: 11px;
   }
 
-  .pin-board-sticker {
-    top: 6px;
-    right: 8px;
-    font-size: 13px;
-    padding: 16px 10px 4px;
+  .pin-board-scribble-note {
+    font-size: 12px;
+    bottom: -6px;
+    right: -20px;
   }
 }
 
