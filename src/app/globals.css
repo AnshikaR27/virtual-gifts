@@ -1011,31 +1011,6 @@ html {
   }
 }
 
-.garland-vine-behind,
-.garland-vine-front {
-  position: absolute;
-  top: 0;
-  left: -1%;
-  width: 102%;
-  height: 24px;
-  pointer-events: none;
-}
-
-.garland-vine-behind {
-  z-index: 0;
-}
-
-.garland-vine-front {
-  z-index: 2;
-}
-
-@media (min-width: 768px) {
-  .garland-vine-behind,
-  .garland-vine-front {
-    height: 28px;
-  }
-}
-
 .garland-roses {
   position: absolute;
   top: 0;
@@ -1057,27 +1032,27 @@ html {
 }
 
 .garland-rosebud {
-  width: 22px;
-  height: 22px;
-  filter: drop-shadow(0 0.5px 1px rgba(0, 0, 0, 0.1));
+  width: 16px;
+  height: 16px;
+  filter: drop-shadow(0 0.5px 1px rgba(0, 0, 0, 0.12));
 }
 
 @media (min-width: 768px) {
   .garland-rosebud {
-    width: 26px;
-    height: 26px;
+    width: 18px;
+    height: 18px;
   }
 }
 
 .garland-vine-leaf {
   width: 12px;
-  height: 8px;
+  height: 12px;
 }
 
 @media (min-width: 768px) {
   .garland-vine-leaf {
     width: 14px;
-    height: 9px;
+    height: 14px;
   }
 }
 

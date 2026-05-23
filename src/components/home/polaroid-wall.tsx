@@ -78,115 +78,57 @@ function getStringCurvePoint(t: number) {
 }
 
 const roseSeeds = [
-  { t: 0.065, rotate: -15, leafConfig: 2 },
-  { t: 0.255, rotate: 10, leafConfig: 1 },
-  { t: 0.4, rotate: -8, leafConfig: 3 },
-  { t: 0.575, rotate: 12, leafConfig: 2 },
-  { t: 0.745, rotate: -5, leafConfig: 1 },
-  { t: 0.925, rotate: 8, leafConfig: 2 },
+  { t: 0.13, rotate: -12, size: 1 },
+  { t: 0.19, rotate: 8, size: 0.85 },
+  { t: 0.44, rotate: -6, size: 0.9 },
+  { t: 0.5, rotate: 10, size: 1 },
+  { t: 0.56, rotate: -4, size: 0.85 },
+  { t: 0.79, rotate: 7, size: 1 },
+  { t: 0.86, rotate: -10, size: 0.9 },
 ];
 
 const vineLeafSeeds = [
-  { t: 0.12, rotate: 25, flip: false },
-  { t: 0.33, rotate: -20, flip: true },
-  { t: 0.5, rotate: 15, flip: false },
-  { t: 0.66, rotate: -30, flip: true },
-  { t: 0.84, rotate: 20, flip: false },
+  { t: 0.07, rotate: 20, flip: false },
+  { t: 0.24, rotate: -25, flip: true },
+  { t: 0.32, rotate: 15, flip: false },
+  { t: 0.38, rotate: -18, flip: true },
+  { t: 0.62, rotate: 22, flip: false },
+  { t: 0.7, rotate: -28, flip: true },
+  { t: 0.92, rotate: 18, flip: false },
 ];
 
-const vinePathBehind =
-  'M 62,11.2 Q 153,19 250,17.9 M 398,20.5 Q 488,25 577,20.7 M 750,17.9 Q 837,19.5 934,11.6';
-const vinePathFront =
-  'M 20,9.4 Q 40,10.4 62,11.2 M 250,17.9 Q 327,15.5 398,20.5 M 577,20.7 Q 654,16.4 750,17.9 M 934,11.6 Q 955,10.5 970,9.8';
+const VINE_BEHIND =
+  'M 30,14 Q 55,15 80,12 M 260,18 Q 320,25 380,20 M 600,20.5 Q 670,25 740,18.5 M 920,12.5 Q 945,15 970,13';
+const VINE_FRONT =
+  'M 80,12 Q 170,9 260,18 M 380,20 Q 490,14.5 600,20.5 M 740,18.5 Q 830,9 920,12.5';
 
-function Rosebud({ leafConfig }: { leafConfig: number }) {
+function Rosebud() {
   return (
-    <svg
-      className="garland-rosebud"
-      viewBox="0 0 24 24"
-      fill="none"
-      style={{ overflow: 'visible' }}
-    >
-      {leafConfig >= 1 && (
-        <>
-          <path
-            d="M19 16C22 14 25 15 24 17.5C22 17 20 16.5 19 16Z"
-            fill="#90AC84"
-          />
-          <line
-            x1="19.3"
-            y1="16.2"
-            x2="23.5"
-            y2="16"
-            stroke="#7A9470"
-            strokeWidth="0.3"
-          />
-        </>
-      )}
-      {leafConfig >= 2 && (
-        <>
-          <path d="M5 16C2 14 -1 15 0 17.5C2 17 4 16.5 5 16Z" fill="#90AC84" />
-          <line
-            x1="4.7"
-            y1="16.2"
-            x2="0.5"
-            y2="16"
-            stroke="#7A9470"
-            strokeWidth="0.3"
-          />
-        </>
-      )}
-      {leafConfig >= 3 && (
-        <>
-          <path d="M18 7C21 5 23.5 6 23 8.5C21 8 19 7.5 18 7Z" fill="#8DA880" />
-          <line
-            x1="18.3"
-            y1="7.3"
-            x2="22.5"
-            y2="7.2"
-            stroke="#7A9470"
-            strokeWidth="0.3"
-          />
-        </>
-      )}
+    <svg className="garland-rosebud" viewBox="0 0 20 20" fill="none">
+      <circle cx="10" cy="10.5" r="9.5" fill="#EBBFC3" />
+      <circle cx="5.5" cy="7.5" r="4.5" fill="#E8B8BC" />
+      <circle cx="14.5" cy="7.5" r="4.5" fill="#E4B2B8" />
+      <circle cx="5.5" cy="13.5" r="4" fill="#E2B0B6" />
+      <circle cx="14.5" cy="13.5" r="4" fill="#E0AEB4" />
+      <circle cx="10.5" cy="9.5" r="5.5" fill="#D08890" />
+      <ellipse cx="8" cy="10.5" rx="3" ry="3.2" fill="#CC8488" />
+      <ellipse cx="13" cy="10.5" rx="2.5" ry="3" fill="#C88084" />
+      <circle cx="10" cy="9" r="2.8" fill="#A86068" />
       <path
-        d="M12 3C8 5 5 8 5 13C5 17 8 21 12 22C16 21 19 17 19 13C19 8 16 5 12 3Z"
-        fill="#E8B8BC"
-      />
-      <path
-        d="M12 5C15.5 6.5 18 9.5 18 13C18 16 16 19 13.5 20.5C16 18 17.5 15 17 12C16.5 8.5 14 6 12 5Z"
-        fill="#DDA8AE"
-      />
-      <path
-        d="M12 5.5C8.5 7 6.5 10 6.5 13.5C6.5 15.5 7.5 18 10 20C8 17.5 7 14.5 8 11.5C9 8.5 10.5 6.5 12 5.5Z"
-        fill="#DDAAB0"
-      />
-      <path
-        d="M12 8C14 9.5 15.5 11.5 15 14C14.5 11.5 13.5 9.5 12 8Z"
-        fill="#D09CA4"
-      />
-      <path
-        d="M12 8C10 9.5 8.5 11.5 9 14C9.5 11.5 10.5 9.5 12 8Z"
-        fill="#C8909A"
-      />
-      <path
-        d="M11.5 9.5C10.5 11.5 10.8 13.5 12 15C11.5 12.5 11.2 10.5 11.5 9.5Z"
-        fill="#BE8490"
-        opacity="0.8"
-      />
-      <path
-        d="M12.5 9.5C13.5 11.5 13.2 13 12 14.5C12.5 12 13 10.5 12.5 9.5Z"
-        fill="#B47C88"
-        opacity="0.7"
+        d="M9.5 7.5Q11 7.5 11.5 9Q12 10.5 10.5 10"
+        stroke="#8E4E56"
+        strokeWidth="0.5"
+        fill="none"
+        opacity="0.6"
       />
       <ellipse
-        cx="10"
-        cy="11"
-        rx="2"
-        ry="1.5"
+        cx="8.8"
+        cy="8.2"
+        rx="1.2"
+        ry="0.7"
         fill="white"
-        opacity="0.1"
-        transform="rotate(-20 10 11)"
+        opacity="0.2"
+        transform="rotate(-15 8.8 8.2)"
       />
     </svg>
   );
@@ -196,18 +138,20 @@ function VineLeaf({ flip = false }: { flip?: boolean }) {
   return (
     <svg
       className="garland-vine-leaf"
-      viewBox="0 0 16 10"
+      viewBox="0 0 16 12"
       fill="none"
-      style={{
-        overflow: 'visible',
-        ...(flip ? { transform: 'scaleX(-1)' } : {}),
-      }}
+      style={flip ? { transform: 'scaleX(-1)' } : undefined}
     >
-      <path d="M1 5C3 1.5 9 0.5 15 4.5C9 8.5 3 8.5 1 5Z" fill="#90AC84" />
       <path
-        d="M2 5C5 4.5 9 4.2 14 4.5"
-        stroke="#7A9470"
-        strokeWidth="0.35"
+        d="M1 6C2.5 2 7 0.5 15 5.5C7 10.5 2.5 10 1 6Z"
+        fill="#7C9070"
+        stroke="#5A6E50"
+        strokeWidth="0.5"
+      />
+      <path
+        d="M2 6C5 5.2 9 4.8 14 5.5"
+        stroke="#5A6E50"
+        strokeWidth="0.4"
         fill="none"
       />
     </svg>
@@ -432,40 +376,24 @@ export function PolaroidWall() {
                     preserveAspectRatio="none"
                   >
                     <path
+                      d={VINE_BEHIND}
+                      stroke="#7C9070"
+                      strokeWidth="2"
+                      fill="none"
+                      strokeLinecap="round"
+                      vectorEffect="non-scaling-stroke"
+                    />
+                    <path
                       d="M-10,8 Q500,34 1010,8"
                       stroke="#A0845C"
                       strokeWidth="3"
                       fill="none"
                       strokeLinecap="round"
                     />
-                  </svg>
-
-                  <svg
-                    className="garland-vine-behind"
-                    viewBox="0 0 1000 40"
-                    preserveAspectRatio="none"
-                    aria-hidden="true"
-                  >
                     <path
-                      d={vinePathBehind}
-                      stroke="#8B9F80"
-                      strokeWidth="1.5"
-                      fill="none"
-                      strokeLinecap="round"
-                      vectorEffect="non-scaling-stroke"
-                    />
-                  </svg>
-
-                  <svg
-                    className="garland-vine-front"
-                    viewBox="0 0 1000 40"
-                    preserveAspectRatio="none"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d={vinePathFront}
-                      stroke="#8B9F80"
-                      strokeWidth="1.5"
+                      d={VINE_FRONT}
+                      stroke="#7C9070"
+                      strokeWidth="2"
                       fill="none"
                       strokeLinecap="round"
                       vectorEffect="non-scaling-stroke"
@@ -498,10 +426,10 @@ export function PolaroidWall() {
                           style={{
                             left: `${pt.left}%`,
                             top: `${pt.top}%`,
-                            transform: `translate(-50%, -50%) rotate(${rose.rotate}deg)`,
+                            transform: `translate(-50%, -50%) rotate(${rose.rotate}deg) scale(${rose.size})`,
                           }}
                         >
-                          <Rosebud leafConfig={rose.leafConfig} />
+                          <Rosebud />
                         </div>
                       );
                     })}
