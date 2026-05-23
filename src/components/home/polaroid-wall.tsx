@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { playClick } from '@/components/retro-sounds';
 import { GiftLoading } from '@/components/gift-loading';
 import { allGifts, type GiftItem } from './gift-catalog';
+import { TitlebarButtons } from '@/components/win98-chrome';
 
 const INITIAL_STRINGS = 3;
 
@@ -238,113 +239,124 @@ export function PolaroidWall() {
       style={{ paddingTop: 0, paddingBottom: 'var(--space-md)' }}
     >
       <div className="mx-auto max-w-6xl">
-        <div className="polaroid-wall-bg" ref={wallRef}>
-          {strings.map((stringGifts, stringIdx) => (
-            <div
-              key={stringIdx}
-              className="garland-string-row"
-              style={{ animationDelay: `${stringIdx * 0.12}s` }}
-            >
-              <svg
-                className="garland-svg"
-                viewBox="0 0 1000 40"
-                preserveAspectRatio="none"
-              >
-                <path
-                  d="M-10,8 Q500,34 1010,8"
-                  stroke="#A0845C"
-                  strokeWidth="3"
-                  fill="none"
-                  strokeLinecap="round"
-                />
-              </svg>
+        <div className="win98-window">
+          <div className="win98-titlebar">
+            <span>📷 MEMORIES.exe</span>
+            <TitlebarButtons />
+          </div>
+          <div className="win98-body p-0">
+            <div className="polaroid-wall-bg" ref={wallRef}>
+              {strings.map((stringGifts, stringIdx) => (
+                <div
+                  key={stringIdx}
+                  className="garland-string-row"
+                  style={{ animationDelay: `${stringIdx * 0.12}s` }}
+                >
+                  <svg
+                    className="garland-svg"
+                    viewBox="0 0 1000 40"
+                    preserveAspectRatio="none"
+                  >
+                    <path
+                      d="M-10,8 Q500,34 1010,8"
+                      stroke="#A0845C"
+                      strokeWidth="3"
+                      fill="none"
+                      strokeLinecap="round"
+                    />
+                  </svg>
 
-              <div className="garland-polaroids">
-                {stringGifts.map((gift, i) => {
-                  const globalIdx = stringIdx * perString + i;
-                  const isFlipped = flippedSlug === gift.slug;
-                  const gradient = gradients[globalIdx % gradients.length];
-                  const angle = swayAngles[globalIdx % swayAngles.length];
-                  const sagPx = getSagOffset(i, stringGifts.length, maxSag);
-                  const swayDuration = 4 + (globalIdx % 3);
-                  const swayDelay = ((globalIdx * 0.7) % 4).toFixed(1);
+                  <div className="garland-polaroids">
+                    {stringGifts.map((gift, i) => {
+                      const globalIdx = stringIdx * perString + i;
+                      const isFlipped = flippedSlug === gift.slug;
+                      const gradient = gradients[globalIdx % gradients.length];
+                      const angle = swayAngles[globalIdx % swayAngles.length];
+                      const sagPx = getSagOffset(i, stringGifts.length, maxSag);
+                      const swayDuration = 4 + (globalIdx % 3);
+                      const swayDelay = ((globalIdx * 0.7) % 4).toFixed(1);
 
-                  return (
-                    <div
-                      key={gift.slug}
-                      className="garland-slot"
-                      style={{ paddingTop: `${sagPx}px` }}
-                    >
-                      <WallClothespin />
-                      <div
-                        className={`garland-polaroid${isFlipped ? ' is-unclipped' : ''}`}
-                        style={{
-                          ['--base-angle' as string]: `${angle}deg`,
-                          animationDuration: `${swayDuration}s`,
-                          animationDelay: `${swayDelay}s`,
-                        }}
-                        onClick={() => handleFlip(gift.slug)}
-                      >
+                      return (
                         <div
-                          className={`polaroid-flipper${isFlipped ? ' is-flipped' : ''}`}
+                          key={gift.slug}
+                          className="garland-slot"
+                          style={{ paddingTop: `${sagPx}px` }}
                         >
-                          <div className="polaroid-front">
+                          <WallClothespin />
+                          <div
+                            className={`garland-polaroid${isFlipped ? ' is-unclipped' : ''}`}
+                            style={{
+                              ['--base-angle' as string]: `${angle}deg`,
+                              animationDuration: `${swayDuration}s`,
+                              animationDelay: `${swayDelay}s`,
+                            }}
+                            onClick={() => handleFlip(gift.slug)}
+                          >
                             <div
-                              className="polaroid-photo"
-                              style={{ background: gradient }}
+                              className={`polaroid-flipper${isFlipped ? ' is-flipped' : ''}`}
                             >
-                              <span className="polaroid-emoji">
-                                {gift.emoji}
-                              </span>
-                            </div>
-                            <div className="polaroid-caption">
-                              <span className="font-display text-[13px] text-ink">
-                                {gift.name}
-                              </span>
-                            </div>
-                          </div>
+                              <div className="polaroid-front">
+                                <div
+                                  className="polaroid-photo"
+                                  style={{ background: gradient }}
+                                >
+                                  <span className="polaroid-emoji">
+                                    {gift.emoji}
+                                  </span>
+                                </div>
+                                <div className="polaroid-caption">
+                                  <span className="font-display text-[13px] text-ink">
+                                    {gift.name}
+                                  </span>
+                                </div>
+                              </div>
 
-                          <div className="polaroid-back">
-                            <p className="line-clamp-2 font-body text-[13px] leading-snug text-ink">
-                              {gift.description}
-                            </p>
-                            <button
-                              className="win98-btn-pink mt-2 text-[13px]"
-                              onClick={(e) => handleCreate(gift.slug, e)}
-                            >
-                              Create This Gift →
-                            </button>
-                            <span
-                              className="mt-1 cursor-pointer font-pixel text-[13px] text-ink/40"
-                              role="button"
-                              tabIndex={0}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                playClick();
-                                setFlippedSlug(null);
-                              }}
-                            >
-                              ✕ clip back
-                            </span>
+                              <div className="polaroid-back">
+                                <p className="line-clamp-2 font-body text-[13px] leading-snug text-ink">
+                                  {gift.description}
+                                </p>
+                                <button
+                                  className="win98-btn-pink mt-2 text-[13px]"
+                                  onClick={(e) => handleCreate(gift.slug, e)}
+                                >
+                                  Create This Gift →
+                                </button>
+                                <span
+                                  className="mt-1 cursor-pointer font-pixel text-[13px] text-ink/40"
+                                  role="button"
+                                  tabIndex={0}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    playClick();
+                                    setFlippedSlug(null);
+                                  }}
+                                >
+                                  ✕ clip back
+                                </span>
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
 
-          {hasMore && (
-            <div className="mt-4 flex justify-center">
-              <button className="garland-show-more" onClick={handleShowMore}>
-                <span className="font-handwritten text-[18px] text-[#8B7355]">
-                  hang more photos 📸
-                </span>
-              </button>
+              {hasMore && (
+                <div className="mt-4 flex justify-center">
+                  <button
+                    className="garland-show-more"
+                    onClick={handleShowMore}
+                  >
+                    <span className="font-handwritten text-[18px] text-[#8B7355]">
+                      hang more photos 📸
+                    </span>
+                  </button>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
       </div>
 
