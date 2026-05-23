@@ -239,7 +239,10 @@ export function PolaroidWall() {
       style={{ paddingTop: 0, paddingBottom: 'var(--space-md)' }}
     >
       <div className="mx-auto max-w-6xl">
-        <div className="pin-board-title pin-board-title--bottom">
+        <div
+          className="pin-board-title"
+          style={{ marginTop: 'var(--space-sm)' }}
+        >
           <h2 className="pin-board-heading font-display">
             Find What Feels Like Them{' '}
             <svg
