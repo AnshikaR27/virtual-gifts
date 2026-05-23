@@ -80,6 +80,87 @@ function getSagOffset(index: number, total: number, maxSag: number) {
   return maxSag * 4 * t * (1 - t);
 }
 
+function getStringCurvePoint(t: number) {
+  const x = (1 - t) * (1 - t) * -10 + 2 * (1 - t) * t * 500 + t * t * 1010;
+  const y = (1 - t) * (1 - t) * 8 + 2 * (1 - t) * t * 34 + t * t * 8;
+  return { left: (x / 1000) * 100, top: (y / 40) * 100 };
+}
+
+const roseSeeds = [
+  { t: 0.065, rotate: -15, hasLeaf: true, leafSide: 'right' as const },
+  { t: 0.255, rotate: 10, hasLeaf: false, leafSide: 'right' as const },
+  { t: 0.4, rotate: -8, hasLeaf: true, leafSide: 'left' as const },
+  { t: 0.575, rotate: 12, hasLeaf: false, leafSide: 'right' as const },
+  { t: 0.745, rotate: -5, hasLeaf: true, leafSide: 'right' as const },
+  { t: 0.925, rotate: 8, hasLeaf: false, leafSide: 'left' as const },
+];
+
+function Rosebud({
+  hasLeaf,
+  leafSide = 'right',
+}: {
+  hasLeaf: boolean;
+  leafSide?: 'left' | 'right';
+}) {
+  return (
+    <svg
+      className="garland-rosebud"
+      viewBox="0 0 16 16"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      style={{ overflow: 'visible' }}
+    >
+      <path
+        d="M8 2C5 3.5 3 6.5 3.5 9.5C4 12 5.5 14 8 14.5C10.5 14 12 12 12.5 9.5C13 6.5 11 3.5 8 2Z"
+        fill="#E8B4B8"
+      />
+      <path
+        d="M8 3C10.5 4 12 6.5 12 9.5C12 11.5 10.5 13.5 8.5 14C10 12.5 11 10 10.5 7.5C10 5 9 3.5 8 3Z"
+        fill="#DCA0A6"
+      />
+      <path d="M8 5C6.5 6 5.5 8 6 10C6.5 8 7 6 8 5Z" fill="#CC8A92" />
+      <path d="M8 5C9.5 6 10.5 8 10 10C9.5 8 9 6 8 5Z" fill="#C48088" />
+      <path
+        d="M7.5 5.5C7 7 7.3 8.5 8 9C7.8 7 7.6 6 7.5 5.5Z"
+        fill="#B87078"
+        opacity="0.6"
+      />
+      {hasLeaf && leafSide === 'right' && (
+        <>
+          <path
+            d="M12 11C14 10 16 10.8 15.5 12.5C14 12 12.5 11.5 12 11Z"
+            fill="#9AAE8C"
+          />
+          <line
+            x1="12.3"
+            y1="11.3"
+            x2="15"
+            y2="11.5"
+            stroke="#849C74"
+            strokeWidth="0.3"
+          />
+        </>
+      )}
+      {hasLeaf && leafSide === 'left' && (
+        <>
+          <path
+            d="M4 11C2 10 0 10.8 0.5 12.5C2 12 3.5 11.5 4 11Z"
+            fill="#9AAE8C"
+          />
+          <line
+            x1="3.7"
+            y1="11.3"
+            x2="1"
+            y2="11.5"
+            stroke="#849C74"
+            strokeWidth="0.3"
+          />
+        </>
+      )}
+    </svg>
+  );
+}
+
 function WallClothespin() {
   return (
     <svg
@@ -305,6 +386,28 @@ export function PolaroidWall() {
                       strokeLinecap="round"
                     />
                   </svg>
+
+                  <div className="garland-roses" aria-hidden="true">
+                    {roseSeeds.map((rose, ri) => {
+                      const pt = getStringCurvePoint(rose.t);
+                      return (
+                        <div
+                          key={ri}
+                          className="garland-rose"
+                          style={{
+                            left: `${pt.left}%`,
+                            top: `${pt.top}%`,
+                            transform: `translate(-50%, -50%) rotate(${rose.rotate}deg)`,
+                          }}
+                        >
+                          <Rosebud
+                            hasLeaf={rose.hasLeaf}
+                            leafSide={rose.leafSide}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
 
                   <div className="garland-polaroids">
                     {stringGifts.map((gift, i) => {
