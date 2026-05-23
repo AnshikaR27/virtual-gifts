@@ -239,6 +239,43 @@ export function PolaroidWall() {
       style={{ paddingTop: 0, paddingBottom: 'var(--space-md)' }}
     >
       <div className="mx-auto max-w-6xl">
+        <div className="pin-board-title pin-board-title--bottom">
+          <h2 className="pin-board-heading font-display">
+            Find What Feels Like Them{' '}
+            <svg
+              className="pin-board-arrow-icon"
+              width="44"
+              height="22"
+              viewBox="0 0 44 22"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+            >
+              <path
+                d="M2 14C6 8 11 16 16 9C20 14 25 7 30 13C33 10 36 11.5 40 11C41.5 10.8 43 11.2 43.5 11"
+                stroke="#1a0a2e"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M32 4C34.5 6.5 37 9 39.5 11"
+                stroke="#1a0a2e"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+              />
+              <path
+                d="M34.5 18.5C36 16 38.5 13 39.5 11"
+                stroke="#1a0a2e"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+            </svg>
+          </h2>
+          <p className="pin-board-hint font-body">
+            82 more ways to make their phone screen blur
+          </p>
+        </div>
         <div className="win98-window">
           <div className="win98-titlebar">
             <span>📷 MEMORIES.exe</span>
