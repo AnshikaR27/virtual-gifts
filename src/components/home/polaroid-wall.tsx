@@ -251,7 +251,7 @@ export function PolaroidWall() {
                 preserveAspectRatio="none"
               >
                 <path
-                  d="M-10,4 Q500,36 1010,4"
+                  d="M-10,8 Q500,34 1010,8"
                   stroke="#A0845C"
                   strokeWidth="3"
                   fill="none"
