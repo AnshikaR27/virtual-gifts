@@ -998,6 +998,19 @@ html {
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.18));
 }
 
+.garland-slot:nth-child(2) .garland-clothespin {
+  margin-top: -34px;
+}
+
+@media (min-width: 768px) {
+  .garland-slot:nth-child(2) .garland-clothespin {
+    margin-top: -24px;
+  }
+  .garland-slot:nth-child(3) .garland-clothespin {
+    margin-top: -34px;
+  }
+}
+
 .garland-polaroid {
   width: 100%;
   cursor: pointer;
