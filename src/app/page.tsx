@@ -4,7 +4,6 @@ import { HeroSection } from '@/components/home/hero-section';
 import { DesktopPet } from '@/components/home/desktop-pet';
 // import { CrtShowcase } from '@/components/home/crt-showcase';
 // import { LoveLetterRack } from '@/components/home/love-letter-rack';
-import { PinBoard } from '@/components/home/pin-board';
 import { PolaroidWall } from '@/components/home/polaroid-wall';
 import { HowItWorks } from '@/components/home/how-it-works';
 import { CommunityCTA } from '@/components/home/community-cta';
@@ -33,7 +32,6 @@ export default function Home() {
       <DesktopPet />
       {/* <CrtShowcase /> */}
       {/* <LoveLetterRack /> */}
-      <PinBoard />
       <PolaroidWall />
       <HowItWorks />
       <Testimonials />
