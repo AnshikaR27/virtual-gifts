@@ -97,40 +97,20 @@ const vineLeafSeeds = [
   { t: 0.92, rotate: 18, flip: false },
 ];
 
-const VINE_BEHIND =
-  'M 30,14 Q 55,15 80,12 M 260,18 Q 320,25 380,20 M 600,20.5 Q 670,25 740,18.5 M 920,12.5 Q 945,15 970,13';
+const VINE_BEHIND = 'M 200,16.5 Q 300,30 400,20.5 M 600,20.5 Q 700,30 800,16.5';
 const VINE_FRONT =
-  'M 80,12 Q 170,9 260,18 M 380,20 Q 490,14.5 600,20.5 M 740,18.5 Q 830,9 920,12.5';
+  'M 50,11 Q 125,3 200,16.5 M 400,20.5 Q 500,10 600,20.5 M 800,16.5 Q 875,3 950,11';
 
 function Rosebud() {
   return (
-    <svg className="garland-rosebud" viewBox="0 0 20 20" fill="none">
-      <circle cx="10" cy="10.5" r="9.5" fill="#EBBFC3" />
-      <circle cx="5.5" cy="7.5" r="4.5" fill="#E8B8BC" />
-      <circle cx="14.5" cy="7.5" r="4.5" fill="#E4B2B8" />
-      <circle cx="5.5" cy="13.5" r="4" fill="#E2B0B6" />
-      <circle cx="14.5" cy="13.5" r="4" fill="#E0AEB4" />
-      <circle cx="10.5" cy="9.5" r="5.5" fill="#D08890" />
-      <ellipse cx="8" cy="10.5" rx="3" ry="3.2" fill="#CC8488" />
-      <ellipse cx="13" cy="10.5" rx="2.5" ry="3" fill="#C88084" />
-      <circle cx="10" cy="9" r="2.8" fill="#A86068" />
-      <path
-        d="M9.5 7.5Q11 7.5 11.5 9Q12 10.5 10.5 10"
-        stroke="#8E4E56"
-        strokeWidth="0.5"
-        fill="none"
-        opacity="0.6"
-      />
-      <ellipse
-        cx="8.8"
-        cy="8.2"
-        rx="1.2"
-        ry="0.7"
-        fill="white"
-        opacity="0.2"
-        transform="rotate(-15 8.8 8.2)"
-      />
-    </svg>
+    /* eslint-disable-next-line @next/next/no-img-element */
+    <img
+      className="garland-rosebud"
+      src="/icons/rose.svg"
+      alt=""
+      aria-hidden="true"
+      draggable={false}
+    />
   );
 }
 
