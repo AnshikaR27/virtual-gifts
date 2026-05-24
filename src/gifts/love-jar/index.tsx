@@ -142,16 +142,41 @@ export function LoveJar({ recipientName, messages }: LoveJarProps) {
       }}
       aria-label="Tap the jar to reveal a love note"
     >
-      {/* Background — warm cream/blush gradient */}
+      {/* Background — warm off-white desk surface with soft lamp lighting */}
       <div
         className="absolute inset-0"
         style={{
           background:
-            'linear-gradient(175deg, #FFF8F0 0%, #FFF0E8 35%, #FDE8E0 70%, #FCE4D8 100%)',
+            'linear-gradient(160deg, #FFFDF8 0%, #FDF9F3 40%, #FAF6F0 70%, #F7F2EB 100%)',
         }}
       />
 
-      {/* Ambient sparkles / dust motes */}
+      {/* Warm desk-lamp glow from upper-left */}
+      <div
+        className="pointer-events-none absolute left-0 top-0 h-1/2 w-1/2 opacity-30"
+        style={{
+          background:
+            'radial-gradient(ellipse at 20% 15%, rgba(255,220,160,0.4), transparent 70%)',
+        }}
+      />
+
+      {/* Faint cutting-mat grid texture in corner */}
+      <div
+        className="pointer-events-none absolute bottom-0 left-0 h-32 w-32 opacity-[0.04]"
+        style={{
+          backgroundImage:
+            'linear-gradient(rgba(0,80,0,1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,80,0,1) 1px, transparent 1px)',
+          backgroundSize: '12px 12px',
+        }}
+      />
+
+      {/* Magenta paper edge accent — peeking from right */}
+      <div
+        className="pointer-events-none absolute -right-1 top-1/3 h-24 w-3 rounded-l-sm opacity-40"
+        style={{ background: 'linear-gradient(180deg, #D81B60, #C2185B)' }}
+      />
+
+      {/* Warm floating dust motes */}
       {sparkles.map((s) => (
         <motion.div
           key={s.id}
@@ -162,12 +187,12 @@ export function LoveJar({ recipientName, messages }: LoveJarProps) {
             width: s.size,
             height: s.size,
             background:
-              'radial-gradient(circle, rgba(255,215,140,0.8), rgba(255,215,140,0))',
+              'radial-gradient(circle, rgba(255,200,100,0.7), rgba(255,200,100,0))',
           }}
           animate={{
-            opacity: [0, 0.8, 0],
-            scale: [0.5, 1.2, 0.5],
-            y: [0, -20, -40],
+            opacity: [0, 0.6, 0],
+            scale: [0.5, 1, 0.5],
+            y: [0, -15, -30],
           }}
           transition={{
             duration: s.duration,
@@ -203,7 +228,7 @@ export function LoveJar({ recipientName, messages }: LoveJarProps) {
               transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
               style={{ willChange: 'transform, opacity' }}
             >
-              <svg width="24" height="24" viewBox="0 0 10 10" fill="#FFC4D6">
+              <svg width="24" height="24" viewBox="0 0 10 10" fill="#D81B60">
                 <path d="M5,8.5 C3,6.5 0.5,5 0.5,3 C0.5,1.5 2,0.5 3.5,1.5 C4.2,2 4.7,2.5 5,3 C5.3,2.5 5.8,2 6.5,1.5 C8,0.5 9.5,1.5 9.5,3 C9.5,5 7,6.5 5,8.5 Z" />
               </svg>
             </motion.div>

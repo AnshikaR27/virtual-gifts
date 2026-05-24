@@ -59,7 +59,7 @@ export default function CreateLoveJarPage() {
       className="relative min-h-[100dvh]"
       style={{
         background:
-          'linear-gradient(175deg, #FFF8F0 0%, #FFF0E8 35%, #FDE8E0 70%, #FCE4D8 100%)',
+          'linear-gradient(160deg, #FFFDF8 0%, #FDF9F3 40%, #FAF6F0 70%, #F7F2EB 100%)',
       }}
     >
       {/* Progress dots */}

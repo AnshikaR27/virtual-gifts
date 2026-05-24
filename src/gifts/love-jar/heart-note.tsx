@@ -105,7 +105,7 @@ export function HeartNote({
                 height="20"
                 viewBox="0 0 10 10"
                 fill="none"
-                stroke="#E0BBE4"
+                stroke="#D81B60"
                 strokeWidth="0.6"
                 strokeLinecap="round"
                 strokeLinejoin="round"
