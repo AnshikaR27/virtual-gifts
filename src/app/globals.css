@@ -1011,6 +1011,51 @@ html {
   }
 }
 
+.garland-flora {
+  position: absolute;
+  top: 0;
+  left: -1%;
+  width: 102%;
+  height: 24px;
+  z-index: 3;
+  pointer-events: none;
+}
+
+@media (min-width: 768px) {
+  .garland-flora {
+    height: 28px;
+  }
+}
+
+.garland-flora-item {
+  position: absolute;
+}
+
+.garland-rosette {
+  width: 18px;
+  height: 18px;
+  filter: drop-shadow(0 0.5px 1px rgba(0, 0, 0, 0.1));
+}
+
+@media (min-width: 768px) {
+  .garland-rosette {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+.garland-crochet-leaf {
+  width: 11px;
+  height: 7px;
+}
+
+@media (min-width: 768px) {
+  .garland-crochet-leaf {
+    width: 13px;
+    height: 8px;
+  }
+}
+
 .garland-polaroid {
   width: 100%;
   cursor: pointer;

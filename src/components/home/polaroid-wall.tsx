@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, Fragment } from 'react';
 import { useRouter } from 'next/navigation';
 import { playClick } from '@/components/retro-sounds';
 import { GiftLoading } from '@/components/gift-loading';
@@ -69,6 +69,164 @@ function getSagOffset(index: number, total: number, maxSag: number) {
   if (total <= 1) return 0;
   const t = (index + 0.5) / total;
   return maxSag * 4 * t * (1 - t);
+}
+
+function getThreadPoint(t: number) {
+  const x = (1 - t) * (1 - t) * -10 + 2 * (1 - t) * t * 500 + t * t * 1010;
+  const y = (1 - t) * (1 - t) * 8 + 2 * (1 - t) * t * 34 + t * t * 8;
+  return { left: (x / 1000) * 100, top: (y / 40) * 100 };
+}
+
+const garlandClusters = [
+  {
+    t: 0.1,
+    rose: { rotate: -8, scale: 1.0 },
+    leaves: [
+      { dx: -13, dy: -5, rotate: 30, flip: false },
+      { dx: 11, dy: 5, rotate: -20, flip: true },
+    ],
+  },
+  {
+    t: 0.25,
+    rose: { rotate: 12, scale: 0.9 },
+    leaves: [
+      { dx: -12, dy: -4, rotate: 25, flip: false },
+      { dx: 13, dy: 3, rotate: -25, flip: true },
+      { dx: -7, dy: 8, rotate: 10, flip: false },
+    ],
+  },
+  {
+    t: 0.42,
+    rose: { rotate: -5, scale: 1.0 },
+    leaves: [
+      { dx: 12, dy: -6, rotate: -18, flip: true },
+      { dx: -11, dy: 4, rotate: 22, flip: false },
+    ],
+  },
+  {
+    t: 0.58,
+    rose: { rotate: 10, scale: 0.85 },
+    leaves: [
+      { dx: -13, dy: -3, rotate: 15, flip: false },
+      { dx: 12, dy: 5, rotate: -22, flip: true },
+    ],
+  },
+  {
+    t: 0.75,
+    rose: { rotate: -10, scale: 0.95 },
+    leaves: [
+      { dx: 13, dy: -5, rotate: -12, flip: true },
+      { dx: -12, dy: 3, rotate: 18, flip: false },
+      { dx: 9, dy: 7, rotate: -8, flip: true },
+    ],
+  },
+  {
+    t: 0.9,
+    rose: { rotate: 6, scale: 0.9 },
+    leaves: [
+      { dx: -13, dy: -4, rotate: 28, flip: false },
+      { dx: 11, dy: 4, rotate: -15, flip: true },
+    ],
+  },
+];
+
+function CrochetRose() {
+  return (
+    <svg
+      className="garland-rosette"
+      viewBox="0 0 22 22"
+      fill="none"
+      aria-hidden="true"
+    >
+      <ellipse
+        cx="11"
+        cy="6"
+        rx="4.5"
+        ry="3.5"
+        fill="#FFC0CB"
+        stroke="#F0AEBB"
+        strokeWidth="0.6"
+      />
+      <ellipse
+        cx="11"
+        cy="6"
+        rx="4.5"
+        ry="3.5"
+        fill="#FFB8C4"
+        stroke="#F0AEBB"
+        strokeWidth="0.6"
+        transform="rotate(72 11 11)"
+      />
+      <ellipse
+        cx="11"
+        cy="6"
+        rx="4.5"
+        ry="3.5"
+        fill="#FFC0CB"
+        stroke="#F0AEBB"
+        strokeWidth="0.6"
+        transform="rotate(144 11 11)"
+      />
+      <ellipse
+        cx="11"
+        cy="6"
+        rx="4.5"
+        ry="3.5"
+        fill="#FFB8C4"
+        stroke="#F0AEBB"
+        strokeWidth="0.6"
+        transform="rotate(216 11 11)"
+      />
+      <ellipse
+        cx="11"
+        cy="6"
+        rx="4.5"
+        ry="3.5"
+        fill="#FFC0CB"
+        stroke="#F0AEBB"
+        strokeWidth="0.6"
+        transform="rotate(288 11 11)"
+      />
+      <circle
+        cx="11"
+        cy="11"
+        r="3"
+        fill="#FFAEC9"
+        stroke="#E89AB0"
+        strokeWidth="0.5"
+      />
+      <path
+        d="M11,9.5 Q12.5,10.5 12,11.5 Q11,12.5 10,11.5 Q9.5,10.5 11,9.5"
+        fill="#FF98B5"
+        opacity="0.5"
+      />
+    </svg>
+  );
+}
+
+function CrochetLeaf({ flip = false }: { flip?: boolean }) {
+  return (
+    <svg
+      className="garland-crochet-leaf"
+      viewBox="0 0 14 8"
+      fill="none"
+      aria-hidden="true"
+      style={flip ? { transform: 'scaleX(-1)' } : undefined}
+    >
+      <path
+        d="M1,4 Q4,0.5 7,0.5 Q10,0.5 13,4 Q10,7.5 7,7.5 Q4,7.5 1,4Z"
+        fill="#8B9F80"
+        stroke="#7A8E70"
+        strokeWidth="0.5"
+      />
+      <path
+        d="M2,4 Q7,3.5 12,4"
+        stroke="#7A8E70"
+        strokeWidth="0.4"
+        fill="none"
+      />
+    </svg>
+  );
 }
 
 function WallClothespin() {
@@ -289,6 +447,39 @@ export function PolaroidWall() {
                     preserveAspectRatio="none"
                   >
                     <path
+                      d="M-10,14 Q40,20 92,19"
+                      stroke="#8B9F80"
+                      strokeWidth="2"
+                      fill="none"
+                      strokeLinecap="round"
+                      vectorEffect="non-scaling-stroke"
+                    />
+                    <path
+                      d="M245,24 Q334,27 418,27"
+                      stroke="#8B9F80"
+                      strokeWidth="2"
+                      fill="none"
+                      strokeLinecap="round"
+                      vectorEffect="non-scaling-stroke"
+                    />
+                    <path
+                      d="M582,27 Q666,26 755,24"
+                      stroke="#8B9F80"
+                      strokeWidth="2"
+                      fill="none"
+                      strokeLinecap="round"
+                      vectorEffect="non-scaling-stroke"
+                    />
+                    <path
+                      d="M907,19 Q960,15 1010,14"
+                      stroke="#8B9F80"
+                      strokeWidth="2"
+                      fill="none"
+                      strokeLinecap="round"
+                      vectorEffect="non-scaling-stroke"
+                    />
+
+                    <path
                       d="M-10,14 C80,10 160,22 250,24 C340,26 420,12 500,14 C580,16 660,26 750,24 C840,22 920,10 1010,14"
                       stroke="#FFC0CB"
                       strokeWidth="5"
@@ -353,7 +544,65 @@ export function PolaroidWall() {
                       fill="none"
                       strokeLinecap="round"
                     />
+
+                    <path
+                      d="M92,7 Q170,9 245,12"
+                      stroke="#8B9F80"
+                      strokeWidth="2"
+                      fill="none"
+                      strokeLinecap="round"
+                      vectorEffect="non-scaling-stroke"
+                    />
+                    <path
+                      d="M418,15 Q500,14 582,15"
+                      stroke="#8B9F80"
+                      strokeWidth="2"
+                      fill="none"
+                      strokeLinecap="round"
+                      vectorEffect="non-scaling-stroke"
+                    />
+                    <path
+                      d="M755,12 Q830,9 907,7"
+                      stroke="#8B9F80"
+                      strokeWidth="2"
+                      fill="none"
+                      strokeLinecap="round"
+                      vectorEffect="non-scaling-stroke"
+                    />
                   </svg>
+
+                  <div className="garland-flora" aria-hidden="true">
+                    {garlandClusters.map((cluster, ci) => {
+                      const pt = getThreadPoint(cluster.t);
+                      return (
+                        <Fragment key={ci}>
+                          {cluster.leaves.map((leaf, li) => (
+                            <div
+                              key={`l${li}`}
+                              className="garland-flora-item"
+                              style={{
+                                left: `${pt.left}%`,
+                                top: `${pt.top}%`,
+                                transform: `translate(calc(-50% + ${leaf.dx}px), calc(-50% + ${leaf.dy}px)) rotate(${leaf.rotate}deg)`,
+                              }}
+                            >
+                              <CrochetLeaf flip={leaf.flip} />
+                            </div>
+                          ))}
+                          <div
+                            className="garland-flora-item"
+                            style={{
+                              left: `${pt.left}%`,
+                              top: `${pt.top}%`,
+                              transform: `translate(-50%, -50%) rotate(${cluster.rose.rotate}deg) scale(${cluster.rose.scale})`,
+                            }}
+                          >
+                            <CrochetRose />
+                          </div>
+                        </Fragment>
+                      );
+                    })}
+                  </div>
 
                   <div className="garland-polaroids">
                     {stringGifts.map((gift, i) => {
