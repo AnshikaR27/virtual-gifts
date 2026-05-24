@@ -130,6 +130,58 @@ const garlandClusters = [
   },
 ];
 
+const BRAID_SEGMENTS = (() => {
+  const amp = 5;
+  const twists = 3;
+  const N = 200;
+  const phases = [0, (2 * Math.PI) / 3, (4 * Math.PI) / 3];
+  const colors = ['#D4A574', '#8B6F47', '#C19A6B'];
+
+  const strands = phases.map((phase) => {
+    const pts: string[] = [];
+    for (let i = 0; i <= N; i++) {
+      const t = i / N;
+      const x = (1 - t) * (1 - t) * -10 + 2 * (1 - t) * t * 500 + t * t * 1010;
+      const cy = 8 + 52 * t * (1 - t);
+      const y = cy + amp * Math.sin(2 * Math.PI * twists * t + phase);
+      pts.push(`${x.toFixed(0)},${y.toFixed(1)}`);
+    }
+    return pts;
+  });
+
+  const getOrder = (i: number) => {
+    const t = i / N;
+    const vals = phases.map((phase, idx) => ({
+      idx,
+      v: Math.sin(2 * Math.PI * twists * t + phase),
+    }));
+    vals.sort((a, b) => b.v - a.v);
+    return vals.map((s) => s.idx);
+  };
+
+  const bounds = [0];
+  for (let i = 1; i <= N; i++) {
+    if (getOrder(i - 1).join() !== getOrder(i).join()) bounds.push(i);
+  }
+  if (bounds[bounds.length - 1] !== N) bounds.push(N);
+
+  const paths: { d: string; color: string }[] = [];
+  for (let s = 0; s < bounds.length - 1; s++) {
+    const from = bounds[s];
+    const to = bounds[s + 1];
+    const mid = Math.floor((from + to) / 2);
+    const order = getOrder(mid);
+    for (const si of order) {
+      const pts = strands[si].slice(from, to + 1);
+      if (pts.length > 1) {
+        paths.push({ d: 'M' + pts.join(' L'), color: colors[si] });
+      }
+    }
+  }
+
+  return paths;
+})();
+
 function CrochetRose() {
   return (
     <svg
@@ -479,71 +531,17 @@ export function PolaroidWall() {
                       vectorEffect="non-scaling-stroke"
                     />
 
-                    <path
-                      d="M-10,14 C80,10 160,22 250,24 C340,26 420,12 500,14 C580,16 660,26 750,24 C840,22 920,10 1010,14"
-                      stroke="#C4A484"
-                      strokeWidth="5"
-                      fill="none"
-                      strokeLinecap="round"
-                      opacity="0.85"
-                    />
-                    <path
-                      d="M-10,20 C80,26 160,14 250,14 C340,12 420,24 500,26 C580,28 660,14 750,14 C840,12 920,24 1010,20"
-                      stroke="#8B6F47"
-                      strokeWidth="5"
-                      fill="none"
-                      strokeLinecap="round"
-                    />
-                    <path
-                      d="M-10,26 C80,22 160,28 250,20 C340,14 420,18 500,20 C580,22 660,20 750,28 C840,26 920,18 1010,26"
-                      stroke="#C4A484"
-                      strokeWidth="5"
-                      fill="none"
-                      strokeLinecap="round"
-                      opacity="0.7"
-                    />
-                    <path
-                      d="M160,22 C190,24 220,25 250,24"
-                      stroke="#9B7B55"
-                      strokeWidth="5.5"
-                      fill="none"
-                      strokeLinecap="round"
-                    />
-                    <path
-                      d="M420,12 C450,13 470,14 500,14"
-                      stroke="#7A5C3A"
-                      strokeWidth="5.5"
-                      fill="none"
-                      strokeLinecap="round"
-                    />
-                    <path
-                      d="M660,26 C690,25 720,24 750,24"
-                      stroke="#9B7B55"
-                      strokeWidth="5.5"
-                      fill="none"
-                      strokeLinecap="round"
-                    />
-                    <path
-                      d="M80,26 C110,24 140,22 160,22"
-                      stroke="#D4B896"
-                      strokeWidth="4"
-                      fill="none"
-                      strokeLinecap="round"
-                    />
-                    <path
-                      d="M340,12 C370,12 400,12 420,12"
-                      stroke="#B8956E"
-                      strokeWidth="4"
-                      fill="none"
-                      strokeLinecap="round"
-                    />
-                    <path
-                      d="M580,28 C610,26 640,26 660,26"
-                      stroke="#D4B896"
-                      strokeWidth="4"
-                      fill="none"
-                      strokeLinecap="round"
-                    />
+                    {BRAID_SEGMENTS.map((seg, i) => (
+                      <path
+                        key={`b${i}`}
+                        d={seg.d}
+                        stroke={seg.color}
+                        strokeWidth="3"
+                        fill="none"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    ))}
 
                     <path
                       d="M92,7 Q170,9 245,12"
