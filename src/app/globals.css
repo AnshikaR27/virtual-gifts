@@ -1011,51 +1011,6 @@ html {
   }
 }
 
-.garland-roses {
-  position: absolute;
-  top: 0;
-  left: -1%;
-  width: 102%;
-  height: 24px;
-  z-index: 2;
-  pointer-events: none;
-}
-
-@media (min-width: 768px) {
-  .garland-roses {
-    height: 28px;
-  }
-}
-
-.garland-rose {
-  position: absolute;
-}
-
-.garland-rosebud {
-  width: 16px;
-  height: 16px;
-  filter: drop-shadow(0 0.5px 1px rgba(0, 0, 0, 0.12));
-}
-
-@media (min-width: 768px) {
-  .garland-rosebud {
-    width: 18px;
-    height: 18px;
-  }
-}
-
-.garland-vine-leaf {
-  width: 12px;
-  height: 12px;
-}
-
-@media (min-width: 768px) {
-  .garland-vine-leaf {
-    width: 14px;
-    height: 14px;
-  }
-}
-
 .garland-polaroid {
   width: 100%;
   cursor: pointer;

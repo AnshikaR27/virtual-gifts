@@ -71,73 +71,6 @@ function getSagOffset(index: number, total: number, maxSag: number) {
   return maxSag * 4 * t * (1 - t);
 }
 
-function getStringCurvePoint(t: number) {
-  const x = (1 - t) * (1 - t) * -10 + 2 * (1 - t) * t * 500 + t * t * 1010;
-  const y = (1 - t) * (1 - t) * 8 + 2 * (1 - t) * t * 34 + t * t * 8;
-  return { left: (x / 1000) * 100, top: (y / 40) * 100 };
-}
-
-const roseSeeds = [
-  { t: 0.13, rotate: -12, size: 1 },
-  { t: 0.19, rotate: 8, size: 0.85 },
-  { t: 0.44, rotate: -6, size: 0.9 },
-  { t: 0.5, rotate: 10, size: 1 },
-  { t: 0.56, rotate: -4, size: 0.85 },
-  { t: 0.79, rotate: 7, size: 1 },
-  { t: 0.86, rotate: -10, size: 0.9 },
-];
-
-const vineLeafSeeds = [
-  { t: 0.07, rotate: 20, flip: false },
-  { t: 0.24, rotate: -25, flip: true },
-  { t: 0.32, rotate: 15, flip: false },
-  { t: 0.38, rotate: -18, flip: true },
-  { t: 0.62, rotate: 22, flip: false },
-  { t: 0.7, rotate: -28, flip: true },
-  { t: 0.92, rotate: 18, flip: false },
-];
-
-const VINE_BEHIND = 'M 200,16.5 Q 300,30 400,20.5 M 600,20.5 Q 700,30 800,16.5';
-const VINE_FRONT =
-  'M 50,11 Q 125,3 200,16.5 M 400,20.5 Q 500,10 600,20.5 M 800,16.5 Q 875,3 950,11';
-
-function Rosebud() {
-  return (
-    /* eslint-disable-next-line @next/next/no-img-element */
-    <img
-      className="garland-rosebud"
-      src="/icons/rose.svg"
-      alt=""
-      aria-hidden="true"
-      draggable={false}
-    />
-  );
-}
-
-function VineLeaf({ flip = false }: { flip?: boolean }) {
-  return (
-    <svg
-      className="garland-vine-leaf"
-      viewBox="0 0 16 12"
-      fill="none"
-      style={flip ? { transform: 'scaleX(-1)' } : undefined}
-    >
-      <path
-        d="M1 6C2.5 2 7 0.5 15 5.5C7 10.5 2.5 10 1 6Z"
-        fill="#7C9070"
-        stroke="#5A6E50"
-        strokeWidth="0.5"
-      />
-      <path
-        d="M2 6C5 5.2 9 4.8 14 5.5"
-        stroke="#5A6E50"
-        strokeWidth="0.4"
-        fill="none"
-      />
-    </svg>
-  );
-}
-
 function WallClothespin() {
   return (
     <svg
@@ -356,64 +289,71 @@ export function PolaroidWall() {
                     preserveAspectRatio="none"
                   >
                     <path
-                      d={VINE_BEHIND}
-                      stroke="#7C9070"
-                      strokeWidth="2"
+                      d="M-10,14 C80,10 160,22 250,24 C340,26 420,12 500,14 C580,16 660,26 750,24 C840,22 920,10 1010,14"
+                      stroke="#FFC0CB"
+                      strokeWidth="5"
                       fill="none"
                       strokeLinecap="round"
-                      vectorEffect="non-scaling-stroke"
+                      opacity="0.85"
                     />
                     <path
-                      d="M-10,8 Q500,34 1010,8"
-                      stroke="#A0845C"
-                      strokeWidth="3"
+                      d="M-10,20 C80,26 160,14 250,14 C340,12 420,24 500,26 C580,28 660,14 750,14 C840,12 920,24 1010,20"
+                      stroke="#FFF8E7"
+                      strokeWidth="5"
                       fill="none"
                       strokeLinecap="round"
                     />
                     <path
-                      d={VINE_FRONT}
-                      stroke="#7C9070"
-                      strokeWidth="2"
+                      d="M-10,26 C80,22 160,28 250,20 C340,14 420,18 500,20 C580,22 660,20 750,28 C840,26 920,18 1010,26"
+                      stroke="#FFC0CB"
+                      strokeWidth="5"
                       fill="none"
                       strokeLinecap="round"
-                      vectorEffect="non-scaling-stroke"
+                      opacity="0.7"
+                    />
+                    <path
+                      d="M160,22 C190,24 220,25 250,24"
+                      stroke="#E8A9B8"
+                      strokeWidth="5.5"
+                      fill="none"
+                      strokeLinecap="round"
+                    />
+                    <path
+                      d="M420,12 C450,13 470,14 500,14"
+                      stroke="#E8D4C0"
+                      strokeWidth="5.5"
+                      fill="none"
+                      strokeLinecap="round"
+                    />
+                    <path
+                      d="M660,26 C690,25 720,24 750,24"
+                      stroke="#E8A9B8"
+                      strokeWidth="5.5"
+                      fill="none"
+                      strokeLinecap="round"
+                    />
+                    <path
+                      d="M80,26 C110,24 140,22 160,22"
+                      stroke="#FFD4E0"
+                      strokeWidth="4"
+                      fill="none"
+                      strokeLinecap="round"
+                    />
+                    <path
+                      d="M340,12 C370,12 400,12 420,12"
+                      stroke="#FFF8E7"
+                      strokeWidth="4"
+                      fill="none"
+                      strokeLinecap="round"
+                    />
+                    <path
+                      d="M580,28 C610,26 640,26 660,26"
+                      stroke="#FFD4E0"
+                      strokeWidth="4"
+                      fill="none"
+                      strokeLinecap="round"
                     />
                   </svg>
-
-                  <div className="garland-roses" aria-hidden="true">
-                    {vineLeafSeeds.map((leaf, li) => {
-                      const pt = getStringCurvePoint(leaf.t);
-                      return (
-                        <div
-                          key={`leaf-${li}`}
-                          className="garland-rose"
-                          style={{
-                            left: `${pt.left}%`,
-                            top: `${pt.top}%`,
-                            transform: `translate(-50%, -50%) rotate(${leaf.rotate}deg)`,
-                          }}
-                        >
-                          <VineLeaf flip={leaf.flip} />
-                        </div>
-                      );
-                    })}
-                    {roseSeeds.map((rose, ri) => {
-                      const pt = getStringCurvePoint(rose.t);
-                      return (
-                        <div
-                          key={`rose-${ri}`}
-                          className="garland-rose"
-                          style={{
-                            left: `${pt.left}%`,
-                            top: `${pt.top}%`,
-                            transform: `translate(-50%, -50%) rotate(${rose.rotate}deg) scale(${rose.size})`,
-                          }}
-                        >
-                          <Rosebud />
-                        </div>
-                      );
-                    })}
-                  </div>
 
                   <div className="garland-polaroids">
                     {stringGifts.map((gift, i) => {
