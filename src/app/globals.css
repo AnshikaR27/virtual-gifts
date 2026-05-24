@@ -1031,28 +1031,16 @@ html {
   position: absolute;
 }
 
-.garland-rosette {
+.ivy-leaf {
   width: 18px;
-  height: 18px;
-  filter: drop-shadow(0 0.5px 1px rgba(0, 0, 0, 0.1));
+  height: 22px;
+  filter: drop-shadow(0 0.5px 1px rgba(0, 0, 0, 0.08));
 }
 
 @media (min-width: 768px) {
-  .garland-rosette {
-    width: 22px;
-    height: 22px;
-  }
-}
-
-.garland-crochet-leaf {
-  width: 11px;
-  height: 7px;
-}
-
-@media (min-width: 768px) {
-  .garland-crochet-leaf {
-    width: 13px;
-    height: 8px;
+  .ivy-leaf {
+    width: 24px;
+    height: 28px;
   }
 }
 

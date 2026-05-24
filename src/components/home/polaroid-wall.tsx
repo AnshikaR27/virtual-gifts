@@ -77,203 +77,103 @@ function getThreadPoint(t: number) {
   return { left: (x / 1000) * 100, top: (y / 40) * 100 };
 }
 
-const garlandClusters = [
+const THREAD_AND_VINE = (() => {
+  const N = 300;
+  const vineAmp = 5;
+  const vineWraps = 1;
+
+  const getBase = (t: number) => {
+    const x = (1 - t) * (1 - t) * -10 + 2 * (1 - t) * t * 500 + t * t * 1010;
+    const y = (1 - t) * (1 - t) * 8 + 2 * (1 - t) * t * 34 + t * t * 8;
+    return { x, y };
+  };
+
+  const threadD = 'M-10,8 Q500,34 1010,8';
+
+  const vine: { x: number; y: number; s: number }[] = [];
+  for (let i = 0; i <= N; i++) {
+    const t = i / N;
+    const { x, y } = getBase(t);
+    const s = Math.sin(2 * Math.PI * vineWraps * t);
+    vine.push({ x, y: y + vineAmp * s, s });
+  }
+
+  const behind: string[] = [];
+  const front: string[] = [];
+  let seg: string[] = [];
+  let isBehind = vine[0].s >= 0;
+
+  for (let i = 0; i <= N; i++) {
+    const p = vine[i];
+    const nowBehind = p.s >= 0;
+    const pt = `${p.x.toFixed(1)},${p.y.toFixed(1)}`;
+    if (nowBehind !== isBehind && seg.length > 0) {
+      seg.push(pt);
+      (isBehind ? behind : front).push('M' + seg.join(' L'));
+      seg = [pt];
+      isBehind = nowBehind;
+    } else {
+      seg.push(pt);
+    }
+  }
+  if (seg.length > 1) {
+    (isBehind ? behind : front).push('M' + seg.join(' L'));
+  }
+
+  return { threadD, behind, front };
+})();
+
+const ivyClusters = [
   {
-    t: 0.1,
-    rose: { rotate: -8, scale: 1.0 },
+    t: 0.13,
     leaves: [
-      { dx: -13, dy: -5, rotate: 30, flip: false },
-      { dx: 11, dy: 5, rotate: -20, flip: true },
+      { dx: -9, dy: -8, rotate: -30, scale: 0.9, dark: false },
+      { dx: 7, dy: -6, rotate: 20, scale: 1.0, dark: true },
+      { dx: -2, dy: 4, rotate: -5, scale: 0.85, dark: false },
     ],
   },
   {
-    t: 0.25,
-    rose: { rotate: 12, scale: 0.9 },
+    t: 0.38,
     leaves: [
-      { dx: -12, dy: -4, rotate: 25, flip: false },
-      { dx: 13, dy: 3, rotate: -25, flip: true },
-      { dx: -7, dy: 8, rotate: 10, flip: false },
+      { dx: -8, dy: -7, rotate: 25, scale: 1.0, dark: false },
+      { dx: 6, dy: -5, rotate: -18, scale: 0.9, dark: true },
     ],
   },
   {
-    t: 0.42,
-    rose: { rotate: -5, scale: 1.0 },
+    t: 0.62,
     leaves: [
-      { dx: 12, dy: -6, rotate: -18, flip: true },
-      { dx: -11, dy: 4, rotate: 22, flip: false },
+      { dx: -7, dy: -9, rotate: -35, scale: 0.95, dark: true },
+      { dx: 8, dy: -5, rotate: 15, scale: 1.0, dark: false },
+      { dx: 1, dy: 5, rotate: 8, scale: 0.85, dark: false },
     ],
   },
   {
-    t: 0.58,
-    rose: { rotate: 10, scale: 0.85 },
+    t: 0.87,
     leaves: [
-      { dx: -13, dy: -3, rotate: 15, flip: false },
-      { dx: 12, dy: 5, rotate: -22, flip: true },
-    ],
-  },
-  {
-    t: 0.75,
-    rose: { rotate: -10, scale: 0.95 },
-    leaves: [
-      { dx: 13, dy: -5, rotate: -12, flip: true },
-      { dx: -12, dy: 3, rotate: 18, flip: false },
-      { dx: 9, dy: 7, rotate: -8, flip: true },
-    ],
-  },
-  {
-    t: 0.9,
-    rose: { rotate: 6, scale: 0.9 },
-    leaves: [
-      { dx: -13, dy: -4, rotate: 28, flip: false },
-      { dx: 11, dy: 4, rotate: -15, flip: true },
+      { dx: -9, dy: -6, rotate: 28, scale: 0.9, dark: false },
+      { dx: 7, dy: -8, rotate: -22, scale: 1.0, dark: true },
+      { dx: -3, dy: 4, rotate: -8, scale: 0.9, dark: true },
     ],
   },
 ];
 
-const BRAID_SEGMENTS = (() => {
-  const amp = 7;
-  const twists = 4;
-  const N = 200;
-  const phases = [0, (2 * Math.PI) / 3, (4 * Math.PI) / 3];
-  const colors = ['#C19A6B', '#C19A6B', '#C19A6B'];
-
-  const strands = phases.map((phase) => {
-    const pts: string[] = [];
-    for (let i = 0; i <= N; i++) {
-      const t = i / N;
-      const x = (1 - t) * (1 - t) * -10 + 2 * (1 - t) * t * 500 + t * t * 1010;
-      const cy = 14 + 48 * t * (1 - t);
-      const y = cy + amp * Math.sin(2 * Math.PI * twists * t + phase);
-      pts.push(`${x.toFixed(0)},${y.toFixed(1)}`);
-    }
-    return pts;
-  });
-
-  const getOrder = (i: number) => {
-    const t = i / N;
-    const vals = phases.map((phase, idx) => ({
-      idx,
-      v: Math.sin(2 * Math.PI * twists * t + phase),
-    }));
-    vals.sort((a, b) => b.v - a.v);
-    return vals.map((s) => s.idx);
-  };
-
-  const bounds = [0];
-  for (let i = 1; i <= N; i++) {
-    if (getOrder(i - 1).join() !== getOrder(i).join()) bounds.push(i);
-  }
-  if (bounds[bounds.length - 1] !== N) bounds.push(N);
-
-  const paths: { d: string; color: string }[] = [];
-  for (let s = 0; s < bounds.length - 1; s++) {
-    const from = bounds[s];
-    const to = bounds[s + 1];
-    const mid = Math.floor((from + to) / 2);
-    const order = getOrder(mid);
-    for (const si of order) {
-      const pts = strands[si].slice(from, to + 1);
-      if (pts.length > 1) {
-        paths.push({ d: 'M' + pts.join(' L'), color: colors[si] });
-      }
-    }
-  }
-
-  return paths;
-})();
-
-function CrochetRose() {
+function IvyLeaf({ dark = false }: { dark?: boolean }) {
   return (
     <svg
-      className="garland-rosette"
-      viewBox="0 0 22 22"
+      className="ivy-leaf"
+      viewBox="0 0 20 24"
       fill="none"
       aria-hidden="true"
     >
-      <ellipse
-        cx="11"
-        cy="6"
-        rx="4.5"
-        ry="3.5"
-        fill="#FFC0CB"
-        stroke="#F0AEBB"
-        strokeWidth="0.6"
-      />
-      <ellipse
-        cx="11"
-        cy="6"
-        rx="4.5"
-        ry="3.5"
-        fill="#FFB8C4"
-        stroke="#F0AEBB"
-        strokeWidth="0.6"
-        transform="rotate(72 11 11)"
-      />
-      <ellipse
-        cx="11"
-        cy="6"
-        rx="4.5"
-        ry="3.5"
-        fill="#FFC0CB"
-        stroke="#F0AEBB"
-        strokeWidth="0.6"
-        transform="rotate(144 11 11)"
-      />
-      <ellipse
-        cx="11"
-        cy="6"
-        rx="4.5"
-        ry="3.5"
-        fill="#FFB8C4"
-        stroke="#F0AEBB"
-        strokeWidth="0.6"
-        transform="rotate(216 11 11)"
-      />
-      <ellipse
-        cx="11"
-        cy="6"
-        rx="4.5"
-        ry="3.5"
-        fill="#FFC0CB"
-        stroke="#F0AEBB"
-        strokeWidth="0.6"
-        transform="rotate(288 11 11)"
-      />
-      <circle
-        cx="11"
-        cy="11"
-        r="3"
-        fill="#FFAEC9"
-        stroke="#E89AB0"
+      <path
+        d="M10,1 C7.5,0 5,2 4,5 C2,4 0,6 1,9 C-0.5,11 1,13.5 3,13 C2,15.5 3,18 6,17.5 C7,20 9,23 10,23.5 C11,23 13,20 14,17.5 C17,18 18,15.5 17,13 C19,13.5 20.5,11 19,9 C20,6 18,4 16,5 C15,2 12.5,0 10,1Z"
+        fill={dark ? '#7A8F6F' : '#8B9F80'}
+        stroke={dark ? '#6B7F60' : '#7A8E70'}
         strokeWidth="0.5"
       />
       <path
-        d="M11,9.5 Q12.5,10.5 12,11.5 Q11,12.5 10,11.5 Q9.5,10.5 11,9.5"
-        fill="#FF98B5"
-        opacity="0.5"
-      />
-    </svg>
-  );
-}
-
-function CrochetLeaf({ flip = false }: { flip?: boolean }) {
-  return (
-    <svg
-      className="garland-crochet-leaf"
-      viewBox="0 0 14 8"
-      fill="none"
-      aria-hidden="true"
-      style={flip ? { transform: 'scaleX(-1)' } : undefined}
-    >
-      <path
-        d="M1,4 Q4,0.5 7,0.5 Q10,0.5 13,4 Q10,7.5 7,7.5 Q4,7.5 1,4Z"
-        fill="#8B9F80"
-        stroke="#7A8E70"
-        strokeWidth="0.5"
-      />
-      <path
-        d="M2,4 Q7,3.5 12,4"
-        stroke="#7A8E70"
+        d="M10,22 L10,4 M10,8 L4,6 M10,8 L16,6 M10,13 L5,14 M10,13 L15,14"
+        stroke={dark ? '#6B7F60' : '#7A8E70'}
         strokeWidth="0.4"
         fill="none"
       />
@@ -498,79 +398,39 @@ export function PolaroidWall() {
                     viewBox="0 0 1000 40"
                     preserveAspectRatio="none"
                   >
-                    <path
-                      d="M-10,14 Q40,20 92,19"
-                      stroke="#8B9F80"
-                      strokeWidth="2"
-                      fill="none"
-                      strokeLinecap="round"
-                      vectorEffect="non-scaling-stroke"
-                    />
-                    <path
-                      d="M245,24 Q334,27 418,27"
-                      stroke="#8B9F80"
-                      strokeWidth="2"
-                      fill="none"
-                      strokeLinecap="round"
-                      vectorEffect="non-scaling-stroke"
-                    />
-                    <path
-                      d="M582,27 Q666,26 755,24"
-                      stroke="#8B9F80"
-                      strokeWidth="2"
-                      fill="none"
-                      strokeLinecap="round"
-                      vectorEffect="non-scaling-stroke"
-                    />
-                    <path
-                      d="M907,19 Q960,15 1010,14"
-                      stroke="#8B9F80"
-                      strokeWidth="2"
-                      fill="none"
-                      strokeLinecap="round"
-                      vectorEffect="non-scaling-stroke"
-                    />
-
-                    {BRAID_SEGMENTS.map((seg, i) => (
+                    {THREAD_AND_VINE.behind.map((d, i) => (
                       <path
-                        key={`b${i}`}
-                        d={seg.d}
-                        stroke={seg.color}
-                        strokeWidth="7"
+                        key={`vb${i}`}
+                        d={d}
+                        stroke="#8B9F80"
+                        strokeWidth="1.8"
                         fill="none"
                         strokeLinecap="round"
                         strokeLinejoin="round"
                       />
                     ))}
-
                     <path
-                      d="M92,7 Q170,9 245,12"
-                      stroke="#8B9F80"
-                      strokeWidth="2"
+                      d={THREAD_AND_VINE.threadD}
+                      stroke="#C19A6B"
+                      strokeWidth="3.5"
                       fill="none"
                       strokeLinecap="round"
-                      vectorEffect="non-scaling-stroke"
                     />
-                    <path
-                      d="M418,15 Q500,14 582,15"
-                      stroke="#8B9F80"
-                      strokeWidth="2"
-                      fill="none"
-                      strokeLinecap="round"
-                      vectorEffect="non-scaling-stroke"
-                    />
-                    <path
-                      d="M755,12 Q830,9 907,7"
-                      stroke="#8B9F80"
-                      strokeWidth="2"
-                      fill="none"
-                      strokeLinecap="round"
-                      vectorEffect="non-scaling-stroke"
-                    />
+                    {THREAD_AND_VINE.front.map((d, i) => (
+                      <path
+                        key={`vf${i}`}
+                        d={d}
+                        stroke="#8B9F80"
+                        strokeWidth="1.8"
+                        fill="none"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    ))}
                   </svg>
 
                   <div className="garland-flora" aria-hidden="true">
-                    {garlandClusters.map((cluster, ci) => {
+                    {ivyClusters.map((cluster, ci) => {
                       const pt = getThreadPoint(cluster.t);
                       return (
                         <Fragment key={ci}>
@@ -581,22 +441,12 @@ export function PolaroidWall() {
                               style={{
                                 left: `${pt.left}%`,
                                 top: `${pt.top}%`,
-                                transform: `translate(calc(-50% + ${leaf.dx}px), calc(-50% + ${leaf.dy}px)) rotate(${leaf.rotate}deg)`,
+                                transform: `translate(calc(-50% + ${leaf.dx}px), calc(-50% + ${leaf.dy}px)) rotate(${leaf.rotate}deg) scale(${leaf.scale})`,
                               }}
                             >
-                              <CrochetLeaf flip={leaf.flip} />
+                              <IvyLeaf dark={leaf.dark} />
                             </div>
                           ))}
-                          <div
-                            className="garland-flora-item"
-                            style={{
-                              left: `${pt.left}%`,
-                              top: `${pt.top}%`,
-                              transform: `translate(-50%, -50%) rotate(${cluster.rose.rotate}deg) scale(${cluster.rose.scale})`,
-                            }}
-                          >
-                            <CrochetRose />
-                          </div>
                         </Fragment>
                       );
                     })}
