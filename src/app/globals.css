@@ -911,7 +911,7 @@ html {
       rgba(186, 162, 131, 0.06) 0%,
       transparent 50%
     );
-  border-radius: 8px;
+  border-radius: 0;
   padding: 20px 8px;
   box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.06);
   overflow: hidden;
@@ -1016,14 +1016,14 @@ html {
   top: 0;
   left: -1%;
   width: 102%;
-  height: 24px;
+  height: 18px;
   z-index: 3;
   pointer-events: none;
 }
 
 @media (min-width: 768px) {
   .garland-flora {
-    height: 28px;
+    height: 22px;
   }
 }
 
@@ -1032,27 +1032,27 @@ html {
 }
 
 .garland-rosette {
-  width: 18px;
-  height: 18px;
+  width: 13px;
+  height: 13px;
   filter: drop-shadow(0 0.5px 1px rgba(0, 0, 0, 0.1));
 }
 
 @media (min-width: 768px) {
   .garland-rosette {
-    width: 22px;
-    height: 22px;
+    width: 16px;
+    height: 16px;
   }
 }
 
 .garland-leaf {
-  width: 11px;
-  height: 7px;
+  width: 8px;
+  height: 5px;
 }
 
 @media (min-width: 768px) {
   .garland-leaf {
-    width: 13px;
-    height: 8px;
+    width: 10px;
+    height: 6px;
   }
 }
 

@@ -480,7 +480,7 @@ export function PolaroidWall() {
             <span>📷 MEMORIES.exe</span>
             <TitlebarButtons />
           </div>
-          <div className="win98-body p-0">
+          <div className="win98-body !bg-transparent !p-0">
             <div className="polaroid-wall-bg" ref={wallRef}>
               {strings.map((stringGifts, stringIdx) => (
                 <div
