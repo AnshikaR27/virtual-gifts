@@ -6,10 +6,12 @@ import { JarSvg } from './jar-svg';
 import { HeartNote } from './heart-note';
 import { TitlebarButtons } from '@/components/win98-chrome';
 import { useGiftContext } from '@/components/gift-frame/gift-frame';
+import { DEFAULT_PALETTE, type JarPalette } from './love-jar.config';
 
 interface LoveJarProps {
   recipientName: string;
   messages: string[];
+  palette?: JarPalette;
 }
 
 interface Sparkle {
@@ -30,7 +32,11 @@ function generateSparkles(count: number): Sparkle[] {
   }));
 }
 
-export function LoveJar({ recipientName, messages }: LoveJarProps) {
+export function LoveJar({
+  recipientName,
+  messages,
+  palette = DEFAULT_PALETTE,
+}: LoveJarProps) {
   const { onClimax, trackInteraction } = useGiftContext();
   const [isShaking, setIsShaking] = useState(false);
   const [activeNote, setActiveNote] = useState<number | null>(null);
@@ -139,9 +145,8 @@ export function LoveJar({ recipientName, messages }: LoveJarProps) {
       className="love-jar-scene relative flex min-h-[100dvh] w-full items-center justify-center overflow-hidden p-3 sm:p-6"
       style={{ background: '#c8a2e8' }}
     >
-      {/* ── Win98 LOVE_JAR.exe window ── */}
+      {/* Win98 LOVE_JAR.exe window */}
       <div className="win98-window w-full max-w-md">
-        {/* Title bar */}
         <div
           className="win98-titlebar"
           style={{
@@ -154,9 +159,8 @@ export function LoveJar({ recipientName, messages }: LoveJarProps) {
           <TitlebarButtons />
         </div>
 
-        {/* Window body with gingham background */}
         <div
-          className="win98-body love-jar-gingham relative overflow-hidden"
+          className="win98-body relative overflow-hidden"
           onClick={handleShake}
           role="button"
           tabIndex={0}
@@ -166,7 +170,7 @@ export function LoveJar({ recipientName, messages }: LoveJarProps) {
           aria-label="Tap the jar to reveal a love note"
           style={{ minHeight: '420px', padding: 0 }}
         >
-          {/* Gingham pattern */}
+          {/* Pink gingham background */}
           <div
             className="absolute inset-0"
             style={{
@@ -182,7 +186,7 @@ export function LoveJar({ recipientName, messages }: LoveJarProps) {
             }}
           />
 
-          {/* Sparkle particles drifting across gingham */}
+          {/* Sparkle particles */}
           {sparkles.map((s) => (
             <div
               key={s.id}
@@ -196,7 +200,7 @@ export function LoveJar({ recipientName, messages }: LoveJarProps) {
             />
           ))}
 
-          {/* Content area */}
+          {/* Content */}
           <div className="relative z-10 flex flex-col items-center px-4 py-6">
             {/* Instruction text */}
             <AnimatePresence>
@@ -216,42 +220,46 @@ export function LoveJar({ recipientName, messages }: LoveJarProps) {
             {hasInteracted && <div className="mb-4 h-[33px]" />}
 
             {/* The Jar */}
-            <div className="relative w-full max-w-[260px]">
+            <div className="relative w-full max-w-[220px]">
               <JarSvg
                 recipientName={recipientName}
                 heartCount={heartCount}
                 isShaking={isShaking}
                 lowMemory={lowMemory}
+                palette={palette}
               />
 
-              {/* Rising heart animation */}
+              {/* Rising heart — appears at the rim and floats upward */}
               <AnimatePresence>
                 {risingHeart && (
                   <motion.div
                     className="pointer-events-none absolute left-1/2 z-20"
                     initial={{
-                      opacity: 1,
+                      opacity: 0,
                       y: 0,
                       x: '-50%',
-                      scale: 1,
+                      scale: 0.6,
                       rotateY: 0,
                     }}
                     animate={{
-                      opacity: [1, 1, 0.9],
-                      y: -140,
+                      opacity: [0, 1, 1, 0.9],
+                      y: -120,
                       x: '-50%',
-                      scale: [1, 1.5, 2.5],
+                      scale: [0.6, 1, 1.8, 2.5],
                       rotateY: 360,
                     }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.7, ease: [0.4, 0, 0.2, 1] }}
-                    style={{ top: '45%', willChange: 'transform, opacity' }}
+                    style={{
+                      top: '16%',
+                      willChange: 'transform, opacity',
+                    }}
                   >
                     <svg
-                      width="20"
-                      height="20"
+                      width="18"
+                      height="18"
                       viewBox="0 0 10 10"
-                      fill="#D81B60"
+                      fill={palette.body}
                     >
                       <path d="M5,8.5 C3,6.5 0.5,5 0.5,3 C0.5,1.5 2,0.5 3.5,1.5 C4.2,2 4.7,2.5 5,3 C5.3,2.5 5.8,2 6.5,1.5 C8,0.5 9.5,1.5 9.5,3 C9.5,5 7,6.5 5,8.5 Z" />
                     </svg>
@@ -262,7 +270,7 @@ export function LoveJar({ recipientName, messages }: LoveJarProps) {
           </div>
         </div>
 
-        {/* ── Status bar (inset bevel) ── */}
+        {/* Status bar */}
         <div
           className="flex items-center justify-between px-3 py-1"
           style={{
