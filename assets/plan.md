@@ -625,7 +625,7 @@ Build `<GiftFrame>` with:
 - [x] CTA buttons in hero section
 - [x] **Pin Board** — heart-shaped cards with pendulum swing interaction for top 5 gifts (replaced original horizontal-scroll rows)
 - [x] **Polaroid Wall** — gift catalog display section
-- [ ] Animated 3-second card previews (autoplay on scroll into view)
+- [ ] Animated 3-second card previews (autoplay on scroll into view) — **only remaining home page item**
 - [x] How It Works section — 3 steps as nested Win98 windows inside README container
 - [x] Testimonials — 3-column grid on desktop, horizontal scroll on mobile
 - [x] Footer + nav (taskbar-style footer with merged LoveStats bar)
@@ -1065,19 +1065,19 @@ The home page uses a **retro Y2K / Windows 98 aesthetic** with a romantic twist,
 
 Current section order on `src/app/page.tsx`:
 
-| #   | Section              | Component              | Status             | Notes                                                                                |
-| --- | -------------------- | ---------------------- | ------------------ | ------------------------------------------------------------------------------------ |
-| 1   | Hero                 | `hero-section.tsx`     | Done               | ROMANCE.exe Win98 window with typing animation, increased height for breathing room  |
-| 2   | Desktop Pet          | `desktop-pet.tsx`      | Done               | Dual Mochi pixel-art pets that drift, blow kisses, tap-to-bounce, meet-in-the-middle |
-| 3   | ~~CRT Showcase~~     | `crt-showcase.tsx`     | Replaced           | Was a CRT TV carousel for top-5 gifts — replaced by Pin Board                        |
-| 4   | ~~Love Letter Rack~~ | `love-letter-rack.tsx` | Replaced           | Was envelope rack for top-5 gifts — replaced by Pin Board                            |
-| 5   | Pin Board            | `pin-board.tsx`        | Done               | Pink gingham surface with heart-shaped cards, pendulum swing interaction (see below) |
-| 6   | Polaroid Wall        | `polaroid-wall.tsx`    | Done               | Gift catalog display                                                                 |
-| 7   | How It Works         | `how-it-works.tsx`     | Done               | 3 steps as nested Win98 windows inside grey-chrome README container                  |
-| 8   | Testimonials         | `testimonials.tsx`     | Done               | 3-column grid on desktop, horizontal scroll on mobile                                |
-| 9   | Community CTA        | `community-cta.tsx`    | Done               |                                                                                      |
-| 10  | Sticky CTA           | `sticky-cta.tsx`       | Done               |                                                                                      |
-| 11  | Love Stats           | `love-stats.tsx`       | Merged into footer | Compact stats bar in footer instead of standalone section                            |
+| #   | Section              | Component              | Status             | Notes                                                                                      |
+| --- | -------------------- | ---------------------- | ------------------ | ------------------------------------------------------------------------------------------ |
+| 1   | Hero                 | `hero-section.tsx`     | Done               | ROMANCE.exe Win98 window with typing animation, increased height for breathing room        |
+| 2   | Desktop Pet          | `desktop-pet.tsx`      | Done               | Dual Mochi pixel-art pets that drift, blow kisses, tap-to-bounce, meet-in-the-middle       |
+| 3   | ~~CRT Showcase~~     | `crt-showcase.tsx`     | Replaced           | Was a CRT TV carousel for top-5 gifts — replaced by Pin Board                              |
+| 4   | ~~Love Letter Rack~~ | `love-letter-rack.tsx` | Replaced           | Was envelope rack for top-5 gifts — replaced by Pin Board                                  |
+| 5   | Pin Board            | `pin-board.tsx`        | Done               | Pink gingham surface with heart-shaped cards, pendulum swing interaction (see below)       |
+| 6   | Polaroid Wall        | `polaroid-wall.tsx`    | Done               | Gift catalog in MEMORIES.exe window; rose+leaf garland on jute thread, full-bleed beige bg |
+| 7   | How It Works         | `how-it-works.tsx`     | Done               | 3 steps as nested Win98 windows inside grey-chrome README container                        |
+| 8   | Testimonials         | `testimonials.tsx`     | Done               | 3-column grid on desktop, horizontal scroll on mobile                                      |
+| 9   | Community CTA        | `community-cta.tsx`    | Done               |                                                                                            |
+| 10  | Sticky CTA           | `sticky-cta.tsx`       | Done               |                                                                                            |
+| 11  | Love Stats           | `love-stats.tsx`       | Merged into footer | Compact stats bar in footer instead of standalone section                                  |
 
 ### Pin Board Evolution (Detailed)
 
@@ -1099,6 +1099,18 @@ Iteration history (chronological):
 6. Locket hinge → safety-pin lift (front lifts from bottom tip)
 7. Safety-pin lift → forward-flip pendulum (rotateX from top)
 8. Forward-flip → **side-to-side pendulum swing** (rotateZ from pushpin, final)
+
+### Polaroid Wall Garland Evolution
+
+The MEMORIES.exe polaroid wall thread decoration went through iteration:
+
+1. Dense braided cord (3 strands, thick) → too heavy visually
+2. Single thread + ivy vine (5-lobed leaves) → leaves didn't read as vine
+3. Single thread + wavy vine with tendrils → still not right
+4. vine.jpg tiled background → too small/faint, gray bg issues
+5. **Rose + leaf garland on single jute thread** (final) — 3.5px warm jute (#C19A6B), thin sage vine connector (3 wraps, z-layered behind/front), 6 crochet rose clusters with two-tone sage leaves
+
+Background: beige (#f5f0eb) covers the full win98-body with no white padding gap.
 
 ### Other Home Page Changes
 
@@ -1136,14 +1148,16 @@ Iteration history (chronological):
 
 ## 12. Decision Log
 
-| Decision                                              | Date       | Why                                                                                                        | Outcome |
-| ----------------------------------------------------- | ---------- | ---------------------------------------------------------------------------------------------------------- | ------- |
-| Y2K Win98 theme over Artisanal Elegance for home page | 2026-05    | Distinctive visual identity, memorable first impression, avoids generic Material design look               | Active  |
-| Side-to-side pendulum swing for pin board hearts      | 2026-05-22 | Tried locket hinge, safety-pin lift, forward flip — side-swing from pushpin feels most natural and playful | Locked  |
-| Merge LoveStats into footer                           | 2026-05    | Standalone section added monotony at bottom of page, compact stats bar in footer is cleaner                | Locked  |
-| 3-column testimonials grid over carousel              | 2026-05    | Better desktop use of space, keeps mobile scroll                                                           | Locked  |
-| How It Works as nested Win98 windows                  | 2026-05    | Consistent with Y2K theme, more visually engaging than plain cards                                         | Locked  |
-| Pink gingham over ribbed surface for pin board        | 2026-05    | More visually distinctive, better texture contrast with heart cards                                        | Locked  |
+| Decision                                                  | Date       | Why                                                                                                        | Outcome |
+| --------------------------------------------------------- | ---------- | ---------------------------------------------------------------------------------------------------------- | ------- |
+| Y2K Win98 theme over Artisanal Elegance for home page     | 2026-05    | Distinctive visual identity, memorable first impression, avoids generic Material design look               | Active  |
+| Side-to-side pendulum swing for pin board hearts          | 2026-05-22 | Tried locket hinge, safety-pin lift, forward flip — side-swing from pushpin feels most natural and playful | Locked  |
+| Merge LoveStats into footer                               | 2026-05    | Standalone section added monotony at bottom of page, compact stats bar in footer is cleaner                | Locked  |
+| 3-column testimonials grid over carousel                  | 2026-05    | Better desktop use of space, keeps mobile scroll                                                           | Locked  |
+| How It Works as nested Win98 windows                      | 2026-05    | Consistent with Y2K theme, more visually engaging than plain cards                                         | Locked  |
+| Pink gingham over ribbed surface for pin board            | 2026-05    | More visually distinctive, better texture contrast with heart cards                                        | Locked  |
+| Rose+leaf garland on warm jute thread for polaroid wall   | 2026-05-24 | Tried braided cord, ivy vine, vine.jpg tiling — single thread with crochet roses feels cozy and handmade   | Locked  |
+| Beige bg covers full MEMORIES.exe body (no white padding) | 2026-05-24 | Removes visual break between win98 chrome and polaroid wall content, feels more cohesive                   | Locked  |
 
 ---
 
