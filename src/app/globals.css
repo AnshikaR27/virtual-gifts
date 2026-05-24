@@ -1334,7 +1334,7 @@ html {
 }
 
 .love-jar-note-paper {
-  background: #fff9f2;
+  background: #fffcf6;
   background-image:
     radial-gradient(
       ellipse at 30% 20%,
@@ -1368,6 +1368,57 @@ html {
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 4'%3E%3Cpath d='M0,2 Q5,0 10,2 T20,2 T30,2 T40,2 T50,2 T60,2 T70,2 T80,2 T90,2 T100,2 L100,4 L0,4 Z' fill='black'/%3E%3C/svg%3E");
 }
 
+/* Sparkle particles drifting across gingham — CSS-only, no JS */
+.love-jar-sparkle-drift {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.9),
+    rgba(255, 200, 230, 0.3)
+  );
+  animation: love-jar-drift linear infinite;
+  opacity: 0;
+}
+
+@keyframes love-jar-drift {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.5);
+  }
+  15% {
+    opacity: 0.7;
+  }
+  85% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-20px, -40px) scale(0.2);
+  }
+}
+
+/* Pulsing "LIVE" indicator in status bar */
+.love-jar-live-pulse {
+  animation: love-jar-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes love-jar-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+/* Note unfold — perspective on parent */
+.love-jar-note-unfold {
+  transform-style: preserve-3d;
+}
+
 /* ── Love Jar Creator ── */
 
 .love-jar-input {
@@ -1390,7 +1441,12 @@ html {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .love-jar-sparkle {
+  .love-jar-sparkle,
+  .love-jar-sparkle-drift {
     display: none !important;
+  }
+
+  .love-jar-live-pulse {
+    animation: none !important;
   }
 }

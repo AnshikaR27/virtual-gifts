@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Jar } from '../jar';
+import { JarSvg as Jar } from '../jar-svg';
 import { loveJarPrompts } from '@/prompts/love-jar';
 
 const HEART_COLORS = [

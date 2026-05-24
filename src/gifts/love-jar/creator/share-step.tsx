@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Jar } from '../jar';
+import { JarSvg as Jar } from '../jar-svg';
 import { APP_URL } from '@/lib/constants';
 
 interface ShareStepProps {
