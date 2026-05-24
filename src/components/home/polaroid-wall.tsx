@@ -152,18 +152,18 @@ function VineLeaf({ dark = false }: { dark?: boolean }) {
   return (
     <svg
       className="vine-leaf"
-      viewBox="0 0 10 18"
+      viewBox="0 0 10 20"
       fill="none"
       aria-hidden="true"
     >
       <path
-        d="M5,1 C2.5,1 0.5,5 0.5,9 C0.5,13 2.5,17 5,17 C7.5,17 9.5,13 9.5,9 C9.5,5 7.5,1 5,1Z"
+        d="M5,0 C1,5 0,10 2,16 L5,20 L8,16 C10,10 9,5 5,0Z"
         fill={dark ? '#6B9060' : '#7DA178'}
         stroke={dark ? '#5A7F50' : '#6B9068'}
-        strokeWidth="0.5"
+        strokeWidth="0.4"
       />
       <path
-        d="M5,3 L5,15"
+        d="M5,1 Q4.5,10 5,19"
         stroke={dark ? '#5A7F50' : '#6B9068'}
         strokeWidth="0.4"
         fill="none"
