@@ -1216,3 +1216,111 @@ html {
     justify-content: center;
   }
 }
+
+/* ── Sorry Puppy Gift ────────────────────────────────────────────── */
+
+.sorry-puppy-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  user-select: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.sorry-puppy-drop {
+  position: absolute;
+  top: -20px;
+  background: linear-gradient(
+    180deg,
+    rgba(174, 194, 224, 0.2),
+    rgba(174, 194, 224, 0.7)
+  );
+  border-radius: 0 0 50% 50%;
+  transition: opacity 0.5s ease-out;
+  animation: sorryPuppyFall linear infinite;
+  will-change: transform;
+}
+
+.sorry-puppy-tail-wag {
+  animation: sorryPuppyTailWag 0.4s ease-in-out infinite;
+  transform-origin: 85px 105px;
+}
+
+.sorry-puppy-tap-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 35%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  animation: sorryPuppyTapPulse 2s ease-in-out infinite;
+}
+
+.sorry-puppy-tap-ring {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+
+.sorry-puppy-cursor {
+  animation: sorryPuppyCursorBlink 0.8s step-end infinite;
+}
+
+@keyframes sorryPuppyFall {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100vh);
+  }
+}
+
+@keyframes sorryPuppyTailWag {
+  0%,
+  100% {
+    transform: rotate(-10deg);
+  }
+  50% {
+    transform: rotate(10deg);
+  }
+}
+
+@keyframes sorryPuppyRainbowDraw {
+  from {
+    stroke-dashoffset: 300;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes sorryPuppyCursorBlink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes sorryPuppyTapPulse {
+  0%,
+  100% {
+    transform: translateX(-50%) scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translateX(-50%) scale(1.15);
+    opacity: 0.5;
+  }
+}
