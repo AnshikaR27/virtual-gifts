@@ -71,126 +71,7 @@ function getSagOffset(index: number, total: number, maxSag: number) {
   return maxSag * 4 * t * (1 - t);
 }
 
-function getThreadPoint(t: number) {
-  const x = (1 - t) * (1 - t) * -10 + 2 * (1 - t) * t * 500 + t * t * 1010;
-  const y = (1 - t) * (1 - t) * 8 + 2 * (1 - t) * t * 34 + t * t * 8;
-  return { left: (x / 1000) * 100, top: (y / 40) * 100 };
-}
-
-const THREAD_AND_VINE = (() => {
-  const N = 300;
-  const vineAmp = 4;
-  const wiggleAmp = 2.5;
-  const wiggleFreq = 4;
-
-  const getBase = (t: number) => {
-    const x = (1 - t) * (1 - t) * -10 + 2 * (1 - t) * t * 500 + t * t * 1010;
-    const y = (1 - t) * (1 - t) * 8 + 2 * (1 - t) * t * 34 + t * t * 8;
-    return { x, y };
-  };
-
-  const threadD = 'M-10,8 Q500,34 1010,8';
-
-  const vine: { x: number; y: number; s: number }[] = [];
-  for (let i = 0; i <= N; i++) {
-    const t = i / N;
-    const { x, y } = getBase(t);
-    const wrap = Math.sin(2 * Math.PI * t);
-    const wiggle = wiggleAmp * Math.sin(2 * Math.PI * wiggleFreq * t);
-    vine.push({ x, y: y + vineAmp * wrap + wiggle, s: wrap });
-  }
-
-  const behind: string[] = [];
-  const front: string[] = [];
-  let seg: string[] = [];
-  let isBehind = vine[0].s >= 0;
-
-  for (let i = 0; i <= N; i++) {
-    const p = vine[i];
-    const nowBehind = p.s >= 0;
-    const pt = `${p.x.toFixed(1)},${p.y.toFixed(1)}`;
-    if (nowBehind !== isBehind && seg.length > 0) {
-      seg.push(pt);
-      (isBehind ? behind : front).push('M' + seg.join(' L'));
-      seg = [pt];
-      isBehind = nowBehind;
-    } else {
-      seg.push(pt);
-    }
-  }
-  if (seg.length > 1) {
-    (isBehind ? behind : front).push('M' + seg.join(' L'));
-  }
-
-  return { threadD, behind, front };
-})();
-
-const vineLeaves = [
-  { t: 0.04, dx: -7, dy: -6, rotate: -35, dark: false },
-  { t: 0.1, dx: 7, dy: -5, rotate: 33, dark: true },
-  { t: 0.17, dx: -6, dy: -7, rotate: -40, dark: false },
-  { t: 0.24, dx: 7, dy: -6, rotate: 36, dark: true },
-  { t: 0.3, dx: -7, dy: -5, rotate: -32, dark: false },
-  { t: 0.36, dx: 6, dy: -7, rotate: 38, dark: false },
-  { t: 0.44, dx: -6, dy: -6, rotate: -42, dark: true },
-  { t: 0.5, dx: 7, dy: -5, rotate: 30, dark: false },
-  { t: 0.56, dx: -7, dy: -7, rotate: -36, dark: false },
-  { t: 0.64, dx: 6, dy: -6, rotate: 40, dark: true },
-  { t: 0.7, dx: -6, dy: -5, rotate: -34, dark: false },
-  { t: 0.77, dx: 7, dy: -7, rotate: 37, dark: true },
-  { t: 0.85, dx: -7, dy: -6, rotate: -38, dark: false },
-];
-
-const vineTendrils = [
-  { t: 0.14, dx: 6, dy: -8, rotate: 15, flip: false },
-  { t: 0.38, dx: -7, dy: -7, rotate: -10, flip: true },
-  { t: 0.62, dx: 7, dy: -6, rotate: 20, flip: false },
-  { t: 0.88, dx: -6, dy: -8, rotate: -15, flip: true },
-];
-
-function VineLeaf({ dark = false }: { dark?: boolean }) {
-  return (
-    <svg
-      className="vine-leaf"
-      viewBox="0 0 10 20"
-      fill="none"
-      aria-hidden="true"
-    >
-      <path
-        d="M5,0 C1,5 0,10 2,16 L5,20 L8,16 C10,10 9,5 5,0Z"
-        fill={dark ? '#6B9060' : '#7DA178'}
-        stroke={dark ? '#5A7F50' : '#6B9068'}
-        strokeWidth="0.4"
-      />
-      <path
-        d="M5,1 Q4.5,10 5,19"
-        stroke={dark ? '#5A7F50' : '#6B9068'}
-        strokeWidth="0.4"
-        fill="none"
-      />
-    </svg>
-  );
-}
-
-function VineTendril({ flip = false }: { flip?: boolean }) {
-  return (
-    <svg
-      className="vine-tendril"
-      viewBox="0 0 12 14"
-      fill="none"
-      aria-hidden="true"
-      style={flip ? { transform: 'scaleX(-1)' } : undefined}
-    >
-      <path
-        d="M1,13 C1,8 3,4 6,3 C8.5,2 10,4 10,6 C10,8 8.5,9 7,9 C5.5,9 5,8 5,7 C5,6.2 5.5,5.8 6.2,5.8"
-        stroke="#8B9F80"
-        strokeWidth="0.8"
-        strokeLinecap="round"
-        fill="none"
-      />
-    </svg>
-  );
-}
+const THREAD_D = 'M-10,8 Q500,34 1010,8';
 
 function WallClothespin() {
   return (
@@ -404,76 +285,21 @@ export function PolaroidWall() {
                   className="garland-string-row"
                   style={{ animationDelay: `${stringIdx * 0.12}s` }}
                 >
+                  <div className="vine-layer vine-behind" aria-hidden="true" />
                   <svg
                     className="garland-svg"
                     viewBox="0 0 1000 40"
                     preserveAspectRatio="none"
                   >
-                    {THREAD_AND_VINE.behind.map((d, i) => (
-                      <path
-                        key={`vb${i}`}
-                        d={d}
-                        stroke="#8B9F80"
-                        strokeWidth="1.8"
-                        fill="none"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    ))}
                     <path
-                      d={THREAD_AND_VINE.threadD}
+                      d={THREAD_D}
                       stroke="#C19A6B"
                       strokeWidth="3.5"
                       fill="none"
                       strokeLinecap="round"
                     />
-                    {THREAD_AND_VINE.front.map((d, i) => (
-                      <path
-                        key={`vf${i}`}
-                        d={d}
-                        stroke="#8B9F80"
-                        strokeWidth="1.8"
-                        fill="none"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    ))}
                   </svg>
-
-                  <div className="garland-flora" aria-hidden="true">
-                    {vineLeaves.map((leaf, i) => {
-                      const pt = getThreadPoint(leaf.t);
-                      return (
-                        <div
-                          key={`vl${i}`}
-                          className="garland-flora-item"
-                          style={{
-                            left: `${pt.left}%`,
-                            top: `${pt.top}%`,
-                            transform: `translate(calc(-50% + ${leaf.dx}px), calc(-50% + ${leaf.dy}px)) rotate(${leaf.rotate}deg)`,
-                          }}
-                        >
-                          <VineLeaf dark={leaf.dark} />
-                        </div>
-                      );
-                    })}
-                    {vineTendrils.map((tendril, i) => {
-                      const pt = getThreadPoint(tendril.t);
-                      return (
-                        <div
-                          key={`vt${i}`}
-                          className="garland-flora-item"
-                          style={{
-                            left: `${pt.left}%`,
-                            top: `${pt.top}%`,
-                            transform: `translate(calc(-50% + ${tendril.dx}px), calc(-50% + ${tendril.dy}px)) rotate(${tendril.rotate}deg)`,
-                          }}
-                        >
-                          <VineTendril flip={tendril.flip} />
-                        </div>
-                      );
-                    })}
-                  </div>
+                  <div className="vine-layer vine-front" aria-hidden="true" />
 
                   <div className="garland-polaroids">
                     {stringGifts.map((gift, i) => {
