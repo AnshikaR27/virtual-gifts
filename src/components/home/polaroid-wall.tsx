@@ -481,7 +481,7 @@ export function PolaroidWall() {
 
                     <path
                       d="M-10,14 C80,10 160,22 250,24 C340,26 420,12 500,14 C580,16 660,26 750,24 C840,22 920,10 1010,14"
-                      stroke="#FFC0CB"
+                      stroke="#C4A484"
                       strokeWidth="5"
                       fill="none"
                       strokeLinecap="round"
@@ -489,14 +489,14 @@ export function PolaroidWall() {
                     />
                     <path
                       d="M-10,20 C80,26 160,14 250,14 C340,12 420,24 500,26 C580,28 660,14 750,14 C840,12 920,24 1010,20"
-                      stroke="#FFF8E7"
+                      stroke="#8B6F47"
                       strokeWidth="5"
                       fill="none"
                       strokeLinecap="round"
                     />
                     <path
                       d="M-10,26 C80,22 160,28 250,20 C340,14 420,18 500,20 C580,22 660,20 750,28 C840,26 920,18 1010,26"
-                      stroke="#FFC0CB"
+                      stroke="#C4A484"
                       strokeWidth="5"
                       fill="none"
                       strokeLinecap="round"
@@ -504,42 +504,42 @@ export function PolaroidWall() {
                     />
                     <path
                       d="M160,22 C190,24 220,25 250,24"
-                      stroke="#E8A9B8"
+                      stroke="#9B7B55"
                       strokeWidth="5.5"
                       fill="none"
                       strokeLinecap="round"
                     />
                     <path
                       d="M420,12 C450,13 470,14 500,14"
-                      stroke="#E8D4C0"
+                      stroke="#7A5C3A"
                       strokeWidth="5.5"
                       fill="none"
                       strokeLinecap="round"
                     />
                     <path
                       d="M660,26 C690,25 720,24 750,24"
-                      stroke="#E8A9B8"
+                      stroke="#9B7B55"
                       strokeWidth="5.5"
                       fill="none"
                       strokeLinecap="round"
                     />
                     <path
                       d="M80,26 C110,24 140,22 160,22"
-                      stroke="#FFD4E0"
+                      stroke="#D4B896"
                       strokeWidth="4"
                       fill="none"
                       strokeLinecap="round"
                     />
                     <path
                       d="M340,12 C370,12 400,12 420,12"
-                      stroke="#FFF8E7"
+                      stroke="#B8956E"
                       strokeWidth="4"
                       fill="none"
                       strokeLinecap="round"
                     />
                     <path
                       d="M580,28 C610,26 640,26 660,26"
-                      stroke="#FFD4E0"
+                      stroke="#D4B896"
                       strokeWidth="4"
                       fill="none"
                       strokeLinecap="round"
