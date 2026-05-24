@@ -131,18 +131,18 @@ const garlandClusters = [
 ];
 
 const BRAID_SEGMENTS = (() => {
-  const amp = 5;
-  const twists = 3;
+  const amp = 7;
+  const twists = 4;
   const N = 200;
   const phases = [0, (2 * Math.PI) / 3, (4 * Math.PI) / 3];
-  const colors = ['#D4A574', '#8B6F47', '#C19A6B'];
+  const colors = ['#C19A6B', '#C19A6B', '#C19A6B'];
 
   const strands = phases.map((phase) => {
     const pts: string[] = [];
     for (let i = 0; i <= N; i++) {
       const t = i / N;
       const x = (1 - t) * (1 - t) * -10 + 2 * (1 - t) * t * 500 + t * t * 1010;
-      const cy = 8 + 52 * t * (1 - t);
+      const cy = 14 + 48 * t * (1 - t);
       const y = cy + amp * Math.sin(2 * Math.PI * twists * t + phase);
       pts.push(`${x.toFixed(0)},${y.toFixed(1)}`);
     }
@@ -536,7 +536,7 @@ export function PolaroidWall() {
                         key={`b${i}`}
                         d={seg.d}
                         stroke={seg.color}
-                        strokeWidth="3"
+                        strokeWidth="13"
                         fill="none"
                         strokeLinecap="round"
                         strokeLinejoin="round"
