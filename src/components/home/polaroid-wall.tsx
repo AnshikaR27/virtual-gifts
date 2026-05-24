@@ -536,7 +536,7 @@ export function PolaroidWall() {
                         key={`b${i}`}
                         d={seg.d}
                         stroke={seg.color}
-                        strokeWidth="13"
+                        strokeWidth="7"
                         fill="none"
                         strokeLinecap="round"
                         strokeLinejoin="round"
