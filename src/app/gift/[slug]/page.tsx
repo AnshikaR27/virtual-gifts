@@ -1,8 +1,14 @@
+import { SorryPuppyPreview } from './sorry-puppy-preview';
+
 export default function GiftDetailPage({
   params,
 }: {
   params: { slug: string };
 }) {
+  if (params.slug === 'sorry-puppy') {
+    return <SorryPuppyPreview />;
+  }
+
   return (
     <div className="flex min-h-[80dvh] items-center justify-center">
       <div className="text-center">
