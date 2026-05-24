@@ -1031,16 +1031,28 @@ html {
   position: absolute;
 }
 
-.ivy-leaf {
-  width: 18px;
-  height: 22px;
-  filter: drop-shadow(0 0.5px 1px rgba(0, 0, 0, 0.08));
+.vine-leaf {
+  width: 9px;
+  height: 16px;
+  filter: drop-shadow(0 0.5px 1px rgba(0, 0, 0, 0.06));
 }
 
 @media (min-width: 768px) {
-  .ivy-leaf {
-    width: 24px;
-    height: 28px;
+  .vine-leaf {
+    width: 12px;
+    height: 20px;
+  }
+}
+
+.vine-tendril {
+  width: 10px;
+  height: 12px;
+}
+
+@media (min-width: 768px) {
+  .vine-tendril {
+    width: 12px;
+    height: 14px;
   }
 }
 

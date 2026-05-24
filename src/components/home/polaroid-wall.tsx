@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect, useRef, Fragment } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { playClick } from '@/components/retro-sounds';
 import { GiftLoading } from '@/components/gift-loading';
@@ -79,8 +79,9 @@ function getThreadPoint(t: number) {
 
 const THREAD_AND_VINE = (() => {
   const N = 300;
-  const vineAmp = 5;
-  const vineWraps = 1;
+  const vineAmp = 4;
+  const wiggleAmp = 2.5;
+  const wiggleFreq = 4;
 
   const getBase = (t: number) => {
     const x = (1 - t) * (1 - t) * -10 + 2 * (1 - t) * t * 500 + t * t * 1010;
@@ -94,8 +95,9 @@ const THREAD_AND_VINE = (() => {
   for (let i = 0; i <= N; i++) {
     const t = i / N;
     const { x, y } = getBase(t);
-    const s = Math.sin(2 * Math.PI * vineWraps * t);
-    vine.push({ x, y: y + vineAmp * s, s });
+    const wrap = Math.sin(2 * Math.PI * t);
+    const wiggle = wiggleAmp * Math.sin(2 * Math.PI * wiggleFreq * t);
+    vine.push({ x, y: y + vineAmp * wrap + wiggle, s: wrap });
   }
 
   const behind: string[] = [];
@@ -123,58 +125,67 @@ const THREAD_AND_VINE = (() => {
   return { threadD, behind, front };
 })();
 
-const ivyClusters = [
-  {
-    t: 0.13,
-    leaves: [
-      { dx: -9, dy: -8, rotate: -30, scale: 0.9, dark: false },
-      { dx: 7, dy: -6, rotate: 20, scale: 1.0, dark: true },
-      { dx: -2, dy: 4, rotate: -5, scale: 0.85, dark: false },
-    ],
-  },
-  {
-    t: 0.38,
-    leaves: [
-      { dx: -8, dy: -7, rotate: 25, scale: 1.0, dark: false },
-      { dx: 6, dy: -5, rotate: -18, scale: 0.9, dark: true },
-    ],
-  },
-  {
-    t: 0.62,
-    leaves: [
-      { dx: -7, dy: -9, rotate: -35, scale: 0.95, dark: true },
-      { dx: 8, dy: -5, rotate: 15, scale: 1.0, dark: false },
-      { dx: 1, dy: 5, rotate: 8, scale: 0.85, dark: false },
-    ],
-  },
-  {
-    t: 0.87,
-    leaves: [
-      { dx: -9, dy: -6, rotate: 28, scale: 0.9, dark: false },
-      { dx: 7, dy: -8, rotate: -22, scale: 1.0, dark: true },
-      { dx: -3, dy: 4, rotate: -8, scale: 0.9, dark: true },
-    ],
-  },
+const vineLeaves = [
+  { t: 0.04, dx: -7, dy: -6, rotate: -35, dark: false },
+  { t: 0.1, dx: 7, dy: -5, rotate: 33, dark: true },
+  { t: 0.17, dx: -6, dy: -7, rotate: -40, dark: false },
+  { t: 0.24, dx: 7, dy: -6, rotate: 36, dark: true },
+  { t: 0.3, dx: -7, dy: -5, rotate: -32, dark: false },
+  { t: 0.36, dx: 6, dy: -7, rotate: 38, dark: false },
+  { t: 0.44, dx: -6, dy: -6, rotate: -42, dark: true },
+  { t: 0.5, dx: 7, dy: -5, rotate: 30, dark: false },
+  { t: 0.56, dx: -7, dy: -7, rotate: -36, dark: false },
+  { t: 0.64, dx: 6, dy: -6, rotate: 40, dark: true },
+  { t: 0.7, dx: -6, dy: -5, rotate: -34, dark: false },
+  { t: 0.77, dx: 7, dy: -7, rotate: 37, dark: true },
+  { t: 0.85, dx: -7, dy: -6, rotate: -38, dark: false },
 ];
 
-function IvyLeaf({ dark = false }: { dark?: boolean }) {
+const vineTendrils = [
+  { t: 0.14, dx: 6, dy: -8, rotate: 15, flip: false },
+  { t: 0.38, dx: -7, dy: -7, rotate: -10, flip: true },
+  { t: 0.62, dx: 7, dy: -6, rotate: 20, flip: false },
+  { t: 0.88, dx: -6, dy: -8, rotate: -15, flip: true },
+];
+
+function VineLeaf({ dark = false }: { dark?: boolean }) {
   return (
     <svg
-      className="ivy-leaf"
-      viewBox="0 0 20 24"
+      className="vine-leaf"
+      viewBox="0 0 10 18"
       fill="none"
       aria-hidden="true"
     >
       <path
-        d="M10,1 C7.5,0 5,2 4,5 C2,4 0,6 1,9 C-0.5,11 1,13.5 3,13 C2,15.5 3,18 6,17.5 C7,20 9,23 10,23.5 C11,23 13,20 14,17.5 C17,18 18,15.5 17,13 C19,13.5 20.5,11 19,9 C20,6 18,4 16,5 C15,2 12.5,0 10,1Z"
-        fill={dark ? '#7A8F6F' : '#8B9F80'}
-        stroke={dark ? '#6B7F60' : '#7A8E70'}
+        d="M5,1 C2.5,1 0.5,5 0.5,9 C0.5,13 2.5,17 5,17 C7.5,17 9.5,13 9.5,9 C9.5,5 7.5,1 5,1Z"
+        fill={dark ? '#6B9060' : '#7DA178'}
+        stroke={dark ? '#5A7F50' : '#6B9068'}
         strokeWidth="0.5"
       />
       <path
-        d="M10,22 L10,4 M10,8 L4,6 M10,8 L16,6 M10,13 L5,14 M10,13 L15,14"
-        stroke={dark ? '#6B7F60' : '#7A8E70'}
+        d="M5,3 L5,15"
+        stroke={dark ? '#5A7F50' : '#6B9068'}
         strokeWidth="0.4"
+        fill="none"
+      />
+    </svg>
+  );
+}
+
+function VineTendril({ flip = false }: { flip?: boolean }) {
+  return (
+    <svg
+      className="vine-tendril"
+      viewBox="0 0 12 14"
+      fill="none"
+      aria-hidden="true"
+      style={flip ? { transform: 'scaleX(-1)' } : undefined}
+    >
+      <path
+        d="M1,13 C1,8 3,4 6,3 C8.5,2 10,4 10,6 C10,8 8.5,9 7,9 C5.5,9 5,8 5,7 C5,6.2 5.5,5.8 6.2,5.8"
+        stroke="#8B9F80"
+        strokeWidth="0.8"
+        strokeLinecap="round"
         fill="none"
       />
     </svg>
@@ -430,24 +441,36 @@ export function PolaroidWall() {
                   </svg>
 
                   <div className="garland-flora" aria-hidden="true">
-                    {ivyClusters.map((cluster, ci) => {
-                      const pt = getThreadPoint(cluster.t);
+                    {vineLeaves.map((leaf, i) => {
+                      const pt = getThreadPoint(leaf.t);
                       return (
-                        <Fragment key={ci}>
-                          {cluster.leaves.map((leaf, li) => (
-                            <div
-                              key={`l${li}`}
-                              className="garland-flora-item"
-                              style={{
-                                left: `${pt.left}%`,
-                                top: `${pt.top}%`,
-                                transform: `translate(calc(-50% + ${leaf.dx}px), calc(-50% + ${leaf.dy}px)) rotate(${leaf.rotate}deg) scale(${leaf.scale})`,
-                              }}
-                            >
-                              <IvyLeaf dark={leaf.dark} />
-                            </div>
-                          ))}
-                        </Fragment>
+                        <div
+                          key={`vl${i}`}
+                          className="garland-flora-item"
+                          style={{
+                            left: `${pt.left}%`,
+                            top: `${pt.top}%`,
+                            transform: `translate(calc(-50% + ${leaf.dx}px), calc(-50% + ${leaf.dy}px)) rotate(${leaf.rotate}deg)`,
+                          }}
+                        >
+                          <VineLeaf dark={leaf.dark} />
+                        </div>
+                      );
+                    })}
+                    {vineTendrils.map((tendril, i) => {
+                      const pt = getThreadPoint(tendril.t);
+                      return (
+                        <div
+                          key={`vt${i}`}
+                          className="garland-flora-item"
+                          style={{
+                            left: `${pt.left}%`,
+                            top: `${pt.top}%`,
+                            transform: `translate(calc(-50% + ${tendril.dx}px), calc(-50% + ${tendril.dy}px)) rotate(${tendril.rotate}deg)`,
+                          }}
+                        >
+                          <VineTendril flip={tendril.flip} />
+                        </div>
                       );
                     })}
                   </div>
