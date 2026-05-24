@@ -1324,3 +1324,52 @@ html {
     opacity: 0.5;
   }
 }
+
+/* ── Love Jar Gift ────────────────────────────────────────────── */
+
+.love-jar-scene {
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.love-jar-note-paper {
+  background: #fff9f2;
+  background-image:
+    radial-gradient(
+      ellipse at 30% 20%,
+      rgba(224, 187, 228, 0.06) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse at 70% 80%,
+      rgba(255, 196, 214, 0.05) 0%,
+      transparent 50%
+    );
+  border: 1px solid rgba(160, 128, 96, 0.12);
+  position: relative;
+  overflow: hidden;
+}
+
+.love-jar-torn-edge-top {
+  position: absolute;
+  top: -1px;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0px,
+    transparent 3px,
+    rgba(160, 128, 96, 0.08) 3px,
+    rgba(160, 128, 96, 0.08) 4px
+  );
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 4'%3E%3Cpath d='M0,2 Q5,0 10,2 T20,2 T30,2 T40,2 T50,2 T60,2 T70,2 T80,2 T90,2 T100,2 L100,4 L0,4 Z' fill='black'/%3E%3C/svg%3E");
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 4'%3E%3Cpath d='M0,2 Q5,0 10,2 T20,2 T30,2 T40,2 T50,2 T60,2 T70,2 T80,2 T90,2 T100,2 L100,4 L0,4 Z' fill='black'/%3E%3C/svg%3E");
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .love-jar-sparkle {
+    display: none !important;
+  }
+}
