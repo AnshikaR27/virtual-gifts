@@ -1031,33 +1031,28 @@ html {
   position: absolute;
 }
 
-.vine-layer {
-  position: absolute;
-  top: -6px;
-  left: -1%;
-  width: 102%;
-  height: 36px;
-  background: url('/icons/vine.jpg') repeat-x 0 center / auto 70px;
-  filter: brightness(1.15);
-  mix-blend-mode: multiply;
-  pointer-events: none;
-}
-
-.vine-behind {
-  z-index: 0;
-  clip-path: inset(0 50% 0 0);
-}
-
-.vine-front {
-  z-index: 2;
-  clip-path: inset(0 0 0 50%);
+.garland-rosette {
+  width: 18px;
+  height: 18px;
+  filter: drop-shadow(0 0.5px 1px rgba(0, 0, 0, 0.1));
 }
 
 @media (min-width: 768px) {
-  .vine-layer {
-    top: -8px;
-    height: 44px;
-    background-size: auto 84px;
+  .garland-rosette {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+.garland-leaf {
+  width: 11px;
+  height: 7px;
+}
+
+@media (min-width: 768px) {
+  .garland-leaf {
+    width: 13px;
+    height: 8px;
   }
 }
 
