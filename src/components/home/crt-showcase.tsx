@@ -14,13 +14,6 @@ interface Channel {
 
 const channels: Channel[] = [
   {
-    slug: 'love-jar',
-    emoji: '\u{1FAD9}',
-    name: 'Love Jar',
-    desc: 'Shake to pull random love notes',
-    tint: 'rgba(255, 182, 193, 0.12)',
-  },
-  {
     slug: 'wishing-dandelion',
     emoji: '\u{1F32C}️',
     name: 'Wishing Dandelion',

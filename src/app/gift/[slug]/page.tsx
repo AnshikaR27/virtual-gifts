@@ -1,5 +1,5 @@
+import { notFound } from 'next/navigation';
 import { SorryPuppyPreview } from './sorry-puppy-preview';
-import { LoveJarPreview } from './love-jar-preview';
 
 export default function GiftDetailPage({
   params,
@@ -11,7 +11,7 @@ export default function GiftDetailPage({
   }
 
   if (params.slug === 'love-jar') {
-    return <LoveJarPreview />;
+    notFound();
   }
 
   return (

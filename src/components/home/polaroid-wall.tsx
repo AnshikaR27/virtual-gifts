@@ -10,7 +10,6 @@ import { TitlebarButtons } from '@/components/win98-chrome';
 const INITIAL_STRINGS = 3;
 
 const preferredOrder = [
-  'love-jar',
   'sorry-puppy',
   'spotify-wrapped',
   'wishing-dandelion',

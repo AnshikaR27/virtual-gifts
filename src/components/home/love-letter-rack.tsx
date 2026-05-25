@@ -28,16 +28,6 @@ const envelopes: EnvelopeData[] = [
     rank: 1,
   },
   {
-    slug: 'love-jar',
-    color: '#F5EFE0',
-    flapColor: '#E8DFD0',
-    waxColor: '#C0392B',
-    waxColorDark: '#922B21',
-    sealIcon: '♥',
-    tilt: -3,
-    rank: 2,
-  },
-  {
     slug: 'wishing-dandelion',
     color: '#FFD6E0',
     flapColor: '#F0C4CE',
@@ -45,7 +35,7 @@ const envelopes: EnvelopeData[] = [
     waxColorDark: '#6C3483',
     sealIcon: '★',
     tilt: 2,
-    rank: 3,
+    rank: 2,
   },
   {
     slug: 'spotify-wrapped',
@@ -55,7 +45,7 @@ const envelopes: EnvelopeData[] = [
     waxColorDark: '#1E8449',
     sealIcon: '♪',
     tilt: 3,
-    rank: 4,
+    rank: 3,
   },
   {
     slug: 'sorry-puppy',
@@ -65,12 +55,11 @@ const envelopes: EnvelopeData[] = [
     waxColorDark: '#B8176E',
     sealIcon: '✿',
     tilt: -2,
-    rank: 5,
+    rank: 4,
   },
 ];
 
 const heroEmojis: Record<string, string> = {
-  'love-jar': '\u{1FAD9}',
   'wishing-dandelion': '\u{1F32C}️',
   'the-proposal': '\u{1F48D}',
   'spotify-wrapped': '\u{1F4CA}',

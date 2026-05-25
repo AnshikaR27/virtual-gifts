@@ -23,14 +23,6 @@ const pins: PinCard[] = [
     color: '#FFD6E5',
   },
   {
-    slug: 'love-jar',
-    emoji: '\u{1FAD9}',
-    title: 'Love Jar',
-    description: 'Shake to pull random love notes',
-    tilt: 2,
-    color: '#DCC9F0',
-  },
-  {
     slug: 'wishing-dandelion',
     emoji: '\u{1F32C}️',
     title: 'Wishing Dandelion',

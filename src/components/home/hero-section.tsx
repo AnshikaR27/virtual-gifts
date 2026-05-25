@@ -11,7 +11,6 @@ const headlines = [
 ];
 
 const desktopIcons = [
-  { emoji: '🫙', label: 'LOVE_JAR.exe', href: '#browse' },
   { emoji: '🐶', label: 'SORRY.bat', href: '#browse' },
   { emoji: '🌼', label: 'DANDELION.gif', href: '#browse' },
   { emoji: '🎵', label: 'SPOTIFY_WRAPPED.zip', href: '#browse' },

@@ -1327,12 +1327,6 @@ html {
 
 /* ── Love Jar Gift ────────────────────────────────────────────── */
 
-.love-jar-scene {
-  cursor: pointer;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
-}
-
 .love-jar-note-paper {
   background: #fffcf6;
   background-image:
@@ -1399,54 +1393,14 @@ html {
   }
 }
 
-/* Pulsing "LIVE" indicator in status bar */
-.love-jar-live-pulse {
-  animation: love-jar-pulse 1.5s ease-in-out infinite;
-}
-
-@keyframes love-jar-pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.4;
-  }
-}
-
 /* Note unfold — perspective on parent */
 .love-jar-note-unfold {
   transform-style: preserve-3d;
-}
-
-/* ── Love Jar Creator ── */
-
-.love-jar-input {
-  transition: border-color 0.2s ease;
-}
-
-.love-jar-notebook {
-  position: relative;
-}
-
-.love-jar-textarea {
-  position: relative;
-  z-index: 2;
-  line-height: 2.2rem;
-}
-
-.love-jar-ruled-lines {
-  position: absolute;
-  z-index: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .love-jar-sparkle,
   .love-jar-sparkle-drift {
     display: none !important;
-  }
-
-  .love-jar-live-pulse {
-    animation: none !important;
   }
 }

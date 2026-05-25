@@ -46,13 +46,6 @@ export const allGifts: GiftItem[] = [
 
   // Make Them Melt (₹49)
   {
-    name: 'Love Jar',
-    slug: 'love-jar',
-    emoji: '🫙',
-    badge: '₹49',
-    description: "Shake to pull random love notes they'll cry over.",
-  },
-  {
     name: 'Wishing Dandelion',
     slug: 'wishing-dandelion',
     emoji: '🌼',
@@ -405,7 +398,6 @@ export function getGift(slug: string): GiftItem | undefined {
 }
 
 export const heroGiftSlugs = [
-  'love-jar',
   'wishing-dandelion',
   'the-proposal',
   'spotify-wrapped',
@@ -413,7 +405,6 @@ export const heroGiftSlugs = [
 ] as const;
 
 export const heroGiftDescriptions: Record<string, string> = {
-  'love-jar': 'Shake to pull random love notes',
   'wishing-dandelion': 'Blow to scatter seeds of wishes',
   'the-proposal': 'The "No" button runs away',
   'spotify-wrapped': 'Your relationship, Wrapped-style',
@@ -449,7 +440,6 @@ export const occasions: OccasionFilter[] = [
     label: '🥺 Miss You',
     slugs: [
       'miss-you',
-      'love-jar',
       'wishing-dandelion',
       'paper-airplane-notes',
       'jar-of-fireflies',
@@ -477,7 +467,6 @@ export const occasions: OccasionFilter[] = [
     label: '💕 Just Because',
     slugs: [
       'just-because',
-      'love-jar',
       'love-receipt',
       'coffee-art',
       'cloud-messages',
