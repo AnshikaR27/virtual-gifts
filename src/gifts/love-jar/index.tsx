@@ -28,6 +28,7 @@ function LoveJarInterior({
   const { onClimax, trackInteraction } = useGiftContext();
   const { state, dispatch } = useJarState(messages);
   const [popupVisible, setPopupVisible] = useState(true);
+  const [sceneReady, setSceneReady] = useState(false);
 
   const handleShake = useCallback(() => {
     if (state.phase !== 'idle') return;
@@ -45,6 +46,10 @@ function LoveJarInterior({
     setPopupVisible(false);
     trackInteraction('popup_opened');
   }, [needsPermission, requestPermission, trackInteraction]);
+
+  const handlePopupExitComplete = useCallback(() => {
+    setSceneReady(true);
+  }, []);
 
   const handleKeep = useCallback(() => {
     trackInteraction('keep_note', { noteId: state.currentHeart?.id });
@@ -69,7 +74,7 @@ function LoveJarInterior({
       <div className="relative z-10 flex h-full flex-col items-center justify-center">
         <ShakePrompt
           energy={energy}
-          visible={state.phase === 'idle' && !popupVisible}
+          visible={state.phase === 'idle' && sceneReady}
         />
 
         <JarIllustrated
@@ -80,7 +85,10 @@ function LoveJarInterior({
           onShake={handleShake}
         />
 
-        <div className="mt-4 text-center">
+        <div
+          className="mt-4 text-center transition-opacity duration-[400ms]"
+          style={{ opacity: sceneReady ? 1 : 0 }}
+        >
           <p
             className="text-[12px] text-[#A08060]/60"
             style={{ fontFamily: 'Tahoma, sans-serif' }}
@@ -90,7 +98,12 @@ function LoveJarInterior({
         </div>
       </div>
 
-      <MemoryShelf notes={state.keptNotes} />
+      <div
+        className="transition-opacity duration-[400ms]"
+        style={{ opacity: sceneReady ? 1 : 0 }}
+      >
+        <MemoryShelf notes={state.keptNotes} />
+      </div>
 
       <HeartNote
         message={state.currentHeart?.message}
@@ -104,9 +117,9 @@ function LoveJarInterior({
 
       <ArrivalPopup
         recipientName={recipientName}
-        senderName={senderName}
         messageCount={messages.length}
         onOpen={handleOpenPopup}
+        onExitComplete={handlePopupExitComplete}
         visible={popupVisible}
       />
     </div>

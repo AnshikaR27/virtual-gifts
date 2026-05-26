@@ -6,14 +6,14 @@ import { MochiSprite } from '@/components/shared/craft-elements';
 
 interface ArrivalPopupProps {
   recipientName: string;
-  senderName: string;
   messageCount: number;
   onOpen: () => void;
+  onExitComplete: () => void;
   visible: boolean;
 }
 
 const BUBBLE_PATH =
-  'M 32,168 Q 8,152 10,118 Q 3,72 16,38 Q 28,8 88,5 Q 155,-2 218,8 Q 272,16 275,58 Q 280,102 273,142 Q 266,168 232,176 Q 192,186 146,182 L 86,183 L 46,205 L 64,178 Q 44,180 32,168 Z';
+  'M 32,225 Q 8,208 10,162 Q 3,92 16,48 Q 28,10 88,6 Q 158,-2 222,8 Q 278,18 280,72 Q 284,135 278,192 Q 270,225 238,235 Q 198,248 150,242 L 88,244 L 48,272 L 66,238 Q 44,240 32,225 Z';
 
 const WOBBLY_UNDERLINE = 'M0,2.5 Q8,0.5 18,3 Q30,5 42,2 Q52,0 62,2.5';
 
@@ -31,9 +31,9 @@ function useReducedMotion() {
 
 export function ArrivalPopup({
   recipientName,
-  senderName,
   messageCount,
   onOpen,
+  onExitComplete,
   visible,
 }: ArrivalPopupProps) {
   const [phase, setPhase] = useState<
@@ -55,8 +55,9 @@ export function ArrivalPopup({
   useEffect(() => {
     if (!visible && phase !== 'exiting' && phase !== 'gone') {
       setPhase('gone');
+      onExitComplete();
     }
-  }, [visible, phase]);
+  }, [visible, phase, onExitComplete]);
 
   useEffect(() => {
     if (phase !== 'entering') return;
@@ -130,13 +131,20 @@ export function ArrivalPopup({
     }
 
     setPhase('gone');
-  }, [phase, onOpen, reducedMotion, mochiControls, bubbleControls]);
+    onExitComplete();
+  }, [
+    phase,
+    onOpen,
+    onExitComplete,
+    reducedMotion,
+    mochiControls,
+    bubbleControls,
+  ]);
 
   if (phase === 'gone' || phase === 'waiting') return null;
 
   return (
     <div className="fixed inset-0 z-[60]" style={{ pointerEvents: 'none' }}>
-      {/* Subtle dim overlay */}
       <div
         className="absolute inset-0"
         style={{
@@ -146,20 +154,19 @@ export function ArrivalPopup({
         onClick={handleOkay}
       />
 
-      {/* Mochi + bubble group, anchored bottom-left */}
       <div
         className="absolute bottom-[100px] left-[40px] md:bottom-[120px] md:left-[80px]"
         style={{ pointerEvents: 'auto' }}
       >
-        {/* Speech bubble above Mochi */}
+        {/* Speech bubble */}
         <motion.div
-          className="relative mb-1"
-          style={{ width: 280, height: 210 }}
+          className="relative -mb-3"
+          style={{ width: 290, height: 270 }}
           animate={bubbleControls}
         >
           <svg
             className="absolute inset-0"
-            viewBox="0 0 290 210"
+            viewBox="0 0 300 280"
             fill="none"
             style={{
               filter: 'drop-shadow(0 4px 8px rgba(120, 0, 55, 0.15))',
@@ -176,19 +183,26 @@ export function ArrivalPopup({
 
           <div
             className="relative z-10"
-            style={{ padding: '20px 28px 12px 32px' }}
+            style={{ padding: '24px 28px 14px 32px' }}
           >
-            <p className="font-handwritten text-[20px] leading-snug text-[#3D2817]">
-              oh hi! <DoodleHeart />
+            <p className="font-handwritten text-[22px] leading-snug text-[#3D2817]">
+              okay so listen, {recipientName} <DoodleHeart />
             </p>
-            <p className="mt-1.5 font-handwritten text-[17px] leading-snug text-[#3D2817]">
-              this jar is for you, {recipientName}
+            <p className="mt-1.5 font-handwritten text-[22px] leading-snug text-[#3D2817]">
+              somebody really likes you
             </p>
-            <p className="mt-1 font-handwritten text-[17px] leading-snug text-[#3D2817]">
-              {senderName} put {messageCount} hearts inside —
+            <p className="mt-1 font-handwritten text-[22px] leading-snug text-[#3D2817]">
+              like <span className="text-[25px] font-semibold">REALLY</span>
             </p>
-            <p className="mt-0.5 font-handwritten text-[17px] leading-snug text-[#3D2817]">
-              give it a shake to see one!
+            <p className="mt-1 font-handwritten text-[22px] leading-snug text-[#3D2817]">
+              they wrote you {messageCount} little hearts about it
+            </p>
+
+            <p
+              className="mt-3 font-handwritten text-[16px] leading-snug"
+              style={{ color: 'rgba(61, 40, 23, 0.7)' }}
+            >
+              shake the jar — one falls out at a time
             </p>
 
             <button
@@ -222,10 +236,10 @@ export function ArrivalPopup({
           </div>
         </motion.div>
 
-        {/* Mochi character — motion wrapper for enter/exit, inner div for idle bob */}
+        {/* Mochi character */}
         <motion.div animate={mochiControls}>
           <div
-            className={`[&_.desktop-pet-sprite]:w-[120px] ${phase === 'idle' && !reducedMotion ? 'desktop-pet-bobber' : ''}`}
+            className={`[&_.desktop-pet-sprite]:w-[150px] ${phase === 'idle' && !reducedMotion ? 'desktop-pet-bobber' : ''}`}
           >
             <MochiSprite
               side="left"
