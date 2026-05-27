@@ -37,9 +37,15 @@ interface GiftFrameProps {
   gift: GiftData;
   replayBehavior: ReplayBehavior;
   children: React.ReactNode;
+  anticipationMs?: number;
 }
 
-export function GiftFrame({ gift, replayBehavior, children }: GiftFrameProps) {
+export function GiftFrame({
+  gift,
+  replayBehavior,
+  children,
+  anticipationMs,
+}: GiftFrameProps) {
   const {
     phase,
     startAnticipation,
@@ -50,6 +56,7 @@ export function GiftFrame({ gift, replayBehavior, children }: GiftFrameProps) {
   } = useGiftFrame({
     giftId: gift.id,
     replayBehavior,
+    anticipationMs,
   });
 
   useEffect(() => {

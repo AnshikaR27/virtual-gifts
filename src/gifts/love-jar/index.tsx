@@ -7,7 +7,10 @@ import type { ReplayBehavior } from '@/types';
 import { useJarState } from './hooks/use-jar-state';
 import { useShakeDetector } from './hooks/use-shake-detector';
 import { AmbientBackground } from './components/ambient-background';
-import { ArrivalPopup } from './components/arrival-popup';
+import {
+  MochiScrollLanding,
+  type ScrollTextMode,
+} from './components/mochi-scroll-landing';
 import { ShakePrompt } from './components/shake-prompt';
 import { JarIllustrated } from './components/jar-illustrated';
 import { HeartNote } from './components/heart-note';
@@ -27,8 +30,9 @@ function LoveJarInterior({
 }: LoveJarInteriorProps) {
   const { onClimax, trackInteraction } = useGiftContext();
   const { state, dispatch } = useJarState(messages);
-  const [popupVisible, setPopupVisible] = useState(true);
+  const [landingVisible, setLandingVisible] = useState(true);
   const [sceneReady, setSceneReady] = useState(false);
+  const [textMode, setTextMode] = useState<ScrollTextMode>('beside');
 
   const handleShake = useCallback(() => {
     if (state.phase !== 'idle') return;
@@ -39,15 +43,15 @@ function LoveJarInterior({
   const { energy, requestPermission, needsPermission } =
     useShakeDetector(handleShake);
 
-  const handleOpenPopup = useCallback(async () => {
+  const handleLandingComplete = useCallback(async () => {
     if (needsPermission) {
       await requestPermission();
     }
-    setPopupVisible(false);
-    trackInteraction('popup_opened');
+    setLandingVisible(false);
+    trackInteraction('landing_complete');
   }, [needsPermission, requestPermission, trackInteraction]);
 
-  const handlePopupExitComplete = useCallback(() => {
+  const handleLandingExitComplete = useCallback(() => {
     setSceneReady(true);
   }, []);
 
@@ -115,13 +119,24 @@ function LoveJarInterior({
 
       {state.phase === 'empty' && <EmptyJarState />}
 
-      <ArrivalPopup
+      <MochiScrollLanding
         recipientName={recipientName}
         messageCount={messages.length}
-        onOpen={handleOpenPopup}
-        onExitComplete={handlePopupExitComplete}
-        visible={popupVisible}
+        onComplete={handleLandingComplete}
+        onExitComplete={handleLandingExitComplete}
+        visible={landingVisible}
+        textMode={textMode}
       />
+
+      {landingVisible && (
+        <button
+          className="fixed bottom-4 right-4 z-[70] rounded-full bg-white/90 px-3 py-1.5 text-xs font-medium shadow-md backdrop-blur"
+          style={{ color: '#3D2817' }}
+          onClick={() => setTextMode((m) => (m === 'lens' ? 'beside' : 'lens'))}
+        >
+          {textMode === 'lens' ? 'A: in lens' : 'B: beside'}
+        </button>
+      )}
     </div>
   );
 }
@@ -136,7 +151,7 @@ export default function LoveJar({ gift, replayBehavior }: LoveJarProps) {
   const messages = content.messages ?? [];
 
   return (
-    <GiftFrame gift={gift} replayBehavior={replayBehavior}>
+    <GiftFrame gift={gift} replayBehavior={replayBehavior} anticipationMs={0}>
       <LoveJarInterior
         recipientName={gift.recipientName}
         senderName={gift.senderName ?? 'Someone'}

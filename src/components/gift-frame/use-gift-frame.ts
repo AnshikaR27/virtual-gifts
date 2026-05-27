@@ -23,7 +23,9 @@ export function useGiftFrame({
   anticipationMs = 2000,
   postClimaxDelayMs = 1500,
 }: UseGiftFrameOptions) {
-  const [phase, setPhase] = useState<GiftPhase>('anticipation');
+  const [phase, setPhase] = useState<GiftPhase>(
+    anticipationMs === 0 ? 'reveal' : 'anticipation',
+  );
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const clearTimer = useCallback(() => {
@@ -34,6 +36,10 @@ export function useGiftFrame({
   }, []);
 
   const startAnticipation = useCallback(() => {
+    if (anticipationMs === 0) {
+      setPhase('reveal');
+      return;
+    }
     setPhase('anticipation');
     clearTimer();
     timerRef.current = setTimeout(() => setPhase('reveal'), anticipationMs);
