@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 import { Taskbar } from '@/components/layout/taskbar';
 import { Footer } from '@/components/layout/footer';
+import { HideOnGiftRoute } from '@/components/layout/hide-on-gift-route';
 import { RetroSounds } from '@/components/retro-sounds';
 import { ToastProvider } from '@/components/y2k-toast';
 import { Y2KContextMenu } from '@/components/y2k-context-menu';
@@ -68,12 +69,18 @@ export default async function RootLayout({
         <div className="scanline-overlay" aria-hidden />
         <NextIntlClientProvider messages={messages}>
           <RetroSounds />
-          <Taskbar />
+          <HideOnGiftRoute>
+            <Taskbar />
+          </HideOnGiftRoute>
           <main className="main-min-h">{children}</main>
-          <Footer />
+          <HideOnGiftRoute>
+            <Footer />
+          </HideOnGiftRoute>
           <ToastProvider />
-          <Y2KContextMenu />
-          <WelcomePopup />
+          <HideOnGiftRoute>
+            <Y2KContextMenu />
+            <WelcomePopup />
+          </HideOnGiftRoute>
         </NextIntlClientProvider>
       </body>
     </html>

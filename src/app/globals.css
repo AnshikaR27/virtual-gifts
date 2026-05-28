@@ -1404,3 +1404,16 @@ html {
     display: none !important;
   }
 }
+
+/* ── Fairy lights twinkle ── */
+@keyframes fairy-twinkle {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+}

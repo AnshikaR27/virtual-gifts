@@ -1,22 +1,17 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useRef, useEffect, useCallback, useState } from 'react';
 
-const SHAKE_THRESHOLD_ACCELERATION = 12;
-const ENERGY_PER_SHAKE = 18;
-const ENERGY_DECAY_PER_SECOND = 25;
-const RELEASE_THRESHOLD = 100;
+const SHAKE_THRESHOLD = 14;
+const COOLDOWN_MS = 600;
 
-export function useShakeDetector(onRelease: () => void) {
-  const [energy, setEnergy] = useState(0);
+export function useShakeDetector(onShake: () => void) {
   const [needsPermission, setNeedsPermission] = useState(false);
   const [listening, setListening] = useState(false);
   const lastShakeRef = useRef(0);
-  const energyRef = useRef(0);
-  const rafRef = useRef<number>();
-  const onReleaseRef = useRef(onRelease);
+  const onShakeRef = useRef(onShake);
 
-  onReleaseRef.current = onRelease;
+  onShakeRef.current = onShake;
 
   const handleMotion = useCallback((e: DeviceMotionEvent) => {
     const acc = e.accelerationIncludingGravity;
@@ -27,24 +22,13 @@ export function useShakeDetector(onRelease: () => void) {
     );
 
     const now = Date.now();
-    if (now - lastShakeRef.current < 100) return;
-
-    if (magnitude > SHAKE_THRESHOLD_ACCELERATION) {
+    if (
+      magnitude > SHAKE_THRESHOLD &&
+      now - lastShakeRef.current > COOLDOWN_MS
+    ) {
       lastShakeRef.current = now;
-      energyRef.current = Math.min(
-        RELEASE_THRESHOLD,
-        energyRef.current + ENERGY_PER_SHAKE,
-      );
-      setEnergy(energyRef.current);
-
-      if (navigator.vibrate) navigator.vibrate(20);
-
-      if (energyRef.current >= RELEASE_THRESHOLD) {
-        energyRef.current = 0;
-        setEnergy(0);
-        if (navigator.vibrate) navigator.vibrate([50, 30, 80]);
-        onReleaseRef.current();
-      }
+      if (navigator.vibrate) navigator.vibrate([40, 20, 60]);
+      onShakeRef.current();
     }
   }, []);
 
@@ -65,7 +49,7 @@ export function useShakeDetector(onRelease: () => void) {
           startListening();
         }
       } catch {
-        // Permission denied — fall back to tap
+        // Permission denied — button fallback always works
       }
     } else {
       startListening();
@@ -82,26 +66,6 @@ export function useShakeDetector(onRelease: () => void) {
   }, []);
 
   useEffect(() => {
-    let last = performance.now();
-    const decay = (now: number) => {
-      const dt = (now - last) / 1000;
-      last = now;
-      if (energyRef.current > 0) {
-        energyRef.current = Math.max(
-          0,
-          energyRef.current - ENERGY_DECAY_PER_SECOND * dt,
-        );
-        setEnergy(energyRef.current);
-      }
-      rafRef.current = requestAnimationFrame(decay);
-    };
-    rafRef.current = requestAnimationFrame(decay);
-    return () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    };
-  }, []);
-
-  useEffect(() => {
     return () => {
       if (listening) {
         window.removeEventListener('devicemotion', handleMotion);
@@ -109,5 +73,5 @@ export function useShakeDetector(onRelease: () => void) {
     };
   }, [listening, handleMotion]);
 
-  return { energy, requestPermission, needsPermission };
+  return { requestPermission, needsPermission };
 }
