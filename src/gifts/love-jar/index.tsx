@@ -7,24 +7,17 @@ import type { ReplayBehavior } from '@/types';
 import { LoveJarWindow } from './components/love-jar-window';
 
 interface LoveJarInteriorProps {
-  recipientName: string;
   messages: string[];
 }
 
-function LoveJarInterior({ recipientName, messages }: LoveJarInteriorProps) {
+function LoveJarInterior({ messages }: LoveJarInteriorProps) {
   const { trackInteraction } = useGiftContext();
 
   const handleShake = useCallback(() => {
     trackInteraction('shake');
   }, [trackInteraction]);
 
-  return (
-    <LoveJarWindow
-      recipientName={recipientName}
-      messageCount={messages.length}
-      onShake={handleShake}
-    />
-  );
+  return <LoveJarWindow messages={messages} onShake={handleShake} />;
 }
 
 interface LoveJarProps {
@@ -38,7 +31,7 @@ export default function LoveJar({ gift, replayBehavior }: LoveJarProps) {
 
   return (
     <GiftFrame gift={gift} replayBehavior={replayBehavior} anticipationMs={0}>
-      <LoveJarInterior recipientName={gift.recipientName} messages={messages} />
+      <LoveJarInterior messages={messages} />
     </GiftFrame>
   );
 }

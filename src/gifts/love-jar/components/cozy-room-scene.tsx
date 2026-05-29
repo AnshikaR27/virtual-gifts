@@ -1,11 +1,47 @@
 'use client';
 
+import { useCallback, useEffect } from 'react';
+import { useJarState } from '../hooks/use-jar-state';
+import { useShakeDetector } from '../hooks/use-shake-detector';
+import { HeartRelease } from './heart-release';
+import { MessageCard } from './message-card';
+
 interface CozyRoomSceneProps {
-  messageCount: number;
+  messages: string[];
   onShake: () => void;
 }
 
-export function CozyRoomScene({ messageCount, onShake }: CozyRoomSceneProps) {
+export function CozyRoomScene({ messages, onShake }: CozyRoomSceneProps) {
+  const { phase, remaining, currentMessage, triggerShake, dismissCard } =
+    useJarState(messages);
+
+  const handleShake = useCallback(() => {
+    triggerShake();
+    onShake();
+  }, [triggerShake, onShake]);
+
+  const { requestPermission, needsPermission } = useShakeDetector(handleShake);
+
+  useEffect(() => {
+    if (!needsPermission) return;
+    // Auto-request on first tap anywhere (iOS requires user gesture)
+    const handler = () => {
+      requestPermission();
+      window.removeEventListener('touchstart', handler);
+    };
+    window.addEventListener('touchstart', handler, { once: true });
+    return () => window.removeEventListener('touchstart', handler);
+  }, [needsPermission, requestPermission]);
+
+  const isShaking = phase === 'shaking' || phase === 'releasing';
+  const jarAnimation = isShaking
+    ? 'jar-shake 600ms cubic-bezier(0.36, 0.07, 0.19, 0.97) both'
+    : 'jar-idle-wobble 4s ease-in-out infinite';
+
+  const handleHeartComplete = useCallback(() => {
+    // Phase transition handled by useJarState timers
+  }, []);
+
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
       {/* Background image — full bleed, pixelated */}
@@ -27,9 +63,22 @@ export function CozyRoomScene({ messageCount, onShake }: CozyRoomSceneProps) {
           imageRendering: 'pixelated',
           WebkitFontSmoothing: 'none',
           transformOrigin: 'bottom center',
-          animation: 'jar-idle-wobble 4s ease-in-out infinite',
+          animation: jarAnimation,
         }}
         draggable={false}
+      />
+
+      {/* Heart release animation */}
+      <HeartRelease
+        active={phase === 'releasing'}
+        onComplete={handleHeartComplete}
+      />
+
+      {/* Message card */}
+      <MessageCard
+        message={currentMessage ?? ''}
+        visible={phase === 'showing-card'}
+        onDismiss={dismissCard}
       />
 
       {/* Bottom UI — counter + button, over the desk foreground */}
@@ -42,14 +91,19 @@ export function CozyRoomScene({ messageCount, onShake }: CozyRoomSceneProps) {
             textShadow: '0 1px 0 rgba(255,255,255,0.3)',
           }}
         >
-          &#9829; {messageCount} messages inside &#9829;
+          {phase === 'empty'
+            ? '♡ jar is empty ♡'
+            : `♥ ${remaining} messages inside ♥`}
         </p>
 
         {/* Shake button — soft pink pixel style */}
         <button
           className="select-none font-pixel text-[17px] tracking-wide text-white"
           style={{
-            background: 'linear-gradient(180deg, #ff8fbf, #e8609a)',
+            background:
+              phase === 'empty' || isShaking || phase === 'showing-card'
+                ? 'linear-gradient(180deg, #cca0b0, #b08090)'
+                : 'linear-gradient(180deg, #ff8fbf, #e8609a)',
             border: '2px solid rgba(255, 255, 255, 0.3)',
             borderRadius: 4,
             padding: '10px 28px',
@@ -57,23 +111,31 @@ export function CozyRoomScene({ messageCount, onShake }: CozyRoomSceneProps) {
             textShadow: '0 1px 2px rgba(0,0,0,0.2)',
             boxShadow:
               '0 2px 8px rgba(200, 60, 120, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
-            cursor: 'pointer',
+            cursor:
+              phase === 'empty' || isShaking || phase === 'showing-card'
+                ? 'default'
+                : 'pointer',
+            opacity: isShaking || phase === 'showing-card' ? 0.5 : 1,
+            transition: 'opacity 300ms, background 300ms',
           }}
-          onClick={onShake}
+          onClick={handleShake}
+          disabled={phase !== 'idle'}
         >
-          SHAKE THE JAR &#9829;
+          {phase === 'empty' ? 'ALL HEARTS FREED ♡' : 'SHAKE THE JAR ♥'}
         </button>
 
         {/* Mobile hint */}
-        <p
-          className="select-none font-pixel text-[12px]"
-          style={{
-            color: 'rgba(90, 60, 35, 0.5)',
-            textShadow: '0 1px 0 rgba(255,255,255,0.2)',
-          }}
-        >
-          or shake your phone!
-        </p>
+        {phase === 'idle' && (
+          <p
+            className="select-none font-pixel text-[12px]"
+            style={{
+              color: 'rgba(90, 60, 35, 0.5)',
+              textShadow: '0 1px 0 rgba(255,255,255,0.2)',
+            }}
+          >
+            or shake your phone!
+          </p>
+        )}
       </div>
     </div>
   );

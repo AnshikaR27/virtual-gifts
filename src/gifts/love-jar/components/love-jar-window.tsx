@@ -3,11 +3,10 @@
 import { CozyRoomScene } from './cozy-room-scene';
 
 interface LoveJarWindowProps {
-  recipientName: string;
-  messageCount: number;
+  messages: string[];
   onShake: () => void;
 }
 
-export function LoveJarWindow({ messageCount, onShake }: LoveJarWindowProps) {
-  return <CozyRoomScene messageCount={messageCount} onShake={onShake} />;
+export function LoveJarWindow({ messages, onShake }: LoveJarWindowProps) {
+  return <CozyRoomScene messages={messages} onShake={onShake} />;
 }
