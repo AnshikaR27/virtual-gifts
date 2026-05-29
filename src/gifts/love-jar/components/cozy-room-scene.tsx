@@ -17,24 +17,20 @@ export function CozyRoomScene({ messageCount, onShake }: CozyRoomSceneProps) {
         draggable={false}
       />
 
-      {/* Jar placeholder — sits on the cream mat */}
-      <div
-        className="absolute left-1/2 flex -translate-x-1/2 items-center justify-center rounded border-2 border-dashed"
+      {/* Jar — sitting on the desk */}
+      <img
+        src="/images/love-jar.png"
+        alt="Love jar full of hearts"
+        className="absolute left-1/2 w-[36vw] max-w-[200px] -translate-x-1/2 select-none sm:w-[22vw] sm:max-w-[240px]"
         style={{
-          bottom: '18%',
-          width: 100,
-          height: 130,
-          borderColor: 'rgba(120, 80, 50, 0.45)',
-          background: 'rgba(255, 255, 255, 0.1)',
+          bottom: '22%',
+          imageRendering: 'pixelated',
+          WebkitFontSmoothing: 'none',
+          transformOrigin: 'bottom center',
+          animation: 'jar-idle-wobble 4s ease-in-out infinite',
         }}
-      >
-        <span
-          className="select-none whitespace-pre-wrap text-center font-pixel text-[12px] leading-snug"
-          style={{ color: 'rgba(120, 80, 50, 0.6)' }}
-        >
-          {'[ jar\ngoes\nhere ]'}
-        </span>
-      </div>
+        draggable={false}
+      />
 
       {/* Bottom UI — counter + button, over the desk foreground */}
       <div className="absolute inset-x-0 bottom-0 z-20 flex flex-col items-center gap-2 pb-4 pt-2">

@@ -1417,3 +1417,21 @@ html {
     transform: translate(-50%, -50%) scale(1.2);
   }
 }
+
+/* ── Jar idle wobble ── */
+@keyframes jar-idle-wobble {
+  0%,
+  100% {
+    transform: translateX(-50%) rotate(-1.5deg);
+  }
+  50% {
+    transform: translateX(-50%) rotate(1.5deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [style*='jar-idle-wobble'] {
+    animation: none !important;
+    transform: translateX(-50%) rotate(0deg) !important;
+  }
+}
