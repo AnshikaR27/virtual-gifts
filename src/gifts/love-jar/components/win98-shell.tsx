@@ -15,14 +15,15 @@ import { COZY_ROOM_VIDEO_SRC } from './cozy-room-scene';
  * Win98/Y2K shell for the Love Jar gift.
  *
  * Flow (state machine):
- *   landing -> popup -> (OK) -> (videoReady ? loaded : waiting) -> loaded
+ *   landing (loading bar) -> popup -> (OK) -> loaded
  *
- * The popup is cute thematic content AND a cover for preloading the heavy
- * cozy-room background video. We start preloading immediately on mount so the
- * scene plays instantly the moment it is revealed.
+ * We preload the heavy cozy-room background video on mount and hold on the
+ * loading bar until it is fully buffered (or a hard cap is hit). Only then does
+ * the popup appear — so pressing OK reveals the scene instantly, with no second
+ * loading hiccup behind the popup.
  */
 
-type Phase = 'landing' | 'popup' | 'waiting' | 'loaded';
+type Phase = 'landing' | 'popup' | 'loaded';
 
 // Pixel arrow cursor (task spec) — applied to the desktop only.
 const PIXEL_CURSOR =
@@ -116,7 +117,6 @@ export function Win98Shell({ messageCount, children, mochi }: Win98ShellProps) {
   const [fromLabel, setFromLabel] = useState('someone special');
   const [confirmClose, setConfirmClose] = useState(false);
 
-  const videoReadyRef = useRef(false);
   const popupCopy = useRef(
     POPUP_VARIANTS[Math.floor(Math.random() * POPUP_VARIANTS.length)],
   );
@@ -146,7 +146,6 @@ export function Win98Shell({ messageCount, children, mochi }: Win98ShellProps) {
     v.setAttribute('playsinline', '');
 
     const markReady = () => {
-      videoReadyRef.current = true;
       setVideoReady(true);
       setProgress(100);
     };
@@ -178,32 +177,26 @@ export function Win98Shell({ messageCount, children, mochi }: Win98ShellProps) {
     };
   }, []);
 
-  // ── Trigger the popup shortly after landing ──
+  // ── Hold on the loading bar until the scene is fully preloaded, then show
+  //    the popup. A hard cap guarantees we never trap the user on the bar if a
+  //    browser never fires canplaythrough. ──
   useEffect(() => {
-    const t = setTimeout(() => {
-      setPhase((p) => (p === 'landing' ? 'popup' : p));
-    }, 300);
-    return () => clearTimeout(t);
-  }, []);
-
-  // ── While waiting on a slow video, reveal once ready (or after a cap) ──
-  useEffect(() => {
-    if (phase !== 'waiting') return;
+    if (phase !== 'landing') return;
     if (videoReady) {
-      setPhase('loaded');
-      return;
+      // Small beat so the bar doesn't flash by on fast / cached loads.
+      const t = setTimeout(() => setPhase('popup'), 400);
+      return () => clearTimeout(t);
     }
-    const cap = setTimeout(() => setPhase('loaded'), MAX_WAIT_MS);
+    const cap = setTimeout(() => setPhase('popup'), MAX_WAIT_MS);
     return () => clearTimeout(cap);
   }, [phase, videoReady]);
 
   const dismissPopup = useCallback(() => {
     playClick();
     setPopupClosing(true);
-    // Win98 dismissals are near-instant.
-    setTimeout(() => {
-      setPhase(videoReadyRef.current ? 'loaded' : 'waiting');
-    }, 100);
+    // Scene is already preloaded by the time the popup shows, so reveal it
+    // straight away. Win98 dismissals are near-instant.
+    setTimeout(() => setPhase('loaded'), 100);
   }, []);
 
   const titleText = `love-jar.exe — from ${fromLabel}`;
