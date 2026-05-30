@@ -1,10 +1,12 @@
 'use client';
 
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useJarState } from '../hooks/use-jar-state';
 import { useShakeDetector } from '../hooks/use-shake-detector';
 import { HeartRelease } from './heart-release';
 import { MessageCard } from './message-card';
+
+const BG_VIDEO_PLAYBACK_RATE = 0.4;
 
 interface CozyRoomSceneProps {
   messages: string[];
@@ -32,6 +34,14 @@ export function CozyRoomScene({ messages, onShake }: CozyRoomSceneProps) {
     return () => window.removeEventListener('touchstart', handler);
   }, [needsPermission, requestPermission]);
 
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [videoFailed, setVideoFailed] = useState(false);
+
+  useEffect(() => {
+    const vid = videoRef.current;
+    if (vid) vid.playbackRate = BG_VIDEO_PLAYBACK_RATE;
+  }, []);
+
   const isShaking = phase === 'shaking' || phase === 'releasing';
   const jarAnimation = isShaking
     ? 'jar-shake 600ms cubic-bezier(0.36, 0.07, 0.19, 0.97) both'
@@ -43,13 +53,32 @@ export function CozyRoomScene({ messages, onShake }: CozyRoomSceneProps) {
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
-      {/* Background image — full bleed, pixelated, completely static */}
-      <img
-        src="/images/love-jar-room.png"
-        alt=""
-        className="absolute inset-0 h-full w-full object-cover"
-        style={{ imageRendering: 'pixelated' }}
-        draggable={false}
+      {/* Background — video with static image fallback */}
+      {videoFailed ? (
+        <img
+          src="/images/love-jar-room.png"
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+      ) : (
+        <video
+          ref={videoRef}
+          src="/videos/cozy-room-loop.mp4"
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 h-full w-full object-cover"
+          onError={() => setVideoFailed(true)}
+        />
+      )}
+
+      {/* Vignette overlay — softens edges to hide loop seam */}
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          boxShadow: 'inset 0 0 80px 30px rgba(0, 0, 0, 0.35)',
+        }}
       />
 
       {/* Soft glow behind the jar */}
