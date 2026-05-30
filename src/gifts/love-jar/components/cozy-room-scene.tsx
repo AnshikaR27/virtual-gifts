@@ -63,7 +63,7 @@ export function CozyRoomScene({ messages, onShake }: CozyRoomSceneProps) {
       ) : (
         <video
           ref={videoRef}
-          src="/videos/cozy-room-loop.mp4"
+          src="/videos/cozy-room-loop-pingpong.mp4"
           autoPlay
           loop
           muted
@@ -86,8 +86,8 @@ export function CozyRoomScene({ messages, onShake }: CozyRoomSceneProps) {
         className="pointer-events-none absolute left-1/2 z-[8] -translate-x-1/2"
         style={{
           bottom: '18%',
-          width: '62vw',
-          maxWidth: 345,
+          width: '79vw',
+          maxWidth: 440,
           aspectRatio: '1',
           background:
             'radial-gradient(circle, rgba(255, 180, 180, 0.3) 0%, transparent 60%)',
@@ -99,11 +99,12 @@ export function CozyRoomScene({ messages, onShake }: CozyRoomSceneProps) {
       <img
         src="/images/love-jar.png"
         alt="Love jar full of hearts"
-        className="absolute left-1/2 z-10 w-[41vw] max-w-[230px] -translate-x-1/2 select-none sm:w-[25vw] sm:max-w-[275px]"
+        className="absolute left-1/2 z-10 w-[52vw] max-w-[293px] -translate-x-1/2 select-none sm:w-[32vw] sm:max-w-[350px]"
         style={{
           bottom: '18%',
           transformOrigin: 'bottom center',
           animation: jarAnimation,
+          imageRendering: 'pixelated',
         }}
         draggable={false}
       />
