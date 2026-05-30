@@ -1405,19 +1405,19 @@ html {
   }
 }
 
-/* ── Room breath — subtle background sway ── */
-@keyframes room-breath {
+/* ── Curtain sway overlay ── */
+@keyframes curtain-sway {
   0% {
-    transform: translateX(0);
+    transform: translateX(0) rotate(0deg);
   }
   30% {
-    transform: translateX(-3px);
+    transform: translateX(4px) rotate(1.5deg);
   }
-  65% {
-    transform: translateX(2px);
+  70% {
+    transform: translateX(-2px) rotate(-1deg);
   }
   100% {
-    transform: translateX(0);
+    transform: translateX(0) rotate(0deg);
   }
 }
 
@@ -1425,12 +1425,28 @@ html {
 @keyframes fairy-twinkle {
   0%,
   100% {
-    opacity: 0.4;
+    opacity: 0.3;
     transform: translate(-50%, -50%) scale(0.8);
   }
   50% {
     opacity: 1;
     transform: translate(-50%, -50%) scale(1.2);
+  }
+}
+
+/* ── Tea steam drift ── */
+@keyframes steam-drift {
+  0% {
+    opacity: 0.6;
+    transform: translateY(0) translateX(0) scaleX(1);
+  }
+  50% {
+    opacity: 0.3;
+    transform: translateY(-20px) translateX(3px) scaleX(1.3);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-40px) translateX(-2px) scaleX(0.8);
   }
 }
 
@@ -1567,12 +1583,16 @@ html {
     animation: none !important;
     transform: translateX(-50%) rotate(0deg) !important;
   }
-  [style*='room-breath'] {
+  [style*='curtain-sway'] {
     animation: none !important;
     transform: none !important;
   }
   [style*='fairy-twinkle'] {
     animation: none !important;
+  }
+  [style*='steam-drift'] {
+    animation: none !important;
+    opacity: 0.4 !important;
   }
   [style*='jar-glow-pulse'] {
     animation: none !important;

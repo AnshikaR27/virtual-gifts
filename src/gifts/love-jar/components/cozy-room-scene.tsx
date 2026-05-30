@@ -17,6 +17,12 @@ const FAIRY_DOTS = [
   { x: 87, y: 15, size: 9, delay: 2.0, duration: 3.4 },
 ];
 
+const STEAM_WISPS = [
+  { left: 14.5, top: 57, w: 8, h: 22, delay: 0, duration: 4.5 },
+  { left: 16, top: 58, w: 6, h: 18, delay: 1.5, duration: 4 },
+  { left: 13.5, top: 56, w: 7, h: 25, delay: 3, duration: 5 },
+];
+
 interface CozyRoomSceneProps {
   messages: string[];
   onShake: () => void;
@@ -54,20 +60,45 @@ export function CozyRoomScene({ messages, onShake }: CozyRoomSceneProps) {
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
-      {/* Background image — full bleed, pixelated, with subtle breath */}
+      {/* Background image — full bleed, pixelated, completely static */}
       <img
         src="/images/love-jar-room.png"
         alt=""
         className="absolute inset-0 h-full w-full object-cover"
-        style={{
-          imageRendering: 'pixelated',
-          animation: 'room-breath 8s ease-in-out infinite',
-        }}
+        style={{ imageRendering: 'pixelated' }}
         draggable={false}
       />
 
-      {/* Fairy light twinkle dots — over the painted lights */}
-      <div className="pointer-events-none absolute inset-0 z-[5]">
+      {/* ── Overlay: curtain sway ── */}
+      <div
+        className="pointer-events-none absolute z-[2]"
+        style={{
+          left: 0,
+          top: 0,
+          width: '12%',
+          height: '62%',
+          background:
+            'linear-gradient(to right, rgba(255, 248, 240, 0.2) 0%, rgba(255, 248, 240, 0.08) 60%, transparent 100%)',
+          transformOrigin: 'top center',
+          animation: 'curtain-sway 6s ease-in-out infinite',
+        }}
+      />
+      <div
+        className="pointer-events-none absolute z-[2]"
+        style={{
+          right: 0,
+          top: 0,
+          width: '13%',
+          height: '62%',
+          background:
+            'linear-gradient(to left, rgba(255, 248, 240, 0.2) 0%, rgba(255, 248, 240, 0.08) 60%, transparent 100%)',
+          transformOrigin: 'top center',
+          animation: 'curtain-sway 6s ease-in-out 2s infinite',
+        }}
+      />
+
+      {/* ── Overlay: fairy light twinkle dots ── */}
+      <div className="pointer-events-none absolute inset-0 z-[3]">
         {FAIRY_DOTS.map((dot, i) => (
           <div
             key={i}
@@ -88,13 +119,35 @@ export function CozyRoomScene({ messages, onShake }: CozyRoomSceneProps) {
         ))}
       </div>
 
+      {/* ── Overlay: tea steam wisps ── */}
+      <div className="pointer-events-none absolute inset-0 z-[4]">
+        {STEAM_WISPS.map((wisp, i) => (
+          <div
+            key={i}
+            style={{
+              position: 'absolute',
+              left: `${wisp.left}%`,
+              top: `${wisp.top}%`,
+              width: wisp.w,
+              height: wisp.h,
+              borderRadius: '50%',
+              background:
+                'radial-gradient(ellipse, rgba(255, 250, 240, 0.55) 0%, transparent 70%)',
+              filter: 'blur(2px)',
+              mixBlendMode: 'screen',
+              animation: `steam-drift ${wisp.duration}s ease-out ${wisp.delay}s infinite`,
+            }}
+          />
+        ))}
+      </div>
+
       {/* Soft glow behind the jar */}
       <div
         className="pointer-events-none absolute left-1/2 z-[8] -translate-x-1/2"
         style={{
-          bottom: '24%',
-          width: '68vw',
-          maxWidth: 375,
+          bottom: '18%',
+          width: '62vw',
+          maxWidth: 345,
           aspectRatio: '1',
           background:
             'radial-gradient(circle, rgba(255, 180, 180, 0.3) 0%, transparent 60%)',
@@ -102,13 +155,13 @@ export function CozyRoomScene({ messages, onShake }: CozyRoomSceneProps) {
         }}
       />
 
-      {/* Jar — sitting on the desk, centered on placemat */}
+      {/* Jar — front of desk, centered on placemat */}
       <img
         src="/images/love-jar.png"
         alt="Love jar full of hearts"
-        className="absolute left-1/2 z-10 w-[45vw] max-w-[250px] -translate-x-1/2 select-none sm:w-[28vw] sm:max-w-[300px]"
+        className="absolute left-1/2 z-10 w-[41vw] max-w-[230px] -translate-x-1/2 select-none sm:w-[25vw] sm:max-w-[275px]"
         style={{
-          bottom: '24%',
+          bottom: '18%',
           imageRendering: 'pixelated',
           WebkitFontSmoothing: 'none',
           transformOrigin: 'bottom center',
