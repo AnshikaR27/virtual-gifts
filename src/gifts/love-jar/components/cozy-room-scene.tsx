@@ -63,7 +63,7 @@ export function CozyRoomScene({ messages, onShake }: CozyRoomSceneProps) {
       ) : (
         <video
           ref={videoRef}
-          src="/videos/cozy-room-loop-pingpong.mp4"
+          src="/videos/cozy-room-loop-clean.mp4"
           autoPlay
           loop
           muted
