@@ -102,8 +102,6 @@ export function CozyRoomScene({ messages, onShake }: CozyRoomSceneProps) {
         className="absolute left-1/2 z-10 w-[41vw] max-w-[230px] -translate-x-1/2 select-none sm:w-[25vw] sm:max-w-[275px]"
         style={{
           bottom: '18%',
-          imageRendering: 'pixelated',
-          WebkitFontSmoothing: 'none',
           transformOrigin: 'bottom center',
           animation: jarAnimation,
         }}
