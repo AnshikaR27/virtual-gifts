@@ -17,7 +17,7 @@ interface CozyRoomSceneProps {
 }
 
 export function CozyRoomScene({ messages, onShake }: CozyRoomSceneProps) {
-  const { phase, remaining, currentMessage, triggerShake, dismissCard } =
+  const { phase, currentMessage, triggerShake, dismissCard } =
     useJarState(messages);
 
   const handleShake = useCallback(() => {
@@ -55,13 +55,19 @@ export function CozyRoomScene({ messages, onShake }: CozyRoomSceneProps) {
   }, []);
 
   return (
-    <div className="absolute inset-0 overflow-hidden">
-      {/* Background — video with static image fallback */}
+    <div
+      className="absolute inset-0 overflow-hidden"
+      // Lilac fill so the letterbox bars around the contained video blend
+      // with the Win98 desktop and read as intentional, not as a gap.
+      style={{ backgroundColor: 'var(--win-bg)' }}
+    >
+      {/* Background — video with static image fallback. object-contain shows
+          the full composition (no cropping), letterboxed onto --win-bg. */}
       {videoFailed ? (
         <img
           src="/images/love-jar-room.png"
           alt=""
-          className="absolute inset-0 h-full w-full object-cover"
+          className="absolute inset-0 h-full w-full object-contain"
         />
       ) : (
         <video
@@ -71,7 +77,7 @@ export function CozyRoomScene({ messages, onShake }: CozyRoomSceneProps) {
           loop
           muted
           playsInline
-          className="absolute inset-0 h-full w-full object-cover"
+          className="absolute inset-0 h-full w-full object-contain"
           onError={() => setVideoFailed(true)}
         />
       )}
@@ -125,62 +131,11 @@ export function CozyRoomScene({ messages, onShake }: CozyRoomSceneProps) {
         onDismiss={dismissCard}
       />
 
-      {/* Bottom UI — counter + button, over the desk foreground */}
-      <div className="absolute inset-x-0 bottom-0 z-20 flex flex-col items-center gap-2 pb-4 pt-2">
-        {/* Message counter */}
-        <p
-          className="select-none font-pixel text-[16px] tracking-wide"
-          style={{
-            color: 'rgba(90, 60, 35, 0.85)',
-            textShadow: '0 1px 0 rgba(255,255,255,0.3)',
-          }}
-        >
-          {phase === 'empty'
-            ? '♡ jar is empty ♡'
-            : `♥ ${remaining} messages inside ♥`}
-        </p>
-
-        {/* Shake button — soft pink pixel style */}
-        <button
-          className="select-none font-pixel text-[17px] tracking-wide text-white"
-          style={{
-            background:
-              phase === 'empty' || isShaking || phase === 'showing-card'
-                ? 'linear-gradient(180deg, #cca0b0, #b08090)'
-                : 'linear-gradient(180deg, #ff8fbf, #e8609a)',
-            border: '2px solid rgba(255, 255, 255, 0.3)',
-            borderRadius: 4,
-            padding: '10px 28px',
-            minHeight: 48,
-            textShadow: '0 1px 2px rgba(0,0,0,0.2)',
-            boxShadow:
-              '0 2px 8px rgba(200, 60, 120, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
-            cursor:
-              phase === 'empty' || isShaking || phase === 'showing-card'
-                ? 'default'
-                : 'pointer',
-            opacity: isShaking || phase === 'showing-card' ? 0.5 : 1,
-            transition: 'opacity 300ms, background 300ms',
-          }}
-          onClick={handleShake}
-          disabled={phase !== 'idle'}
-        >
-          {phase === 'empty' ? 'ALL HEARTS FREED ♡' : 'SHAKE THE JAR ♥'}
-        </button>
-
-        {/* Mobile hint */}
-        {phase === 'idle' && (
-          <p
-            className="select-none font-pixel text-[12px]"
-            style={{
-              color: 'rgba(255, 252, 246, 0.75)',
-              textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
-            }}
-          >
-            or shake your phone!
-          </p>
-        )}
-      </div>
+      {/* Content area holds only the scene/video — no overlaid in-content text.
+          Mobile interaction is the DeviceMotion shake (see useShakeDetector).
+          TODO: desktop has no motion sensor and the visible SHAKE button was
+          removed, so the jar is currently uninteractable on desktop. Decide on
+          a desktop fallback later (e.g. tap-on-jar onClick affordance). */}
     </div>
   );
 }
