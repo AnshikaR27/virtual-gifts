@@ -104,9 +104,11 @@ const POPUP_VARIANTS: PopupCopy[] = [
 interface Win98ShellProps {
   messageCount: number;
   children: React.ReactNode;
+  /** Optional character (e.g. Mochi) that perches on top of the window. */
+  mochi?: React.ReactNode;
 }
 
-export function Win98Shell({ messageCount, children }: Win98ShellProps) {
+export function Win98Shell({ messageCount, children, mochi }: Win98ShellProps) {
   const [phase, setPhase] = useState<Phase>('landing');
   const [popupClosing, setPopupClosing] = useState(false);
   const [videoReady, setVideoReady] = useState(false);
@@ -208,7 +210,9 @@ export function Win98Shell({ messageCount, children }: Win98ShellProps) {
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-center justify-center sm:p-6"
+      className={`win98-desktop fixed inset-0 z-[60] flex items-center justify-center sm:p-6${
+        mochi ? ' has-mochi' : ''
+      }`}
       style={{
         background: 'linear-gradient(135deg, #C8A8E0 0%, #B89AD8 100%)',
         cursor: PIXEL_CURSOR,
@@ -218,12 +222,19 @@ export function Win98Shell({ messageCount, children }: Win98ShellProps) {
       <div
         className="win98-window flex flex-col"
         style={{
+          position: 'relative',
           width: 'min(96vw, 430px)',
-          height: 'min(96dvh, 860px)',
+          height: 'min(78dvh, 680px)',
           padding: 3,
           boxShadow: '2px 2px 0 0 #000',
         }}
       >
+        {/* Mochi perches above the title bar when provided */}
+        {mochi && (
+          <div className="mochi-perch" aria-hidden>
+            {mochi}
+          </div>
+        )}
         {/* Title bar (yellow → orange dithered) */}
         <div
           className="flex shrink-0 items-center justify-between"

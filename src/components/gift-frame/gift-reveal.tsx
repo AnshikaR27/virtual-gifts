@@ -27,8 +27,11 @@ export function GiftReveal({
   return (
     <motion.div
       className="flex h-full w-full items-center justify-center"
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
+      // No opacity fade: keeping the window fully opaque means the SSR HTML
+      // already paints the full chrome on first frame (the gift uses its own
+      // popup reveal), so slow connections never see an empty background.
+      initial={{ scale: 0.9 }}
+      animate={{ scale: 1 }}
       transition={{ type: 'spring', stiffness: 200, damping: 20 }}
       onAnimationComplete={onAnimationComplete}
     >

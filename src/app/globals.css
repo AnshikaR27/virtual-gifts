@@ -393,8 +393,41 @@
   }
 }
 
+/* Paint the Win98 lilac desktop immediately, before any React renders, so the
+   browser never flashes white before the purple background appears. */
+html,
+body {
+  background-color: var(--win-bg);
+}
+
 html {
   scroll-behavior: smooth;
+}
+
+/* â”€â”€ Love Jar window placement + Mochi perch â”€â”€ */
+
+/* Bias the love-jar window toward the bottom of the lilac desktop, leaving
+   ~80-100px of empty desktop above the title bar (the Mochi perch area). */
+.win98-desktop > .win98-window {
+  transform: translateY(16px);
+}
+
+/* When Mochi is perched on the window, shift down a touch more (~30px) so it
+   has room to breathe above without getting clipped by the viewport top edge. */
+.win98-desktop.has-mochi > .win98-window {
+  transform: translateY(46px);
+}
+
+/* Mochi sits on top of the window, its bottom edge overlapping the title bar by
+   ~18px so it looks perched rather than floating. */
+.mochi-perch {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(100% - 18px); /* overlap into the title bar by 18px */
+  z-index: 10;
+  pointer-events: none; /* don't block taps on the title buttons */
+  image-rendering: pixelated; /* in case Mochi is pixel art */
 }
 
 /* â”€â”€ Y2K custom cursor (desktop only) â”€â”€ */
