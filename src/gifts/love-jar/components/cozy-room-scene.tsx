@@ -6,6 +6,17 @@ import { useShakeDetector } from '../hooks/use-shake-detector';
 import { HeartRelease } from './heart-release';
 import { MessageCard } from './message-card';
 
+const FAIRY_DOTS = [
+  { x: 13, y: 15, size: 10, delay: 0, duration: 3 },
+  { x: 22, y: 12.5, size: 8, delay: 0.7, duration: 2.5 },
+  { x: 32, y: 10.5, size: 12, delay: 1.4, duration: 3.5 },
+  { x: 42, y: 9, size: 9, delay: 0.3, duration: 2.8 },
+  { x: 55, y: 9, size: 11, delay: 1.8, duration: 3.2 },
+  { x: 65, y: 10.5, size: 8, delay: 0.5, duration: 4 },
+  { x: 76, y: 12.5, size: 10, delay: 1.1, duration: 2.6 },
+  { x: 87, y: 15, size: 9, delay: 2.0, duration: 3.4 },
+];
+
 interface CozyRoomSceneProps {
   messages: string[];
   onShake: () => void;
@@ -24,7 +35,6 @@ export function CozyRoomScene({ messages, onShake }: CozyRoomSceneProps) {
 
   useEffect(() => {
     if (!needsPermission) return;
-    // Auto-request on first tap anywhere (iOS requires user gesture)
     const handler = () => {
       requestPermission();
       window.removeEventListener('touchstart', handler);
@@ -44,22 +54,61 @@ export function CozyRoomScene({ messages, onShake }: CozyRoomSceneProps) {
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
-      {/* Background image — full bleed, pixelated */}
+      {/* Background image — full bleed, pixelated, with subtle breath */}
       <img
         src="/images/love-jar-room.png"
         alt=""
         className="absolute inset-0 h-full w-full object-cover"
-        style={{ imageRendering: 'pixelated' }}
+        style={{
+          imageRendering: 'pixelated',
+          animation: 'room-breath 8s ease-in-out infinite',
+        }}
         draggable={false}
       />
 
-      {/* Jar — sitting on the desk */}
+      {/* Fairy light twinkle dots — over the painted lights */}
+      <div className="pointer-events-none absolute inset-0 z-[5]">
+        {FAIRY_DOTS.map((dot, i) => (
+          <div
+            key={i}
+            style={{
+              position: 'absolute',
+              left: `${dot.x}%`,
+              top: `${dot.y}%`,
+              width: dot.size,
+              height: dot.size,
+              borderRadius: '50%',
+              background:
+                'radial-gradient(circle, rgba(255, 240, 180, 0.9) 0%, rgba(255, 220, 140, 0.4) 40%, transparent 70%)',
+              mixBlendMode: 'screen',
+              animation: `fairy-twinkle ${dot.duration}s ease-in-out ${dot.delay}s infinite`,
+              transform: 'translate(-50%, -50%)',
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Soft glow behind the jar */}
+      <div
+        className="pointer-events-none absolute left-1/2 z-[8] -translate-x-1/2"
+        style={{
+          bottom: '24%',
+          width: '68vw',
+          maxWidth: 375,
+          aspectRatio: '1',
+          background:
+            'radial-gradient(circle, rgba(255, 180, 180, 0.3) 0%, transparent 60%)',
+          animation: 'jar-glow-pulse 4s ease-in-out infinite',
+        }}
+      />
+
+      {/* Jar — sitting on the desk, centered on placemat */}
       <img
         src="/images/love-jar.png"
         alt="Love jar full of hearts"
-        className="absolute left-1/2 w-[36vw] max-w-[200px] -translate-x-1/2 select-none sm:w-[22vw] sm:max-w-[240px]"
+        className="absolute left-1/2 z-10 w-[45vw] max-w-[250px] -translate-x-1/2 select-none sm:w-[28vw] sm:max-w-[300px]"
         style={{
-          bottom: '22%',
+          bottom: '24%',
           imageRendering: 'pixelated',
           WebkitFontSmoothing: 'none',
           transformOrigin: 'bottom center',
@@ -129,8 +178,8 @@ export function CozyRoomScene({ messages, onShake }: CozyRoomSceneProps) {
           <p
             className="select-none font-pixel text-[12px]"
             style={{
-              color: 'rgba(90, 60, 35, 0.5)',
-              textShadow: '0 1px 0 rgba(255,255,255,0.2)',
+              color: 'rgba(255, 252, 246, 0.75)',
+              textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
             }}
           >
             or shake your phone!

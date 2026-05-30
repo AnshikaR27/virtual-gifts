@@ -1405,6 +1405,22 @@ html {
   }
 }
 
+/* ── Room breath — subtle background sway ── */
+@keyframes room-breath {
+  0% {
+    transform: translateX(0);
+  }
+  30% {
+    transform: translateX(-3px);
+  }
+  65% {
+    transform: translateX(2px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
 /* ── Fairy lights twinkle ── */
 @keyframes fairy-twinkle {
   0%,
@@ -1415,6 +1431,17 @@ html {
   50% {
     opacity: 1;
     transform: translate(-50%, -50%) scale(1.2);
+  }
+}
+
+/* ── Jar glow pulse ── */
+@keyframes jar-glow-pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.8;
   }
 }
 
@@ -1539,5 +1566,16 @@ html {
   [style*='jar-shake'] {
     animation: none !important;
     transform: translateX(-50%) rotate(0deg) !important;
+  }
+  [style*='room-breath'] {
+    animation: none !important;
+    transform: none !important;
+  }
+  [style*='fairy-twinkle'] {
+    animation: none !important;
+  }
+  [style*='jar-glow-pulse'] {
+    animation: none !important;
+    opacity: 0.6 !important;
   }
 }
