@@ -1411,10 +1411,10 @@ html {
     transform: translateX(0) rotate(0deg);
   }
   30% {
-    transform: translateX(4px) rotate(1.5deg);
+    transform: translateX(8px) rotate(1.5deg);
   }
   70% {
-    transform: translateX(-2px) rotate(-1deg);
+    transform: translateX(-4px) rotate(-1deg);
   }
   100% {
     transform: translateX(0) rotate(0deg);
@@ -1425,12 +1425,12 @@ html {
 @keyframes fairy-twinkle {
   0%,
   100% {
-    opacity: 0.3;
-    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0.5;
+    transform: translate(-50%, -50%) scale(0.9);
   }
   50% {
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1.2);
+    transform: translate(-50%, -50%) scale(1.15);
   }
 }
 
