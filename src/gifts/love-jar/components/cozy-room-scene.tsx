@@ -6,23 +6,6 @@ import { useShakeDetector } from '../hooks/use-shake-detector';
 import { HeartRelease } from './heart-release';
 import { MessageCard } from './message-card';
 
-const FAIRY_DOTS = [
-  { x: 13, y: 15, size: 16, delay: 0, duration: 3 },
-  { x: 22, y: 12.5, size: 14, delay: 0.7, duration: 2.5 },
-  { x: 32, y: 10.5, size: 18, delay: 1.4, duration: 3.5 },
-  { x: 42, y: 9, size: 15, delay: 0.3, duration: 2.8 },
-  { x: 55, y: 9, size: 17, delay: 1.8, duration: 3.2 },
-  { x: 65, y: 10.5, size: 14, delay: 0.5, duration: 4 },
-  { x: 76, y: 12.5, size: 16, delay: 1.1, duration: 2.6 },
-  { x: 87, y: 15, size: 15, delay: 2.0, duration: 3.4 },
-];
-
-const STEAM_WISPS = [
-  { left: 14, top: 57, w: 14, h: 28, delay: 0, duration: 4.5 },
-  { left: 16, top: 58, w: 12, h: 25, delay: 1.5, duration: 4 },
-  { left: 12.5, top: 56, w: 10, h: 30, delay: 3, duration: 5 },
-];
-
 interface CozyRoomSceneProps {
   messages: string[];
   onShake: () => void;
@@ -68,80 +51,6 @@ export function CozyRoomScene({ messages, onShake }: CozyRoomSceneProps) {
         style={{ imageRendering: 'pixelated' }}
         draggable={false}
       />
-
-      {/* ── Overlay: curtain sway ── */}
-      <div
-        className="pointer-events-none absolute z-[2]"
-        style={{
-          left: 0,
-          top: 0,
-          width: '16%',
-          height: '62%',
-          background:
-            'linear-gradient(to right, rgba(255, 245, 235, 0.45) 0%, rgba(255, 245, 235, 0.2) 50%, transparent 100%)',
-          filter: 'drop-shadow(2px 0 4px rgba(200, 180, 160, 0.15))',
-          transformOrigin: 'top center',
-          animation: 'curtain-sway 6s ease-in-out infinite',
-        }}
-      />
-      <div
-        className="pointer-events-none absolute z-[2]"
-        style={{
-          right: 0,
-          top: 0,
-          width: '17%',
-          height: '62%',
-          background:
-            'linear-gradient(to left, rgba(255, 245, 235, 0.45) 0%, rgba(255, 245, 235, 0.2) 50%, transparent 100%)',
-          filter: 'drop-shadow(-2px 0 4px rgba(200, 180, 160, 0.15))',
-          transformOrigin: 'top center',
-          animation: 'curtain-sway 6s ease-in-out 2s infinite',
-        }}
-      />
-
-      {/* ── Overlay: fairy light twinkle dots ── */}
-      <div className="pointer-events-none absolute inset-0 z-[3]">
-        {FAIRY_DOTS.map((dot, i) => (
-          <div
-            key={i}
-            style={{
-              position: 'absolute',
-              left: `${dot.x}%`,
-              top: `${dot.y}%`,
-              width: dot.size,
-              height: dot.size,
-              borderRadius: '50%',
-              background:
-                'radial-gradient(circle, rgba(255, 240, 180, 0.95) 0%, rgba(255, 220, 140, 0.5) 40%, transparent 70%)',
-              mixBlendMode: 'screen',
-              opacity: 0.5,
-              animation: `fairy-twinkle ${dot.duration}s ease-in-out ${dot.delay}s infinite`,
-              transform: 'translate(-50%, -50%)',
-            }}
-          />
-        ))}
-      </div>
-
-      {/* ── Overlay: tea steam wisps ── */}
-      <div className="pointer-events-none absolute inset-0 z-[4]">
-        {STEAM_WISPS.map((wisp, i) => (
-          <div
-            key={i}
-            style={{
-              position: 'absolute',
-              left: `${wisp.left}%`,
-              top: `${wisp.top}%`,
-              width: wisp.w,
-              height: wisp.h,
-              borderRadius: '50%',
-              background:
-                'radial-gradient(ellipse, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.15) 60%, transparent 100%)',
-              filter: 'blur(1px)',
-              animation: `steam-drift ${wisp.duration}s ease-out ${wisp.delay}s infinite`,
-            }}
-          />
-        ))}
-      </div>
 
       {/* Soft glow behind the jar */}
       <div
