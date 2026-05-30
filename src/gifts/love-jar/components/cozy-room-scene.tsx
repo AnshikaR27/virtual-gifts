@@ -8,6 +8,9 @@ import { MessageCard } from './message-card';
 
 const BG_VIDEO_PLAYBACK_RATE = 0.4;
 
+/** Heavy background loop — preloaded by the Win98 shell before the scene mounts. */
+export const COZY_ROOM_VIDEO_SRC = '/videos/cozy-room-loop-clean.mp4';
+
 interface CozyRoomSceneProps {
   messages: string[];
   onShake: () => void;
@@ -52,7 +55,7 @@ export function CozyRoomScene({ messages, onShake }: CozyRoomSceneProps) {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden">
+    <div className="absolute inset-0 overflow-hidden">
       {/* Background — video with static image fallback */}
       {videoFailed ? (
         <img
@@ -63,7 +66,7 @@ export function CozyRoomScene({ messages, onShake }: CozyRoomSceneProps) {
       ) : (
         <video
           ref={videoRef}
-          src="/videos/cozy-room-loop-clean.mp4"
+          src={COZY_ROOM_VIDEO_SRC}
           autoPlay
           loop
           muted

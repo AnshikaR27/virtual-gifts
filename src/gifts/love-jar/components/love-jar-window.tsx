@@ -1,6 +1,7 @@
 'use client';
 
 import { CozyRoomScene } from './cozy-room-scene';
+import { Win98Shell } from './win98-shell';
 
 interface LoveJarWindowProps {
   messages: string[];
@@ -8,5 +9,9 @@ interface LoveJarWindowProps {
 }
 
 export function LoveJarWindow({ messages, onShake }: LoveJarWindowProps) {
-  return <CozyRoomScene messages={messages} onShake={onShake} />;
+  return (
+    <Win98Shell messageCount={messages.length}>
+      <CozyRoomScene messages={messages} onShake={onShake} />
+    </Win98Shell>
+  );
 }

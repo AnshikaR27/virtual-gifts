@@ -383,6 +383,16 @@
   }
 }
 
+/* â”€â”€ Win98 loading bar (indeterminate marquee) â”€â”€ */
+@keyframes win98-progress-marquee {
+  from {
+    left: -33%;
+  }
+  to {
+    left: 100%;
+  }
+}
+
 html {
   scroll-behavior: smooth;
 }
