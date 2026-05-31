@@ -21,6 +21,11 @@ export interface GiftDefinition {
   SenderComponent: ComponentType;
   ReceiverComponent: ComponentType<GiftReceiverProps>;
   replayBehavior: ReplayBehavior;
+  /**
+   * Set when the receiver renders its own post-climax CTA + replay (so the
+   * route tells GiftFrame to hide its default ConversionCta + ReplayButton).
+   */
+  ownsPostGiftCta?: boolean;
 }
 
 const registry = new Map<string, GiftDefinition>();
@@ -44,4 +49,6 @@ registerGift({
   SenderComponent: TiffinNoteSender,
   ReceiverComponent: TiffinNoteReceiver,
   replayBehavior: 'replayable',
+  // The café 3D scene has its own SEND ONE BACK / OPEN AGAIN action bar.
+  ownsPostGiftCta: true,
 });

@@ -56,6 +56,7 @@ export default async function RecipientViewPage({
       // Registered gifts own their first screen (e.g. the game BOOT), so skip
       // the frame's name-card anticipation. Unregistered gifts keep the default.
       anticipationMs={Receiver ? 0 : undefined}
+      hideDefaultPostGiftCta={definition?.ownsPostGiftCta ?? false}
     >
       {Receiver ? (
         <Receiver gift={giftData} />
