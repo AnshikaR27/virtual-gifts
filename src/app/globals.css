@@ -546,47 +546,67 @@ html {
   image-rendering: pixelated; /* in case Mochi is pixel art */
 }
 
-/* Two perches: one toward the left third of the window, one toward the right. */
+/* Two perches sitting close together, just left/right of center, so the
+   Mochis read as a snuggled pair leaning in for a kiss. */
 .mochi-perch.left {
-  left: 22%;
+  left: 40%;
 }
 .mochi-perch.right {
-  left: 78%;
+  left: 60%;
 }
 
 /* â”€â”€ Blowing-kisses (CSS-only, silent) â”€â”€
-   A small heart rises from ~mouth height and fades. Staggered between the two
-   Mochis so the kisses never fire in sync. */
+   Each heart launches from the Mochi's inner edge (the side facing its
+   partner) and drifts up-and-inward so the two streams meet above the gap
+   between them. Staggered so the kisses alternate instead of firing in sync. */
 .mochi-perch[data-blowing-kisses='true'] .mochi-kiss {
   position: absolute;
-  top: 35%; /* approximate mouth height — tune when the real asset lands */
-  left: 50%;
-  font-size: 18px;
+  top: 32%; /* ~mouth height */
+  font-size: 15px;
   color: #ff6bcb;
   pointer-events: none;
   opacity: 0;
-  animation: mochi-kiss-float 3s ease-out infinite;
+  will-change: transform, opacity;
 }
 
 .mochi-perch.left[data-blowing-kisses='true'] .mochi-kiss {
+  left: 72%; /* inner (right) edge of the left Mochi */
+  animation: mochi-kiss-toward-right 2.6s ease-out infinite;
   animation-delay: 0s;
 }
 .mochi-perch.right[data-blowing-kisses='true'] .mochi-kiss {
-  animation-delay: 1.5s; /* staggered so kisses don't sync */
+  right: 72%; /* inner (left) edge of the right Mochi */
+  animation: mochi-kiss-toward-left 2.6s ease-out infinite;
+  animation-delay: 1.3s; /* half-cycle offset so they alternate */
 }
 
-@keyframes mochi-kiss-float {
+@keyframes mochi-kiss-toward-right {
   0% {
     opacity: 0;
-    transform: translate(-50%, 0) scale(0.6);
+    transform: translate(0, 0) scale(0.5);
   }
-  15% {
+  18% {
     opacity: 1;
-    transform: translate(-50%, -8px) scale(1);
+    transform: translate(4px, -5px) scale(1);
   }
   100% {
     opacity: 0;
-    transform: translate(-50%, -50px) scale(1.3);
+    transform: translate(26px, -28px) scale(1.3);
+  }
+}
+
+@keyframes mochi-kiss-toward-left {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.5);
+  }
+  18% {
+    opacity: 1;
+    transform: translate(-4px, -5px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-26px, -28px) scale(1.3);
   }
 }
 

@@ -57,30 +57,31 @@ export function CozyRoomScene({ messages, onShake }: CozyRoomSceneProps) {
   return (
     <div
       className="absolute inset-0 overflow-hidden"
-      // Lilac fill so the letterbox bars around the contained video blend
-      // with the Win98 desktop and read as intentional, not as a gap.
+      // Lilac fill is only a fallback now — object-cover fills the whole content
+      // area so there are no letterbox bars in normal operation.
       style={{ backgroundColor: 'var(--win-bg)' }}
     >
-      {/* Background — video with static image fallback. object-contain shows
-          the full composition (no cropping), letterboxed onto --win-bg. */}
+      {/* Background — video with static image fallback. object-cover fills the
+          window edge-to-edge (cropping the room's outer margins); the jar is a
+          separate overlaid element below, so it's never cropped. */}
       {videoFailed ? (
         <img
           src="/images/love-jar-room.png"
           alt=""
-          className="absolute inset-0 h-full w-full object-contain"
+          className="absolute inset-0 h-full w-full object-cover"
         />
       ) : (
         <video
           ref={videoRef}
           src={COZY_ROOM_VIDEO_SRC}
           // Static first frame paints instantly (no black flash while the loop
-          // buffers). Transparent bg lets the container lilac show in letterbox.
+          // buffers).
           poster="/images/love-jar-room.png"
           autoPlay
           loop
           muted
           playsInline
-          className="absolute inset-0 h-full w-full object-contain"
+          className="absolute inset-0 h-full w-full object-cover"
           style={{ backgroundColor: 'transparent' }}
           onError={() => setVideoFailed(true)}
         />
