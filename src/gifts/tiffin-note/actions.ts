@@ -35,8 +35,12 @@ export async function createTiffinNote(
 
   const row: InsertDto<'gifts'> = {
     short_id: shortId,
-    // Phase 0: no auth yet — anonymous creator. (No FK enforced in types.)
-    creator_id: crypto.randomUUID(),
+    // Phase 0: no auth yet — gifts are created anonymously (creator_id NULL).
+    // The gifts.creator_id FK to users IS enforced by the DB, so a random
+    // UUID fails it (error 23503); 00005_nullable_creator.sql drops NOT NULL.
+    // REVISIT when auth lands: associate the gift with the authenticated user
+    // and consider restoring NOT NULL on gifts.creator_id.
+    creator_id: null,
     slug: 'tiffin-note',
     sender_name: input.senderName.trim() || null,
     recipient_name: recipientName,
