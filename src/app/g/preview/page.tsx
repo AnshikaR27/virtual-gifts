@@ -4,15 +4,17 @@ import { getGiftDefinition } from '@/gifts/registry';
 import type { GiftData } from '@/components/gift-frame/gift-frame';
 
 /**
- * DEV-ONLY preview of the tiffin-note receiver with mock data, so the scene can
- * be eyeballed without Supabase. A static `preview` segment takes precedence
- * over the sibling dynamic `[shortId]` route, so the real /g/<id> path is
- * untouched. Returns 404 in production.
+ * Preview of the tiffin-note receiver with mock data, so the scene can be
+ * eyeballed without Supabase. A static `preview` segment takes precedence over
+ * the sibling dynamic `[shortId]` route, so the real /g/<id> path is untouched.
  *
+ * Available on localhost and on Vercel *preview* deploys; 404s only on the
+ * production deployment (gated by VERCEL_ENV). So:
  *   http://localhost:3000/g/preview
+ *   https://<branch-preview>.vercel.app/g/preview
  */
 
-// Always render at request time so the NODE_ENV guard is honored.
+// Always render at request time so the env guard is honored.
 export const dynamic = 'force-dynamic';
 
 const MOCK_GIFT: GiftData = {
@@ -32,7 +34,10 @@ const MOCK_GIFT: GiftData = {
 };
 
 export default function GiftPreviewPage() {
-  if (process.env.NODE_ENV === 'production') {
+  // Hide only on the production deployment. On Vercel, VERCEL_ENV is
+  // 'production' | 'preview' | 'development'; it's undefined locally. So this
+  // stays available on localhost and branch previews, and 404s only in prod.
+  if (process.env.VERCEL_ENV === 'production') {
     notFound();
   }
 
