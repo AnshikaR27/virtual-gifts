@@ -2,7 +2,6 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { GiftFrame } from '@/components/gift-frame/gift-frame';
 import { PlaceholderGift } from '@/components/gift-frame/placeholder-gift';
 import type { ReplayBehavior } from '@/types';
-import LoveJar from '@/gifts/love-jar';
 
 export default async function RecipientViewPage({
   params,
@@ -43,10 +42,6 @@ export default async function RecipientViewPage({
   };
 
   const replayBehavior: ReplayBehavior = 'replayable';
-
-  if (gift.slug === 'love-jar') {
-    return <LoveJar gift={giftData} replayBehavior={replayBehavior} />;
-  }
 
   return (
     <GiftFrame gift={giftData} replayBehavior={replayBehavior}>

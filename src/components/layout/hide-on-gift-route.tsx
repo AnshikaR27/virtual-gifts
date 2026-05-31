@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 
-const GIFT_ROUTE_PREFIXES = ['/g/', '/dev/love-jar'];
+const GIFT_ROUTE_PREFIXES = ['/g/'];
 
 export function HideOnGiftRoute({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
