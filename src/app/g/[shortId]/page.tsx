@@ -1,6 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/admin';
 import { GiftFrame } from '@/components/gift-frame/gift-frame';
 import { PlaceholderGift } from '@/components/gift-frame/placeholder-gift';
+import { getGiftDefinition } from '@/gifts/registry';
 import type { ReplayBehavior } from '@/types';
 
 export default async function RecipientViewPage({
@@ -41,11 +42,26 @@ export default async function RecipientViewPage({
     paid: gift.paid,
   };
 
-  const replayBehavior: ReplayBehavior = 'replayable';
+  // Look the gift up in the registry; fall back to the placeholder for any
+  // slug that isn't registered yet.
+  const definition = getGiftDefinition(gift.slug);
+  const replayBehavior: ReplayBehavior =
+    definition?.replayBehavior ?? 'replayable';
+  const Receiver = definition?.ReceiverComponent;
 
   return (
-    <GiftFrame gift={giftData} replayBehavior={replayBehavior}>
-      <PlaceholderGift recipientName={gift.recipient_name} />
+    <GiftFrame
+      gift={giftData}
+      replayBehavior={replayBehavior}
+      // Registered gifts own their first screen (e.g. the game BOOT), so skip
+      // the frame's name-card anticipation. Unregistered gifts keep the default.
+      anticipationMs={Receiver ? 0 : undefined}
+    >
+      {Receiver ? (
+        <Receiver gift={giftData} />
+      ) : (
+        <PlaceholderGift recipientName={gift.recipient_name} />
+      )}
     </GiftFrame>
   );
 }
