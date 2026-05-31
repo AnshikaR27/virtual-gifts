@@ -73,11 +73,15 @@ export function CozyRoomScene({ messages, onShake }: CozyRoomSceneProps) {
         <video
           ref={videoRef}
           src={COZY_ROOM_VIDEO_SRC}
+          // Static first frame paints instantly (no black flash while the loop
+          // buffers). Transparent bg lets the container lilac show in letterbox.
+          poster="/images/love-jar-room.png"
           autoPlay
           loop
           muted
           playsInline
           className="absolute inset-0 h-full w-full object-contain"
+          style={{ backgroundColor: 'transparent' }}
           onError={() => setVideoFailed(true)}
         />
       )}

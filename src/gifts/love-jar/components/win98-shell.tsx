@@ -4,7 +4,6 @@ import {
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
   type CSSProperties,
 } from 'react';
@@ -57,69 +56,48 @@ const BEVEL_IN: CSSProperties = {
     'var(--win-chrome-dark) var(--win-chrome-light) var(--win-chrome-light) var(--win-chrome-dark)',
 };
 
-interface PopupCopy {
-  title: string;
-  icon: string;
-  body: string[];
-}
+// One buttery voice — no rotation. Lowercase, soft ellipses, ♡ (never ❤️),
+// zero tech vocab. Keep any future copy in this register (soft / gentle / slow).
+const POPUP_COPY = {
+  title: '💌 a soft thing for you',
+  icon: '💌',
+  body: [
+    'psst...',
+    'someone made you something gentle.',
+    'take your time opening it ♡',
+  ],
+} as const;
 
-const POPUP_VARIANTS: PopupCopy[] = [
-  {
-    title: '💌 incoming.msg',
-    icon: '💌',
-    body: [
-      'You have (1) unread message from',
-      "someone who's been thinking about you.",
-      'Open now? ♡',
-    ],
-  },
-  {
-    title: '⚠ system_alert.exe',
-    icon: '💗',
-    body: [
-      'WARNING: Unread feelings detected.',
-      'This file may cause smiling.',
-      'Proceed at your own risk.',
-    ],
-  },
-  {
-    title: '♡ love.dll loaded',
-    icon: '💝',
-    body: [
-      'love-jar.exe is ready to open.',
-      'This file was made just for you.',
-      'Press OK to unwrap. ✨',
-    ],
-  },
-  {
-    title: '📡 connection.established',
-    icon: '📡',
-    body: [
-      'Receiving incoming gift...',
-      'Sender: ♡♡♡♡♡♡♡♡',
-      'Click OK to decrypt.',
-    ],
-  },
-];
+// WhatsApp-style reaction emojis (left → right). Native system glyphs on
+// purpose — the contrast against the Win98 chrome IS the design. Don't swap
+// these for pixel-art.
+const REACTIONS = ['🥹', '❤️', '✨', '🌸', '🫶', '😭'] as const;
 
 interface Win98ShellProps {
   messageCount: number;
   children: React.ReactNode;
-  /** Optional character (e.g. Mochi) that perches on top of the window. */
-  mochi?: React.ReactNode;
+  /** Character (e.g. Mochi) perched on top of the window, ~22% from the left. */
+  mochiLeft?: React.ReactNode;
+  /** Character perched on top of the window, ~78% from the left. */
+  mochiRight?: React.ReactNode;
 }
 
-export function Win98Shell({ messageCount, children, mochi }: Win98ShellProps) {
+export function Win98Shell({
+  messageCount,
+  children,
+  mochiLeft,
+  mochiRight,
+}: Win98ShellProps) {
   const [phase, setPhase] = useState<Phase>('landing');
   const [popupClosing, setPopupClosing] = useState(false);
   const [videoReady, setVideoReady] = useState(false);
   const [progress, setProgress] = useState(0);
   const [fromLabel, setFromLabel] = useState('someone special');
   const [confirmClose, setConfirmClose] = useState(false);
-
-  const popupCopy = useRef(
-    POPUP_VARIANTS[Math.floor(Math.random() * POPUP_VARIANTS.length)],
-  );
+  const [selectedReaction, setSelectedReaction] = useState<string | null>(null);
+  // The emoji currently floating up off the popup (poof animation). Cleared
+  // once the animation finishes.
+  const [floatingReaction, setFloatingReaction] = useState<string | null>(null);
 
   // Resolve the ?from= URL param client-side (avoids a Suspense boundary).
   useEffect(() => {
@@ -191,20 +169,39 @@ export function Win98Shell({ messageCount, children, mochi }: Win98ShellProps) {
     return () => clearTimeout(cap);
   }, [phase, videoReady]);
 
-  const dismissPopup = useCallback(() => {
-    playClick();
+  // Play the popup-dismiss keyframe, then reveal the (already preloaded) scene.
+  const revealScene = useCallback(() => {
     setPopupClosing(true);
-    // Scene is already preloaded by the time the popup shows, so reveal it
-    // straight away. Win98 dismissals are near-instant.
     setTimeout(() => setPhase('loaded'), 100);
   }, []);
+
+  // [✕] / plain dismiss — no reaction recorded (selectedReaction stays null).
+  const dismissPopup = useCallback(() => {
+    playClick();
+    revealScene();
+  }, [revealScene]);
+
+  // Tap an emoji: record it, float it up off the popup, then dismiss.
+  const handleReaction = useCallback(
+    (emoji: string) => {
+      playClick();
+      setSelectedReaction(emoji);
+      // TODO: send reaction to sender via backend (reaction notification flow)
+      setFloatingReaction(emoji);
+      // Popup dismisses ~200ms after the tap; the emoji keeps floating (~600ms)
+      // at the desktop layer even after the popup unmounts.
+      setTimeout(() => revealScene(), 200);
+      setTimeout(() => setFloatingReaction(null), 700);
+    },
+    [revealScene],
+  );
 
   const titleText = `love-jar.exe — from ${fromLabel}`;
 
   return (
     <div
       className={`win98-desktop fixed inset-0 z-[60] flex items-center justify-center sm:p-6${
-        mochi ? ' has-mochi' : ''
+        mochiLeft || mochiRight ? ' has-mochi' : ''
       }`}
       style={{
         background: 'linear-gradient(135deg, #C8A8E0 0%, #B89AD8 100%)',
@@ -216,16 +213,32 @@ export function Win98Shell({ messageCount, children, mochi }: Win98ShellProps) {
         className="win98-window flex flex-col"
         style={{
           position: 'relative',
-          width: 'min(96vw, 430px)',
-          height: 'min(78dvh, 680px)',
+          width: 'min(100vw, 480px)',
+          height: 'min(86dvh, 760px)',
           padding: 3,
-          boxShadow: '2px 2px 0 0 #000',
         }}
       >
-        {/* Mochi perches above the title bar when provided */}
-        {mochi && (
-          <div className="mochi-perch" aria-hidden>
-            {mochi}
+        {/* Mochis perch above the title bar (~22% / ~78% from the left), bottoms
+            overlapping into the title bar. data-blowing-kisses opts each one
+            into the CSS kiss loop; the .mochi-kiss heart floats up and fades. */}
+        {mochiLeft && (
+          <div
+            className="mochi-perch left"
+            data-blowing-kisses="true"
+            aria-hidden
+          >
+            {mochiLeft}
+            <span className="mochi-kiss">♥</span>
+          </div>
+        )}
+        {mochiRight && (
+          <div
+            className="mochi-perch right"
+            data-blowing-kisses="true"
+            aria-hidden
+          >
+            {mochiRight}
+            <span className="mochi-kiss">♥</span>
           </div>
         )}
         {/* Title bar (yellow → orange dithered) */}
@@ -267,16 +280,20 @@ export function Win98Shell({ messageCount, children, mochi }: Win98ShellProps) {
           ))}
         </div>
 
-        {/* Content area — the gift, or the loading bar while it preloads */}
+        {/* Content area — the gift, or the loading bar while it preloads.
+            Soft lilac fill (matches the desktop) so the area never paints jet
+            black behind the popup before the cozy-room video arrives. The
+            loading screen carries its own dark backdrop during `landing`; once
+            we're on the popup the content sits empty and lilac. */}
         <div
           className="relative min-h-0 flex-1 overflow-hidden"
-          style={{ ...BEVEL_IN, background: '#1a0f24' }}
+          style={{ ...BEVEL_IN, background: 'var(--win-bg)' }}
         >
           {phase === 'loaded' ? (
             children
-          ) : (
+          ) : phase === 'landing' ? (
             <LoadingScreen progress={progress} indeterminate={progress <= 0} />
-          )}
+          ) : null}
         </div>
 
         {/* Status bar */}
@@ -305,7 +322,7 @@ export function Win98Shell({ messageCount, children, mochi }: Win98ShellProps) {
       {phase === 'popup' && (
         <ModalDialog
           titleColors={['#FF6BCB', '#A020F0']}
-          title={popupCopy.current.title}
+          title={POPUP_COPY.title}
           closing={popupClosing}
           onClose={dismissPopup}
         >
@@ -314,22 +331,37 @@ export function Win98Shell({ messageCount, children, mochi }: Win98ShellProps) {
               className="shrink-0 select-none text-[32px] leading-none"
               aria-hidden
             >
-              {popupCopy.current.icon}
+              {POPUP_COPY.icon}
             </span>
             <div className="font-pixel text-[15px] leading-snug text-ink">
-              {popupCopy.current.body.map((line, i) => (
+              {POPUP_COPY.body.map((line, i) => (
                 <p key={i}>{line}</p>
               ))}
             </div>
           </div>
-          <div className="mt-4 flex justify-center">
-            <button
-              className="win98-btn text-[15px]"
-              style={{ minWidth: 80 }}
-              onClick={dismissPopup}
-            >
-              OK
-            </button>
+
+          {/* WhatsApp-style reaction picker — chunky Win98-beveled bar wrapping
+              soft circular emoji pills (hard frame, soft inside). */}
+          <div
+            className="reaction-bar mt-4"
+            style={{
+              ...BEVEL_OUT,
+              background: 'var(--win-chrome)',
+              boxShadow:
+                'inset 1px 1px 0 rgba(255,255,255,0.55), inset -1px -1px 0 rgba(0,0,0,0.28)',
+            }}
+          >
+            {REACTIONS.map((emoji) => (
+              <button
+                key={emoji}
+                type="button"
+                className="reaction-emoji"
+                aria-label={`react ${emoji}`}
+                onClick={() => handleReaction(emoji)}
+              >
+                {emoji}
+              </button>
+            ))}
           </div>
         </ModalDialog>
       )}
@@ -338,7 +370,7 @@ export function Win98Shell({ messageCount, children, mochi }: Win98ShellProps) {
       {confirmClose && (
         <ModalDialog
           titleColors={['#FF6BCB', '#A020F0']}
-          title="✕ confirm.exe"
+          title="♡ wait..."
           closing={false}
           onClose={() => {
             playClick();
@@ -353,11 +385,13 @@ export function Win98Shell({ messageCount, children, mochi }: Win98ShellProps) {
               💔
             </span>
             <div className="font-pixel text-[15px] leading-snug text-ink">
-              <p>Are you sure?</p>
-              <p>You can&apos;t unsee love ♡</p>
+              <p>you can&apos;t unsee love.</p>
+              <p>close anyway?</p>
             </div>
           </div>
           <div className="mt-4 flex justify-center gap-2">
+            {/* "close" = secondary; preserves the existing close behavior
+                (just dismisses the confirm — no real navigation today). */}
             <button
               className="win98-btn text-[15px]"
               style={{ minWidth: 72 }}
@@ -366,20 +400,48 @@ export function Win98Shell({ messageCount, children, mochi }: Win98ShellProps) {
                 setConfirmClose(false);
               }}
             >
-              Yes
+              close
             </button>
+            {/* "stay" = primary/recommended — we want recipients to stay. */}
             <button
-              className="win98-btn text-[15px]"
+              className="win98-btn-pink text-[15px]"
               style={{ minWidth: 72 }}
               onClick={() => {
                 playClick();
                 setConfirmClose(false);
               }}
             >
-              Cancel
+              stay
             </button>
           </div>
         </ModalDialog>
+      )}
+
+      {/* Floating reaction "poof" — the tapped emoji scales up and drifts off
+          the popup, with a few offset ghost copies for a confetti feel. Lives
+          at the desktop layer so it keeps animating after the popup unmounts. */}
+      {floatingReaction && (
+        <div className="reaction-float-layer" aria-hidden>
+          <span className="reaction-float-main">{floatingReaction}</span>
+          <span
+            className="reaction-float-ghost"
+            style={{ marginLeft: -28, animationDelay: '40ms' }}
+          >
+            {floatingReaction}
+          </span>
+          <span
+            className="reaction-float-ghost"
+            style={{ marginLeft: 30, animationDelay: '90ms' }}
+          >
+            {floatingReaction}
+          </span>
+          <span
+            className="reaction-float-ghost"
+            style={{ marginLeft: -6, animationDelay: '140ms' }}
+          >
+            {floatingReaction}
+          </span>
+        </div>
       )}
     </div>
   );
@@ -494,7 +556,10 @@ function LoadingScreen({
   );
 
   return (
-    <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-6 text-center">
+    <div
+      className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-6 text-center"
+      style={{ background: '#1a0f24' }}
+    >
       <p className="font-pixel text-[18px] tracking-wide text-white/90">
         Loading love.jar...
       </p>
