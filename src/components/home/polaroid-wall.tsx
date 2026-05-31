@@ -11,6 +11,7 @@ import { CrochetRose, GarlandLeaf } from '@/components/shared/craft-elements';
 const INITIAL_STRINGS = 3;
 
 const preferredOrder = [
+  'tiffin-note',
   'sorry-puppy',
   'spotify-wrapped',
   'wishing-dandelion',
@@ -52,6 +53,12 @@ const gradients = [
 ];
 
 const swayAngles = [-4, 2, -3, 5, -1, 3, -5, 1, -2, 4];
+
+// Slugs with a real, built sender flow route to /create/<slug>; the rest still
+// point at the /gift/<slug> detail page until their flows exist.
+const BUILT_SENDER_SLUGS = new Set(['tiffin-note']);
+const giftHref = (slug: string) =>
+  BUILT_SENDER_SLUGS.has(slug) ? `/create/${slug}` : `/gift/${slug}`;
 
 function useIsDesktop() {
   const [isDesktop, setIsDesktop] = useState(false);
@@ -308,14 +315,14 @@ export function PolaroidWall() {
     (slug: string, e: React.MouseEvent) => {
       e.stopPropagation();
       playClick();
-      router.prefetch(`/gift/${slug}`);
+      router.prefetch(giftHref(slug));
       setLoadingSlug(slug);
     },
     [router],
   );
 
   const handleLoadComplete = useCallback(() => {
-    if (loadingSlug) router.push(`/gift/${loadingSlug}`);
+    if (loadingSlug) router.push(giftHref(loadingSlug));
   }, [router, loadingSlug]);
 
   const handleShowMore = useCallback(() => {

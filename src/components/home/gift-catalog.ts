@@ -9,6 +9,13 @@ export interface GiftItem {
 export const allGifts: GiftItem[] = [
   // Quick & Sweet (Free)
   {
+    name: 'Tiffin Note',
+    slug: 'tiffin-note',
+    emoji: '🍱',
+    badge: 'Free',
+    description: 'Pack a sweet, a snack & a secret note into a tiffin.',
+  },
+  {
     name: 'Sorry Puppy',
     slug: 'sorry-puppy',
     emoji: '🐶',
