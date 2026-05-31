@@ -5,7 +5,7 @@ import { PRODUCTION_URL } from './constants';
  *
  * Returns a "https://wa.me/?text=<encoded>" URL (no recipient number — the
  * sender picks the chat in WhatsApp) with the gift link pre-filled:
- *   https://honeyhearts.com/g/<shortId>
+ *   https://virtual-gifts.vercel.app/g/<shortId>
  *
  * @example
  *   buildWaUrl({ recipientName: 'Anaya', shortId: 'a1B2c3' })
