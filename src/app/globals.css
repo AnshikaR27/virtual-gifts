@@ -1860,72 +1860,6 @@ html {
   }
 }
 
-/* Two Mochis seated on the table, leaning toward each other, kisses drifting
-   inward. Anchored to the in-scene wrapper (.lj2-mochi), NOT the window
-   perch — the old .mochi-perch rules are left fully intact. */
-@keyframes lj2-mochi-bob {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-3px);
-  }
-}
-.lj2-mochi-bob {
-  animation: lj2-mochi-bob 2.8s ease-in-out infinite;
-}
-
-.lj2-mochi {
-  position: absolute;
-}
-.lj2-mochi-kiss {
-  position: absolute;
-  top: 28%;
-  font-size: 13px;
-  color: #ff6bcb;
-  pointer-events: none;
-  opacity: 0;
-  will-change: transform, opacity;
-}
-.lj2-mochi.left .lj2-mochi-kiss {
-  left: 70%;
-  animation: lj2-kiss-right 2.6s ease-out infinite;
-}
-.lj2-mochi.right .lj2-mochi-kiss {
-  right: 70%;
-  animation: lj2-kiss-left 2.6s ease-out infinite;
-  animation-delay: 1.3s;
-}
-@keyframes lj2-kiss-right {
-  0% {
-    opacity: 0;
-    transform: translate(0, 0) scale(0.5);
-  }
-  18% {
-    opacity: 1;
-    transform: translate(4px, -5px) scale(1);
-  }
-  100% {
-    opacity: 0;
-    transform: translate(24px, -26px) scale(1.3);
-  }
-}
-@keyframes lj2-kiss-left {
-  0% {
-    opacity: 0;
-    transform: translate(0, 0) scale(0.5);
-  }
-  18% {
-    opacity: 1;
-    transform: translate(-4px, -5px) scale(1);
-  }
-  100% {
-    opacity: 0;
-    transform: translate(-24px, -26px) scale(1.3);
-  }
-}
-
 /* "shake me" prompt — soft pulse */
 @keyframes lj2-prompt-pulse {
   0%,
@@ -1946,13 +1880,10 @@ html {
   .lj2-window-light,
   .lj2-bokeh,
   .lj2-dust,
-  .lj2-mochi-bob,
-  .lj2-prompt-pulse,
-  .lj2-mochi .lj2-mochi-kiss {
+  .lj2-prompt-pulse {
     animation: none !important;
   }
-  .lj2-dust,
-  .lj2-mochi .lj2-mochi-kiss {
+  .lj2-dust {
     opacity: 0 !important;
   }
 }
