@@ -95,11 +95,41 @@ function buildPrompt(input: GenerateInput): string {
   const name = input.recipientName.trim() || 'them';
   const you = input.senderName.trim() || 'me';
   const rel = input.relationship.trim() || 'partner';
+  const isHinglish = input.language === 'hinglish';
 
-  const langRule =
-    input.language === 'hinglish'
-      ? 'Write in HINGLISH: code-switch Hindi + English WITHIN single sentences, Romanized (Latin script). Natural Gen-Z texting mix, e.g. "tera naam sunke I\'m unwell".'
-      : 'Write in casual Gen-Z English.';
+  const langRule = isHinglish
+    ? 'Write in HINGLISH: mix Hindi + English WITHIN each single line (never a full-Hindi or full-English line), Romanized in Latin script. Natural Gen-Z texting style.'
+    : 'Write in casual, very-online Gen-Z English.';
+
+  const hinglishRules = isHinglish
+    ? [
+        `HINGLISH RULES (strict):`,
+        `- Use casual "tu / tera / tujhe" — NEVER formal "aap / tumhari". Keep ONE register, consistently.`,
+        `- Blend Hindi + English mid-sentence like the examples; don't write a clean full sentence in either language.`,
+        `- Write Hindi the way Indians actually TEXT (casual, natural). If a Hindi phrase sounds clunky or translated, lean more English.`,
+      ].join('\n')
+    : '';
+
+  // Few-shot examples teach the exact voice. Show the set matching the language.
+  const examples = isHinglish
+    ? [
+        `EXAMPLES — copy this VOICE + register, but write BRAND-NEW lines (never reuse these):`,
+        `- the way you say mera naam, I'm literally unwell | priceless`,
+        `- you live rent free in my dimaag 24/7 | ₹0 (no eviction)`,
+        `- neend mein bhi paas kheench lete ho, I'm down bad | ₹∞`,
+        `- double text kar diya bc 4 min mein hi miss kar diya | non-refundable`,
+        `- teri hassi has me in a chokehold fr | anmol`,
+        `- "ghar jaana" ab matlab "tere paas jaana", pls fix | invaluable`,
+      ].join('\n')
+    : [
+        `EXAMPLES — copy this VOICE, but write BRAND-NEW lines (never reuse these):`,
+        `- stealing the blanket every single night | ₹0 (worth it)`,
+        `- your laugh that lives rent free in my head | priceless`,
+        `- letting me win arguments, knowingly | invaluable`,
+        `- 3am "are you up?" texts | non-refundable`,
+        `- you're my roman empire, I think about you 24/7 | ₹∞`,
+        `- the audacity to be this cute on a Tuesday | unpayable`,
+      ].join('\n');
 
   const answered = PERSONAL_QUESTIONS.map((q) => {
     const v = (input.answers[q.key] || '').trim();
@@ -107,12 +137,12 @@ function buildPrompt(input: GenerateInput): string {
   }).filter(Boolean) as string[];
 
   const personalRule = answered.length
-    ? `The sender shared these personal details — you MUST build at least 2-3 line items SPECIFICALLY from them (reference the actual details, don't be generic):\n${answered.join('\n')}`
-    : 'No personal details were shared; invent sweet, specific-feeling lines that fit the type.';
+    ? `The sender shared these personal details — build at least 3 line items SPECIFICALLY from them (use the actual detail; make it specific, not generic):\n${answered.join('\n')}`
+    : 'No personal details shared; invent sweet, oddly-specific-feeling lines that fit the type (specific beats generic).';
 
   const spiceRule =
     input.spice === 'extra'
-      ? 'CRANK THE CRINGE TO MAXIMUM: even more unhinged, delulu, terminally-online Gen-Z energy. Be extra.'
+      ? 'CRANK THE CRINGE TO MAXIMUM: more unhinged, delulu, terminally-online energy.'
       : '';
 
   return [
@@ -124,17 +154,28 @@ function buildPrompt(input: GenerateInput): string {
     `- Relationship: ${rel}`,
     `- Receipt type: "${type.label}" — tone: ${type.tone}`,
     ``,
-    `VOICE & RULES`,
+    `VOICE`,
     `- ${langRule}`,
-    `- Gen-Z cutesy/cringe, warm, a little unhinged. Keep it PG-13 (no explicit content).`,
+    `- Gen-Z cutesy + cringe, warm, a little unhinged and delulu. PG-13.`,
     `- Match the receipt TYPE's tone above.`,
-    `- ${personalRule}`,
+    `- Be SPECIFIC and a little weird — specific beats generic EVERY time. Avoid bland filler like "being my fave person" or "existing, basically".`,
     spiceRule,
-    `- Produce 8-12 SHORT, textable line items (each ≤ ~7 words feel).`,
-    `- Vary the "price" of each line playfully across values like: "priceless", "₹0 (worth it)", "₹∞", "non-refundable", "anmol", "invaluable", "unpayable". Do NOT use the same price every line.`,
-    `- Also write a funny subtotal, discount, tax, total and footer in the same voice.`,
-    `- "memeStamp" must be a SHORT uppercase rubber-stamp phrase (≤ 3 words).`,
-    `- "footer" should thank them for shopping and mention the cashier (${you}).`,
+    hinglishRules,
+    ``,
+    examples,
+    ``,
+    `PERSONALIZATION`,
+    `- ${personalRule}`,
+    ``,
+    `LINE RULES`,
+    `- Produce 8-12 SHORT, textable line items (each feels under ~8 words).`,
+    ``,
+    `PRICE RULES (strict)`,
+    `- Each "price" MUST be one of: "priceless", "₹0 (worth it)", "₹∞", "non-refundable", "anmol", "invaluable", "unpayable", OR a short readable phrase ≤4 words (e.g. "take my money", "no eviction", "worth the wait").`,
+    `- Vary them; never repeat the same price. NEVER invent random uppercase tokens like "₹FUJISOKU" or "₹BAHUTHIGH".`,
+    `- subtotal / discount / tax: short, readable, funny labels + readable values. total: a short sweet phrase like "my whole heart" or "everything I have" (NOT a random uppercase string).`,
+    `- "footer": thank them for shopping + mention the cashier (${you}).`,
+    `- "memeStamp": a SHORT uppercase rubber-stamp phrase (≤3 words), e.g. "CERTIFIED DELULU".`,
     ``,
     `OUTPUT`,
     `Return ONLY valid minified JSON (no markdown, no code fences, no commentary) matching exactly:`,
