@@ -12,54 +12,135 @@ import {
 } from './lines';
 
 /**
- * Phase 2 — optional AI generation. Calls Google Gemini server-side with the
- * sender's type + answers and returns a full receipt in the same shape as the
- * scaffolding. This layer is easy to toggle off: with no GEMINI_API_KEY (or on
- * ANY failure) it silently returns {@link buildFallbackReceipt}, so the gift
- * never breaks.
+ * Phase 2 — optional AI generation. Builds a full receipt (same shape as the
+ * scaffolding) from the sender's type + answers.
  *
- * The key is read from process.env.GEMINI_API_KEY and never reaches the client.
+ * Provider-agnostic: prefers OpenAI (OPENAI_API_KEY), falls back to Google
+ * Gemini (GEMINI_API_KEY), and on ANY failure (or no key) silently returns
+ * {@link buildFallbackReceipt} so the gift never breaks. Override the choice
+ * with AI_PROVIDER="openai" | "gemini". Keys are read server-side only and
+ * never reach the client. The prompt ({@link buildPrompt}) is shared by both.
  */
 
-const MODEL = 'gemini-2.5-flash';
-const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
 const TIMEOUT_MS = 12_000;
+
+// OpenAI — great at playful, voice-driven copy. Override model via OPENAI_MODEL.
+const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+const OPENAI_ENDPOINT = 'https://api.openai.com/v1/chat/completions';
+
+// Gemini fallback.
+const GEMINI_MODEL = 'gemini-2.5-flash';
+const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+
+type Provider = 'openai' | 'gemini';
+
+function pickProvider(): Provider | null {
+  const explicit = process.env.AI_PROVIDER?.toLowerCase();
+  if (explicit === 'openai' && process.env.OPENAI_API_KEY) return 'openai';
+  if (explicit === 'gemini' && process.env.GEMINI_API_KEY) return 'gemini';
+  if (process.env.OPENAI_API_KEY) return 'openai';
+  if (process.env.GEMINI_API_KEY) return 'gemini';
+  return null;
+}
 
 export async function generateReceipt(
   input: GenerateInput,
 ): Promise<{ receipt: GeneratedReceipt; source: 'ai' | 'fallback' }> {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
+  const provider = pickProvider();
+  if (!provider) {
     // TEMP DIAGNOSTIC — remove once AI generation is confirmed working.
-    console.warn('[love-receipt] GEMINI_API_KEY not present in this runtime');
+    console.warn('[love-receipt] no AI key present in this runtime');
     return { receipt: buildFallbackReceipt(input), source: 'fallback' };
   }
 
+  try {
+    const text =
+      provider === 'openai' ? await callOpenAI(input) : await callGemini(input);
+    const receipt = coerce(parseJson(text), input);
+    if (!receipt) {
+      console.error(
+        `[love-receipt] ${provider} unusable shape; raw=${text.slice(0, 300)}`,
+      );
+      throw new Error('unusable shape');
+    }
+    console.info(
+      `[love-receipt] ${provider} OK — ${receipt.lines.length} lines`,
+    );
+    return { receipt, source: 'ai' };
+  } catch (e) {
+    // Any failure → silent fallback so the builder never breaks.
+    console.error(
+      `[love-receipt] ${provider} failed → fallback: ${e instanceof Error ? e.message : String(e)}`,
+    );
+    return { receipt: buildFallbackReceipt(input), source: 'fallback' };
+  }
+}
+
+// ── providers (each returns the raw model text; shared parse/coerce after) ──
+async function callOpenAI(input: GenerateInput): Promise<string> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
-    const res = await fetch(`${ENDPOINT}?key=${apiKey}`, {
+    const res = await fetch(OPENAI_ENDPOINT, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      },
       signal: controller.signal,
       body: JSON.stringify({
-        contents: [{ parts: [{ text: buildPrompt(input) }] }],
-        generationConfig: {
-          temperature: input.spice === 'extra' ? 1.15 : 0.95,
-          topP: 0.95,
-          // 8-12 Hinglish lines + scaffolding can overflow a small budget and
-          // truncate the JSON (→ parse fails). Give it ample room.
-          maxOutputTokens: 2048,
-          responseMimeType: 'application/json',
-          // gemini-2.5-flash is a "thinking" model — without this it spends the
-          // output budget on internal reasoning and returns truncated/empty
-          // JSON. Disable thinking so all tokens go to the answer.
-          thinkingConfig: { thinkingBudget: 0 },
-        },
+        model: OPENAI_MODEL,
+        temperature: input.spice === 'extra' ? 1.2 : 1.0,
+        max_tokens: 2048,
+        response_format: { type: 'json_object' },
+        messages: [
+          {
+            role: 'system',
+            content:
+              'You are a witty, terminally-online Gen-Z copywriter. Output ONLY valid minified JSON — no markdown, no commentary.',
+          },
+          { role: 'user', content: buildPrompt(input) },
+        ],
       }),
     });
     if (!res.ok) {
-      // TEMP DIAGNOSTIC — log status + body (never the key) to runtime logs.
+      const body = await res.text().catch(() => '');
+      console.error(
+        `[love-receipt] openai HTTP ${res.status}: ${body.slice(0, 400)}`,
+      );
+      throw new Error(`openai ${res.status}`);
+    }
+    const data = await res.json();
+    return data?.choices?.[0]?.message?.content ?? '';
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function callGemini(input: GenerateInput): Promise<string> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  try {
+    const res = await fetch(
+      `${GEMINI_ENDPOINT}?key=${process.env.GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: buildPrompt(input) }] }],
+          generationConfig: {
+            temperature: input.spice === 'extra' ? 1.15 : 0.95,
+            topP: 0.95,
+            maxOutputTokens: 2048,
+            responseMimeType: 'application/json',
+            // 2.5-flash is a thinking model; disable so tokens go to the answer.
+            thinkingConfig: { thinkingBudget: 0 },
+          },
+        }),
+      },
+    );
+    if (!res.ok) {
       const body = await res.text().catch(() => '');
       console.error(
         `[love-receipt] gemini HTTP ${res.status}: ${body.slice(0, 400)}`,
@@ -67,29 +148,13 @@ export async function generateReceipt(
       throw new Error(`gemini ${res.status}`);
     }
     const data = await res.json();
-    const text: string = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
-    const parsed = parseJson(text);
-    const receipt = coerce(parsed, input);
-    if (!receipt) {
-      console.error(
-        `[love-receipt] gemini unusable shape; raw=${text.slice(0, 300)}`,
-      );
-      throw new Error('unusable shape');
-    }
-    console.info(`[love-receipt] gemini OK — ${receipt.lines.length} lines`);
-    return { receipt, source: 'ai' };
-  } catch (e) {
-    // Any failure → silent fallback so the builder never breaks.
-    console.error(
-      `[love-receipt] gemini failed → fallback: ${e instanceof Error ? e.message : String(e)}`,
-    );
-    return { receipt: buildFallbackReceipt(input), source: 'fallback' };
+    return data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
   } finally {
     clearTimeout(timer);
   }
 }
 
-// ── prompt ──────────────────────────────────────────────────────────────
+// ── prompt (shared by both providers) ──────────────────────────────────
 function buildPrompt(input: GenerateInput): string {
   const type = getReceiptType(input.receiptType);
   const name = input.recipientName.trim() || 'them';
@@ -214,7 +279,7 @@ function summary(v: unknown, fb: ReceiptSummaryRow): ReceiptSummaryRow {
   return { label: str(o.label, fb.label), price: str(o.price, fb.price) };
 }
 
-/** Validate Gemini's JSON; return null if it's unusable so we fall back. */
+/** Validate the model's JSON; return null if it's unusable so we fall back. */
 function coerce(raw: unknown, input: GenerateInput): GeneratedReceipt | null {
   if (!raw || typeof raw !== 'object') return null;
   const o = raw as Record<string, unknown>;

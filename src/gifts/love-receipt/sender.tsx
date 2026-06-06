@@ -10,7 +10,7 @@ import { playClick } from '@/components/retro-sounds';
 import { buildWaUrl } from '@/lib/whatsapp';
 import { ReceiptPaper, type ReceiptEditable } from './receipt-paper';
 import { createLoveReceipt } from './actions';
-import { generateReceipt } from './gemini';
+import { generateReceipt } from './generate';
 import {
   buildScaffold,
   DEFAULT_PRICE,
