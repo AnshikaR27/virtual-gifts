@@ -351,15 +351,14 @@ export function LoveReceiptSender() {
           </div>
 
           {/* ── Step 2 — build on the receipt ── */}
-          <div>
-            {/* sticky live receipt = the editor */}
+          {/* Normal-flow column that scrolls; Send lives in a sticky footer
+              below so it's always reachable however long the receipt grows. */}
+          <div style={{ paddingBottom: 8 }}>
+            {/* live receipt = the editor (scrolls with the page) */}
             <div
               style={{
-                position: 'sticky',
-                top: 0,
-                zIndex: 3,
-                margin: '-14px -14px 0',
-                padding: '14px 10px 12px',
+                margin: '-14px -14px 14px',
+                padding: '16px 10px',
                 background:
                   'repeating-linear-gradient(45deg, #c4b6dc, #c4b6dc 10px, #bcaed4 10px, #bcaed4 20px)',
                 borderBottom: '2px solid var(--win-chrome-dark)',
@@ -637,7 +636,22 @@ export function LoveReceiptSender() {
               </p>
             ) : null}
 
-            <NavRow>
+            {/* sticky footer — Send is always reachable, however tall the
+                receipt gets. Opaque bg so content scrolls under it. */}
+            <div
+              style={{
+                position: 'sticky',
+                bottom: 0,
+                zIndex: 5,
+                display: 'flex',
+                gap: 8,
+                margin: '12px -14px -16px',
+                padding: '10px 14px calc(10px + env(safe-area-inset-bottom))',
+                background: 'var(--win-chrome)',
+                borderTop: '2px solid var(--win-chrome-light)',
+                boxShadow: '0 -3px 8px rgba(26,10,46,0.2)',
+              }}
+            >
               <WinButton
                 variant="grey"
                 onClick={() => goto(1)}
@@ -653,7 +667,7 @@ export function LoveReceiptSender() {
               >
                 {pending ? 'Printing…' : 'Send receipt 💌'}
               </WinButton>
-            </NavRow>
+            </div>
           </div>
         </MultiStepForm>
       </Window>
