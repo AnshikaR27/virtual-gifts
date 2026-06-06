@@ -11,11 +11,11 @@ import { CrochetRose, GarlandLeaf } from '@/components/shared/craft-elements';
 const INITIAL_STRINGS = 3;
 
 const preferredOrder = [
+  'love-receipt',
   'tiffin-note',
   'sorry-puppy',
   'spotify-wrapped',
   'wishing-dandelion',
-  'love-receipt',
   'miss-you',
   'the-proposal',
   'terms-and-conditions',
