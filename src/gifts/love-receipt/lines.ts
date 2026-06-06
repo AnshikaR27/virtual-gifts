@@ -238,6 +238,12 @@ export interface ReceiptType {
   total: string;
   /** built-in lines used when Gemini is unavailable. */
   fallbackLines: SuggestionSeed[];
+  /**
+   * Optional curated content pool, per language, sampled at random for the
+   * instant Generate/Regenerate flow. When absent for a language, callers fall
+   * back to {@link ReceiptType.fallbackLines}. Only seeded types carry this.
+   */
+  pool?: Partial<Record<ReceiptLanguage, SuggestionSeed[]>>;
 }
 
 export const RECEIPT_TYPES: ReceiptType[] = [
@@ -264,6 +270,170 @@ export const RECEIPT_TYPES: ReceiptType[] = [
       { text: 'check my phone 40x hoping it’s you', price: 'invaluable' },
       { text: 'us in my head: a cinematic universe', price: 'priceless' },
     ],
+    pool: {
+      en: [
+        {
+          text: 'ur conspiracy theories somehow sound romantic at 2am',
+          price: '₹7 (delulu member rate)',
+        },
+        {
+          text: 'the way you manifest us like unpaid intern energy',
+          price: 'auto-renews monthly 💀',
+        },
+        {
+          text: 'calling every coincidence fate like a wattpad protagonist',
+          price: '₹4,99,999 + emotional damage',
+        },
+        {
+          text: 'ur fake wedding plans after one date fr',
+          price: 'non-refundable btw',
+        },
+        {
+          text: 'the way you stalk my spotify like FBI lite',
+          price: 'free trial expired',
+        },
+        {
+          text: 'ur delusional confidence during zero-text-response eras',
+          price: 'EMI available for heartbreak',
+        },
+        {
+          text: "telling ur friends we're endgame after eye contact",
+          price: 'sold out fr',
+        },
+        {
+          text: 'the way you romanticize bare minimum replies sm',
+          price: '₹0 (still buying)',
+        },
+        {
+          text: 'making fake scenarios before sleeping every night',
+          price: 'billed annually in tears',
+        },
+        {
+          text: 'ur imaginary future baby names kinda ate though',
+          price: 'BOGO heartbreak combo',
+        },
+        {
+          text: 'thinking the universe ships us harder than twitter',
+          price: 'see fine print',
+        },
+        {
+          text: 'ur lil tarot phase predicting our wedding venue',
+          price: '₹1 cr +gst',
+        },
+        {
+          text: 'saving my selfies like treasured historical documents',
+          price: 'out of stock emotionally',
+        },
+        {
+          text: 'the way you overanalyze every emoji i send',
+          price: 'processing fee applies',
+        },
+        {
+          text: 'ur notes app paragraphs after one good conversation',
+          price: 'subscription paused temporarily',
+        },
+        {
+          text: 'believing every song lyric secretly about us',
+          price: '₹88 plus clown tax',
+        },
+        {
+          text: 'the way you claim telepathy during dry texting',
+          price: 'conditions apply babe',
+        },
+        {
+          text: 'ur pinterest board titled future apartment together',
+          price: 'lease not included',
+        },
+        {
+          text: 'pretending my reposts are secret love confessions',
+          price: 'no returns accepted',
+        },
+        {
+          text: 'ur dramatic sighs after seeing my following list',
+          price: '₹2 and a dream',
+        },
+        {
+          text: 'ur fake arguments prepared before i even reply',
+          price: 'battery not included',
+        },
+        {
+          text: 'thinking one compliment equals lifelong commitment fr',
+          price: '₹9,999 emotionally adjusted',
+        },
+        {
+          text: 'ur delulu pep talks before opening my messages',
+          price: 'cashback in serotonin',
+        },
+        {
+          text: 'calling us enemies-to-lovers after mild disagreement',
+          price: 'trial version only',
+        },
+        {
+          text: 'the way you screenshot cute chats for archives',
+          price: 'archived permanently',
+        },
+        {
+          text: 'ur obsession with reading into my typing pauses',
+          price: '₹404 reality not found',
+        },
+        {
+          text: 'ur fake vows during traffic jams together somehow',
+          price: 'warranty voided',
+        },
+        {
+          text: 'the way you assume my mom already likes you',
+          price: '₹56 plus family pack',
+        },
+        {
+          text: 'manifesting texts instead of actually texting first',
+          price: 'network charges apply',
+        },
+        {
+          text: 'ur confidence saying when we get married someday',
+          price: '₹12,121 wedding surcharge',
+        },
+        {
+          text: 'ur fake anniversary countdowns lowkey terrifying adorable',
+          price: 'subscription cannot cancel',
+        },
+        {
+          text: 'the way you gaslight urself into staying hopeful',
+          price: '₹73 and blind faith',
+        },
+        {
+          text: 'ur lil jealous moments over fictional competition',
+          price: 'restocking soon maybe',
+        },
+        {
+          text: 'the way you rehearse confessions in shower concerts',
+          price: 'taxes emotionally included',
+        },
+        {
+          text: 'thinking our eye contact deserved background music instantly',
+          price: 'audio sold separately',
+        },
+        {
+          text: 'the way you defend my red flags publicly',
+          price: '₹666 clown premium',
+        },
+        {
+          text: 'ur delulu optimism after getting left on read',
+          price: 'lifetime membership activated',
+        },
+        {
+          text: 'ur random future travel itineraries for us both',
+          price: 'visa fees pending',
+        },
+        {
+          text: "thinking we'd survive apocalypse because vibes match",
+          price: '₹999 apocalypse bundle',
+        },
+        {
+          text: 'ur hopeless romantic delusions somehow still working',
+          price: '₹∞ but make it embarrassing',
+        },
+      ],
+    },
   },
   {
     key: 'obsessed',
@@ -473,9 +643,50 @@ export interface GenerateInput {
 }
 
 /**
- * No-AI fallback — a small built-in set for the chosen type, blended with a
- * couple of language-flavoured starters, plus the scaffold's funny summary so
- * the receipt is always complete even when Gemini is unavailable.
+ * Sample `count` DISTINCT lines (each tagged with a stable id) for a type, at
+ * random. Reads `type.pool[language]` when present, else the type's
+ * language-agnostic `fallbackLines` — so it never breaks for an unseeded type.
+ *
+ * Pass the previous batch's ids as `excludeIds` to get a fresh set on Regenerate.
+ * If too few unseen lines remain to fill `count`, it resets (ignores excludeIds)
+ * rather than returning an empty/short set. Ids are assigned here (index-based,
+ * the pool is static) so {@link SuggestionSeed} stays a clean {text, price}.
+ */
+export function sampleFromPool(
+  typeKey: ReceiptTypeKey,
+  language: ReceiptLanguage,
+  count: number,
+  excludeIds?: ReadonlySet<string>,
+): ReceiptLine[] {
+  const type = getReceiptType(typeKey);
+  const source = type.pool?.[language] ?? type.fallbackLines;
+  const all: ReceiptLine[] = source.map((seed, i) => ({
+    id: `${typeKey}-${language}-${i}`,
+    text: seed.text,
+    price: seed.price,
+  }));
+
+  let candidates =
+    excludeIds && excludeIds.size > 0
+      ? all.filter((c) => !excludeIds.has(c.id))
+      : all;
+  // Not enough fresh lines left to fill the batch → reset so we never go empty.
+  if (candidates.length < count) candidates = all;
+
+  // Fisher–Yates shuffle a copy, then take `count`.
+  const shuffled = [...candidates];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled.slice(0, count);
+}
+
+/**
+ * No-AI fallback — a complete receipt for the chosen type. Pooled types (e.g.
+ * delulu) draw a fresh random set via {@link sampleFromPool}; unpooled types
+ * keep the original deterministic blend. Always paired with the scaffold's funny
+ * summary so the receipt is complete even when Gemini is unavailable.
  */
 export function buildFallbackReceipt(input: GenerateInput): GeneratedReceipt {
   const type = getReceiptType(input.receiptType);
@@ -485,18 +696,29 @@ export function buildFallbackReceipt(input: GenerateInput): GeneratedReceipt {
     input.senderName,
   );
 
-  // Blend type lines with a couple language-flavoured starters for variety.
-  const flavour = SUGGESTIONS[input.language].slice(0, 2);
-  const merged: SuggestionSeed[] = [...type.fallbackLines];
-  for (const f of flavour) {
-    const text = applyTemplate(f.text, input.recipientName, input.senderName);
-    if (!merged.some((m) => m.text === text)) merged.push({ ...f, text });
+  let lines: SuggestionSeed[];
+  if (type.pool?.[input.language]) {
+    // Pooled type: random draw for variety. Drop the id — the payload's lines
+    // are plain {text, price}; the sender assigns its own ids when applying.
+    lines = sampleFromPool(input.receiptType, input.language, 7).map((l) => ({
+      text: l.text,
+      price: l.price,
+    }));
+  } else {
+    // Unpooled type: original deterministic blend (behavior unchanged).
+    const flavour = SUGGESTIONS[input.language].slice(0, 2);
+    const merged: SuggestionSeed[] = [...type.fallbackLines];
+    for (const f of flavour) {
+      const text = applyTemplate(f.text, input.recipientName, input.senderName);
+      if (!merged.some((m) => m.text === text)) merged.push({ ...f, text });
+    }
+    lines = merged.slice(0, 9);
   }
 
   return {
     storeName: scaffold.storeName,
     subtitle: type.subtitle,
-    lines: merged.slice(0, 9),
+    lines,
     subtotal: { ...scaffold.subtotal },
     discount: { ...scaffold.discount },
     tax: { ...scaffold.tax },

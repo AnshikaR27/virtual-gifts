@@ -21,6 +21,7 @@ import {
   PERSONAL_QUESTIONS,
   PRICE_MAX,
   RECEIPT_TYPES,
+  sampleFromPool,
   TOTAL_OPTIONS,
   type GeneratedReceipt,
   type ReceiptLanguage,
@@ -28,6 +29,9 @@ import {
   type ReceiptPayload,
   type ReceiptTypeKey,
 } from './lines';
+
+// How many pool lines a Generate/Regenerate draws onto the receipt.
+const POOL_COUNT = 7;
 
 const RELATIONSHIP_OPTIONS = [
   'girlfriend',
@@ -244,6 +248,9 @@ export function LoveReceiptSender() {
   const [generating, setGenerating] = useState(false);
   const [genSource, setGenSource] = useState<'ai' | 'fallback' | null>(null);
   const [hasGenerated, setHasGenerated] = useState(false);
+  // Pool line-ids shown so far for the current type+language, so Regenerate can
+  // avoid repeats. Reset whenever the type or language (= the pool) changes.
+  const [shownIds, setShownIds] = useState<Set<string>>(new Set());
 
   // edit-on-receipt UI state (which cell is being edited)
   const [activeLineId, setActiveLineId] = useState<string | null>(null);
@@ -333,6 +340,58 @@ export function LoveReceiptSender() {
     }
   };
 
+  const hasPersonalAnswers = Object.values(state.answers).some(
+    (v) => v.trim().length > 0,
+  );
+
+  // Assemble a full receipt from a sampled pool batch: type scaffolding + lines.
+  const buildPoolReceipt = (batch: ReceiptLine[]): GeneratedReceipt => {
+    const scaffold = buildScaffold(
+      state.language,
+      state.recipientName,
+      state.senderName,
+    );
+    const type = getReceiptType(state.receiptType!);
+    return {
+      storeName: scaffold.storeName,
+      subtitle: type.subtitle,
+      lines: batch.map((l) => ({ text: l.text, price: l.price })),
+      subtotal: { ...scaffold.subtotal },
+      discount: { ...scaffold.discount },
+      tax: { ...scaffold.tax },
+      total: type.total,
+      footer: scaffold.footer,
+      memeStamp: type.stamp,
+    };
+  };
+
+  // Pool-backed Generate/Regenerate (instant, no AI). 'fresh' seeds shownIds;
+  // 'more' excludes everything already shown. The sampler resets internally when
+  // it can't fill a fresh batch — we mirror that by restarting shownIds the
+  // moment a returned batch overlaps what we've already shown, so we never fight
+  // its reset (and Regenerate never dead-ends).
+  const runPool = (mode: 'fresh' | 'more') => {
+    if (!state.receiptType) return;
+    playClick();
+    const batch = sampleFromPool(
+      state.receiptType,
+      state.language,
+      POOL_COUNT,
+      mode === 'more' ? shownIds : undefined,
+    );
+    dispatch({ type: 'applyGenerated', gen: buildPoolReceipt(batch) });
+    setShownIds((prev) => {
+      if (mode === 'fresh') return new Set(batch.map((l) => l.id));
+      const wrapped = batch.some((l) => prev.has(l.id)); // sampler reset → restart
+      if (wrapped) return new Set(batch.map((l) => l.id));
+      const next = new Set(prev);
+      batch.forEach((l) => next.add(l.id));
+      return next;
+    });
+    setGenSource(null); // pool is the intended default, not an error fallback
+    setHasGenerated(true);
+  };
+
   const addDraft = () => {
     const text = state.draftText.trim();
     if (!text) return;
@@ -395,6 +454,7 @@ export function LoveReceiptSender() {
               onChange={(v) => {
                 playClick();
                 dispatch({ type: 'setLanguage', value: v });
+                setShownIds(new Set()); // new pool → start fresh
               }}
             />
             <WinInput
@@ -503,6 +563,7 @@ export function LoveReceiptSender() {
                   onClick={() => {
                     playClick();
                     dispatch({ type: 'setType', value: t.key });
+                    setShownIds(new Set()); // new pool → start fresh
                   }}
                   emoji={t.emoji}
                   label={t.label}
@@ -541,7 +602,9 @@ export function LoveReceiptSender() {
             {/* generate */}
             <WinButton
               variant="pink"
-              onClick={() => generate('normal')}
+              onClick={() =>
+                hasPersonalAnswers ? generate('normal') : runPool('fresh')
+              }
               disabled={!state.receiptType || generating}
               style={{
                 width: '100%',
@@ -559,7 +622,9 @@ export function LoveReceiptSender() {
               <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
                 <WinButton
                   variant="grey"
-                  onClick={() => generate('normal')}
+                  onClick={() =>
+                    hasPersonalAnswers ? generate('normal') : runPool('more')
+                  }
                   disabled={generating}
                   style={{ flex: 1 }}
                 >
