@@ -2,11 +2,16 @@
 
 import { motion } from 'framer-motion';
 import type { CSSProperties } from 'react';
-import { BARCODE_TEXT, type ReceiptPayload } from './lines';
+import {
+  BARCODE_TEXT,
+  NEW_LINE_MAX,
+  PRICE_MAX,
+  type ReceiptPayload,
+} from './lines';
 
 /**
  * <ReceiptPaper> — the realistic crumpled-paper receipt, shared by the sender's
- * live preview and the recipient's printing animation.
+ * builder and the recipient's printing animation.
  *
  * Faithful to the reference photo: cream paper, torn top/bottom edges, a heavy
  * condensed header, a faded-charcoal monospace body, thin divider rules, a bold
@@ -14,8 +19,12 @@ import { BARCODE_TEXT, type ReceiptPayload } from './lines';
  * rubber meme-stamp and a barcode that spells ILOVEYOU.
  *
  * The recipient feeds the paper out one row at a time via `printedCount`; the
- * sender preview passes the full count with `animate={false}` so edits don't
- * re-trigger the entrance animation on every keystroke.
+ * sender passes the full count with `animate={false}`.
+ *
+ * Pass `editable` to make the receipt its own editor: the store name, each
+ * line (text + price, with ✕ delete and ↑↓ reorder), and the total become
+ * inline-editable directly on the paper. When `editable` is omitted the output
+ * is identical to a plain printed receipt, so the recipient view is untouched.
  */
 
 // ── ink + paper palette (faded thermal print, not pure black) ──────────
@@ -23,6 +32,9 @@ const INK = '#46423b';
 const INK_SOFT = 'rgba(70, 66, 59, 0.62)';
 const RULE = 'rgba(70, 66, 59, 0.5)';
 const PAPER = '#f4efe3';
+const EDIT_ACCENT = '#b6303a';
+const EDIT_BG = 'rgba(182, 48, 58, 0.08)';
+const EDIT_HINT = 'rgba(70, 66, 59, 0.28)';
 
 const HEADING_FONT =
   "var(--font-oswald), 'Arial Narrow', 'Helvetica Neue', Impact, sans-serif";
@@ -61,11 +73,30 @@ const TORN_CLIP = [
   '0 calc(100% - 5px)',
 ].join(', ');
 
+// ── edit-on-receipt contract ───────────────────────────────────────────
+export interface ReceiptEditable {
+  /** id of the line being edited inline (null = none). */
+  activeLineId: string | null;
+  onActivateLine: (id: string | null) => void;
+  editingStore: boolean;
+  onActivateStore: (editing: boolean) => void;
+  editingTotal: boolean;
+  onActivateTotal: (editing: boolean) => void;
+  onChangeStore: (value: string) => void;
+  onChangeTotal: (value: string) => void;
+  onChangeLine: (id: string, field: 'text' | 'price', value: string) => void;
+  onDeleteLine: (id: string) => void;
+  onMoveLine: (id: string, dir: -1 | 1) => void;
+  /** shown in the items area when there are no lines yet. */
+  emptyHint?: string;
+}
+
 // ── reveal sequence (shared shape for paper + printing pacing) ─────────
 type RowKind =
   | 'header'
   | 'rule'
   | 'item'
+  | 'emptyhint'
   | 'summary'
   | 'total'
   | 'footer'
@@ -79,13 +110,25 @@ interface SeqRow {
   summary?: 'subtotal' | 'discount' | 'tax';
 }
 
-export function buildSequence(payload: ReceiptPayload): SeqRow[] {
+export function buildSequence(
+  payload: ReceiptPayload,
+  opts?: { showEmptyHint?: boolean },
+): SeqRow[] {
+  const items: SeqRow[] = payload.lines.map((_, lineIndex) => ({
+    kind: 'item',
+    lineIndex,
+  }));
+  const itemSection: SeqRow[] =
+    items.length > 0
+      ? items
+      : opts?.showEmptyHint
+        ? [{ kind: 'emptyhint' }]
+        : [];
+
   return [
     { kind: 'header' },
     { kind: 'rule' },
-    ...payload.lines.map(
-      (_, lineIndex): SeqRow => ({ kind: 'item', lineIndex }),
-    ),
+    ...itemSection,
     { kind: 'rule' },
     { kind: 'summary', summary: 'subtotal' },
     { kind: 'summary', summary: 'discount' },
@@ -113,10 +156,12 @@ interface ReceiptPaperProps {
   payload: ReceiptPayload;
   /** Rows 0..printedCount-1 are shown. Defaults to all rows. */
   printedCount?: number;
-  /** Animate each row in as it appears (printing). Off for the live preview. */
+  /** Animate each row in as it appears (printing). Off for the builder. */
   animate?: boolean;
   /** Slam the meme stamp down once the receipt is printed. */
   showStamp?: boolean;
+  /** Turn the receipt into its own editor (sender builder). */
+  editable?: ReceiptEditable;
   style?: CSSProperties;
 }
 
@@ -125,9 +170,10 @@ export function ReceiptPaper({
   printedCount,
   animate = false,
   showStamp = false,
+  editable,
   style,
 }: ReceiptPaperProps) {
-  const seq = buildSequence(payload);
+  const seq = buildSequence(payload, { showEmptyHint: !!editable });
   const shown = printedCount ?? seq.length;
 
   return (
@@ -168,7 +214,7 @@ export function ReceiptPaper({
         <div style={{ position: 'relative' }}>
           {seq.slice(0, shown).map((row, i) => (
             <Row key={i} animate={animate}>
-              {renderRow(row, payload)}
+              {renderRow(row, payload, editable)}
             </Row>
           ))}
         </div>
@@ -202,14 +248,34 @@ function Row({
   );
 }
 
-function renderRow(row: SeqRow, payload: ReceiptPayload): React.ReactNode {
+function renderRow(
+  row: SeqRow,
+  payload: ReceiptPayload,
+  editable?: ReceiptEditable,
+): React.ReactNode {
   switch (row.kind) {
     case 'header':
-      return <Header payload={payload} />;
+      return <Header payload={payload} editable={editable} />;
     case 'rule':
       return <Rule />;
+    case 'emptyhint':
+      return (
+        <EmptyHint
+          text={editable?.emptyHint ?? 'tap a starter line below ✨'}
+        />
+      );
     case 'item': {
       const line = payload.lines[row.lineIndex!];
+      if (editable) {
+        return (
+          <EditableItem
+            line={line}
+            index={row.lineIndex!}
+            count={payload.lines.length}
+            editable={editable}
+          />
+        );
+      }
       return <ItemRow text={line.text} price={line.price} />;
     }
     case 'summary': {
@@ -217,7 +283,7 @@ function renderRow(row: SeqRow, payload: ReceiptPayload): React.ReactNode {
       return <SummaryRow label={r.label} price={r.price} />;
     }
     case 'total':
-      return <TotalRow total={payload.total} />;
+      return <TotalRow total={payload.total} editable={editable} />;
     case 'footer':
       return <Footer payload={payload} />;
     case 'barcode':
@@ -228,22 +294,70 @@ function renderRow(row: SeqRow, payload: ReceiptPayload): React.ReactNode {
 }
 
 // ── pieces ─────────────────────────────────────────────────────────────
-function Header({ payload }: { payload: ReceiptPayload }) {
+function Header({
+  payload,
+  editable,
+}: {
+  payload: ReceiptPayload;
+  editable?: ReceiptEditable;
+}) {
+  const storeStyle: CSSProperties = {
+    fontFamily: HEADING_FONT,
+    fontWeight: 700,
+    fontSize: 30,
+    lineHeight: 1.02,
+    letterSpacing: '0.5px',
+    textTransform: 'uppercase',
+    color: INK,
+  };
+
   return (
     <div style={{ textAlign: 'center', marginBottom: 6 }}>
-      <div
-        style={{
-          fontFamily: HEADING_FONT,
-          fontWeight: 700,
-          fontSize: 30,
-          lineHeight: 1.02,
-          letterSpacing: '0.5px',
-          textTransform: 'uppercase',
-          color: INK,
-        }}
-      >
-        {payload.storeName}
-      </div>
+      {editable ? (
+        editable.editingStore ? (
+          <input
+            autoFocus
+            value={payload.storeName}
+            maxLength={40}
+            onChange={(e) => editable.onChangeStore(e.target.value)}
+            onBlur={() => editable.onActivateStore(false)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') editable.onActivateStore(false);
+            }}
+            style={{
+              ...storeStyle,
+              fontSize: 26,
+              width: '100%',
+              textAlign: 'center',
+              background: EDIT_BG,
+              border: 'none',
+              borderBottom: `2px solid ${EDIT_ACCENT}`,
+              outline: 'none',
+              padding: '2px 4px',
+            }}
+          />
+        ) : (
+          <button
+            type="button"
+            onClick={() => editable.onActivateStore(true)}
+            style={{
+              ...storeStyle,
+              display: 'block',
+              width: '100%',
+              background: 'transparent',
+              border: 'none',
+              borderBottom: `1px dashed ${EDIT_HINT}`,
+              cursor: 'pointer',
+              padding: '2px 0',
+            }}
+          >
+            {payload.storeName}
+          </button>
+        )
+      ) : (
+        <div style={storeStyle}>{payload.storeName}</div>
+      )}
+
       {payload.subtitle ? (
         <div
           style={{
@@ -288,6 +402,24 @@ function Rule() {
   return <div style={{ borderTop: `1px solid ${RULE}`, margin: '8px 0' }} />;
 }
 
+function EmptyHint({ text }: { text: string }) {
+  return (
+    <div
+      style={{
+        fontFamily: MONO_FONT,
+        fontSize: 12,
+        fontStyle: 'italic',
+        color: INK_SOFT,
+        textAlign: 'center',
+        padding: '16px 6px',
+        lineHeight: 1.5,
+      }}
+    >
+      {text}
+    </div>
+  );
+}
+
 function ItemRow({ text, price }: { text: string; price: string }) {
   return (
     <div
@@ -306,6 +438,164 @@ function ItemRow({ text, price }: { text: string; price: string }) {
       <span style={{ flex: 1 }}>{text}</span>
       <span style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>{price}</span>
     </div>
+  );
+}
+
+// ── editable line: tap to expand into an inline editor on the paper ─────
+function EditableItem({
+  line,
+  index,
+  count,
+  editable,
+}: {
+  line: { id: string; text: string; price: string };
+  index: number;
+  count: number;
+  editable: ReceiptEditable;
+}) {
+  const active = editable.activeLineId === line.id;
+
+  if (!active) {
+    return (
+      <button
+        type="button"
+        onClick={() => editable.onActivateLine(line.id)}
+        style={{
+          display: 'flex',
+          width: '100%',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          gap: 12,
+          fontFamily: MONO_FONT,
+          fontSize: 13,
+          lineHeight: 1.45,
+          color: INK,
+          textAlign: 'left',
+          background: 'transparent',
+          border: 'none',
+          borderBottom: `1px dashed ${EDIT_HINT}`,
+          cursor: 'pointer',
+          padding: '7px 0',
+        }}
+      >
+        <span style={{ flex: 1 }}>{line.text}</span>
+        <span style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>
+          {line.price}
+        </span>
+      </button>
+    );
+  }
+
+  const editInput: CSSProperties = {
+    fontFamily: MONO_FONT,
+    fontSize: 16, // ≥16 avoids iOS focus-zoom
+    color: INK,
+    background: EDIT_BG,
+    border: 'none',
+    borderBottom: `1.5px solid ${EDIT_ACCENT}`,
+    outline: 'none',
+    padding: '6px 6px',
+  };
+
+  return (
+    <div style={{ padding: '7px 0', borderBottom: `1px dashed ${EDIT_HINT}` }}>
+      <input
+        autoFocus
+        value={line.text}
+        maxLength={NEW_LINE_MAX}
+        onChange={(e) => editable.onChangeLine(line.id, 'text', e.target.value)}
+        placeholder="what you adore…"
+        style={{ ...editInput, width: '100%' }}
+      />
+      <div
+        style={{
+          display: 'flex',
+          gap: 5,
+          alignItems: 'center',
+          marginTop: 6,
+        }}
+      >
+        <input
+          value={line.price}
+          maxLength={PRICE_MAX}
+          onChange={(e) =>
+            editable.onChangeLine(line.id, 'price', e.target.value)
+          }
+          placeholder="₹ / priceless"
+          style={{ ...editInput, flex: 1, minWidth: 0, textAlign: 'right' }}
+        />
+        <CtrlBtn
+          label="↑"
+          disabled={index === 0}
+          onClick={() => editable.onMoveLine(line.id, -1)}
+        />
+        <CtrlBtn
+          label="↓"
+          disabled={index === count - 1}
+          onClick={() => editable.onMoveLine(line.id, 1)}
+        />
+        <CtrlBtn
+          label="✕"
+          tone="danger"
+          onClick={() => editable.onDeleteLine(line.id)}
+        />
+        <CtrlBtn
+          label="✓"
+          tone="primary"
+          onClick={() => editable.onActivateLine(null)}
+        />
+      </div>
+    </div>
+  );
+}
+
+function CtrlBtn({
+  label,
+  onClick,
+  disabled,
+  tone = 'plain',
+}: {
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  tone?: 'plain' | 'danger' | 'primary';
+}) {
+  const palette: Record<string, CSSProperties> = {
+    plain: { background: '#fffdf7', color: INK, borderColor: EDIT_HINT },
+    danger: {
+      background: '#fff',
+      color: EDIT_ACCENT,
+      borderColor: EDIT_ACCENT,
+    },
+    primary: {
+      background: EDIT_ACCENT,
+      color: '#fff',
+      borderColor: EDIT_ACCENT,
+    },
+  };
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        width: 34,
+        height: 34,
+        flexShrink: 0,
+        fontFamily: MONO_FONT,
+        fontSize: 15,
+        lineHeight: 1,
+        borderStyle: 'solid',
+        borderWidth: 1,
+        borderRadius: 4,
+        cursor: disabled ? 'default' : 'pointer',
+        opacity: disabled ? 0.35 : 1,
+        ...palette[tone],
+      }}
+    >
+      {label}
+    </button>
   );
 }
 
@@ -330,7 +620,23 @@ function SummaryRow({ label, price }: { label: string; price: string }) {
   );
 }
 
-function TotalRow({ total }: { total: string }) {
+function TotalRow({
+  total,
+  editable,
+}: {
+  total: string;
+  editable?: ReceiptEditable;
+}) {
+  const valueStyle: CSSProperties = {
+    fontSize: 18,
+    textAlign: 'right',
+    letterSpacing: '0.3px',
+    textTransform: 'none',
+    fontFamily: MONO_FONT,
+    fontWeight: 700,
+    color: INK,
+  };
+
   return (
     <div
       style={{
@@ -346,18 +652,48 @@ function TotalRow({ total }: { total: string }) {
       }}
     >
       <span style={{ fontSize: 21, letterSpacing: '1px' }}>Total</span>
-      <span
-        style={{
-          fontSize: 18,
-          textAlign: 'right',
-          letterSpacing: '0.3px',
-          textTransform: 'none',
-          fontFamily: MONO_FONT,
-          fontWeight: 700,
-        }}
-      >
-        {total}
-      </span>
+      {editable ? (
+        editable.editingTotal ? (
+          <input
+            autoFocus
+            value={total}
+            maxLength={48}
+            onChange={(e) => editable.onChangeTotal(e.target.value)}
+            onBlur={() => editable.onActivateTotal(false)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') editable.onActivateTotal(false);
+            }}
+            style={{
+              ...valueStyle,
+              flex: 1,
+              minWidth: 0,
+              background: EDIT_BG,
+              border: 'none',
+              borderBottom: `1.5px solid ${EDIT_ACCENT}`,
+              outline: 'none',
+              padding: '4px 4px',
+            }}
+          />
+        ) : (
+          <button
+            type="button"
+            onClick={() => editable.onActivateTotal(true)}
+            style={{
+              ...valueStyle,
+              background: 'transparent',
+              border: 'none',
+              borderBottom: `1px dashed ${EDIT_HINT}`,
+              cursor: 'pointer',
+              padding: '2px 0',
+              maxWidth: '64%',
+            }}
+          >
+            {total}
+          </button>
+        )
+      ) : (
+        <span style={valueStyle}>{total}</span>
+      )}
     </div>
   );
 }

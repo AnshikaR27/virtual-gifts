@@ -8,7 +8,7 @@ import { WinSelect } from '@/components/ui/win-select';
 import { MultiStepForm } from '@/components/ui/multi-step-form';
 import { playClick } from '@/components/retro-sounds';
 import { buildWaUrl } from '@/lib/whatsapp';
-import { ReceiptPaper } from './receipt-paper';
+import { ReceiptPaper, type ReceiptEditable } from './receipt-paper';
 import { createLoveReceipt } from './actions';
 import {
   buildScaffold,
@@ -39,20 +39,19 @@ const RELATIONSHIP_OPTIONS = [
 let idCounter = 0;
 const newId = () => `l${Date.now().toString(36)}${idCounter++}`;
 
-// ── overrides for the auto-filled scaffolding (fine print) ─────────────
+// ── overrides for the auto-filled scaffolding ──────────────────────────
+// storeName lives here too (edited on the receipt); the rest are fine print.
 interface FineOverrides {
   storeName?: string;
   subtitle?: string;
   subtotalPrice?: string;
   discountLabel?: string;
-  discountPrice?: string;
   taxLabel?: string;
-  taxPrice?: string;
   footer?: string;
 }
 
 interface State {
-  step: 1 | 2 | 3;
+  step: 1 | 2;
   language: ReceiptLanguage;
   recipientName: string;
   senderName: string;
@@ -61,7 +60,6 @@ interface State {
   total: string;
   memeStamp: string | null;
   fine: FineOverrides;
-  // manual "+ Add line" draft
   draftText: string;
   draftPrice: string;
 }
@@ -174,11 +172,11 @@ function buildPayload(state: State): ReceiptPayload {
     },
     discount: {
       label: fine.discountLabel ?? scaffold.discount.label,
-      price: fine.discountPrice ?? scaffold.discount.price,
+      price: scaffold.discount.price,
     },
     tax: {
       label: fine.taxLabel ?? scaffold.tax.label,
-      price: fine.taxPrice ?? scaffold.tax.price,
+      price: scaffold.tax.price,
     },
     total: state.total.trim() || TOTAL_OPTIONS[0],
     footer: fine.footer ?? scaffold.footer,
@@ -192,6 +190,11 @@ export function LoveReceiptSender() {
   const [error, setError] = useState<string | null>(null);
   const [fineOpen, setFineOpen] = useState(false);
 
+  // edit-on-receipt UI state (which cell is being edited)
+  const [activeLineId, setActiveLineId] = useState<string | null>(null);
+  const [editingStore, setEditingStore] = useState(false);
+  const [editingTotal, setEditingTotal] = useState(false);
+
   const payload = useMemo(() => buildPayload(state), [state]);
   const scaffold = useMemo(
     () => buildScaffold(state.language, state.recipientName, state.senderName),
@@ -204,7 +207,51 @@ export function LoveReceiptSender() {
   };
 
   const canContinueStep1 = state.recipientName.trim().length > 0;
-  const canContinueStep2 = state.lines.length > 0;
+  const canSend = state.lines.length > 0;
+
+  // ── edit-on-receipt handlers (one editor open at a time) ──
+  const editable: ReceiptEditable = {
+    activeLineId,
+    onActivateLine: (id) => {
+      if (id !== null) playClick();
+      setEditingStore(false);
+      setEditingTotal(false);
+      setActiveLineId(id);
+    },
+    editingStore,
+    onActivateStore: (editing) => {
+      if (editing) {
+        playClick();
+        setActiveLineId(null);
+        setEditingTotal(false);
+      }
+      setEditingStore(editing);
+    },
+    editingTotal,
+    onActivateTotal: (editing) => {
+      if (editing) {
+        playClick();
+        setActiveLineId(null);
+        setEditingStore(false);
+      }
+      setEditingTotal(editing);
+    },
+    onChangeStore: (value) =>
+      dispatch({ type: 'setFine', field: 'storeName', value }),
+    onChangeTotal: (value) => dispatch({ type: 'setTotal', value }),
+    onChangeLine: (id, field, value) =>
+      dispatch({ type: 'updateLine', id, field, value }),
+    onDeleteLine: (id) => {
+      playClick();
+      dispatch({ type: 'removeLine', id });
+      if (activeLineId === id) setActiveLineId(null);
+    },
+    onMoveLine: (id, dir) => {
+      playClick();
+      dispatch({ type: 'moveLine', id, dir });
+    },
+    emptyHint: 'tap a starter line below to add it ✨',
+  };
 
   const addDraft = () => {
     const text = state.draftText.trim();
@@ -226,8 +273,7 @@ export function LoveReceiptSender() {
     setPending(true);
     setError(null);
     try {
-      const finalPayload = buildPayload(state);
-      const { shortId } = await createLoveReceipt(finalPayload);
+      const { shortId } = await createLoveReceipt(buildPayload(state));
       window.location.href = buildWaUrl({
         recipientName: state.recipientName.trim(),
         shortId,
@@ -241,7 +287,7 @@ export function LoveReceiptSender() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-[372px]">
+    <div className="mx-auto w-full max-w-[380px]">
       <Window title={<span className="font-pixel">🧾 RECEIPT.exe</span>}>
         <MultiStepForm step={state.step}>
           {/* ── Step 1 — who's it for ── */}
@@ -299,24 +345,79 @@ export function LoveReceiptSender() {
                 disabled={!canContinueStep1}
                 style={canContinueStep1 ? undefined : { opacity: 0.6 }}
               >
-                Itemize ▶
+                Build receipt ▶
               </WinButton>
             </NavRow>
           </div>
 
-          {/* ── Step 2 — itemize ── */}
+          {/* ── Step 2 — build on the receipt ── */}
           <div>
-            <Headline
-              title="Itemize your love 💸"
-              subtitle="Tap a starter line or add your own. Each one prints on the receipt."
-            />
+            {/* sticky live receipt = the editor */}
+            <div
+              style={{
+                position: 'sticky',
+                top: 0,
+                zIndex: 3,
+                margin: '-14px -14px 0',
+                padding: '14px 10px 12px',
+                background:
+                  'repeating-linear-gradient(45deg, #c4b6dc, #c4b6dc 10px, #bcaed4 10px, #bcaed4 20px)',
+                borderBottom: '2px solid var(--win-chrome-dark)',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <ReceiptPaper payload={payload} editable={editable} showStamp />
+              </div>
+              {editingTotal ? (
+                <div style={{ marginTop: 10, textAlign: 'center' }}>
+                  <div
+                    className="font-pixel"
+                    style={{
+                      fontSize: 11,
+                      color: '#fff',
+                      letterSpacing: '0.5px',
+                      marginBottom: 4,
+                      textShadow: '1px 1px 0 rgba(26,10,46,.4)',
+                    }}
+                  >
+                    ✨ total ideas
+                  </div>
+                  {TOTAL_OPTIONS.map((opt) => (
+                    <ChipButton
+                      key={opt}
+                      active={state.total === opt}
+                      onClick={() => {
+                        playClick();
+                        dispatch({ type: 'setTotal', value: opt });
+                      }}
+                    >
+                      {opt}
+                    </ChipButton>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+
+            <p
+              className="font-body"
+              style={{
+                fontSize: 12,
+                color: 'rgba(26,10,46,0.6)',
+                lineHeight: 1.4,
+                margin: '12px 0 12px',
+              }}
+            >
+              ✎ Tap the <strong>store name</strong>, any <strong>line</strong>,
+              or the <strong>total</strong> on the receipt to edit it. Add lines
+              from below 👇
+            </p>
 
             {/* suggestion library */}
             <WinLabel>Starter lines — tap to add</WinLabel>
             <div
               className="scrollbar-hide"
               style={{
-                maxHeight: 168,
+                maxHeight: 160,
                 overflowY: 'auto',
                 border: '2px solid var(--win-chrome-dark)',
                 borderRightColor: 'var(--win-chrome-light)',
@@ -345,7 +446,7 @@ export function LoveReceiptSender() {
                       gap: 8,
                       alignItems: 'center',
                       textAlign: 'left',
-                      padding: '6px 8px',
+                      padding: '8px 8px',
                       fontSize: 12.5,
                       color: 'var(--ink, #1a0a2e)',
                       background: 'transparent',
@@ -427,120 +528,6 @@ export function LoveReceiptSender() {
               + Add line
             </WinButton>
 
-            {/* current line items (editable + reorderable) */}
-            <WinLabel>On the receipt ({state.lines.length})</WinLabel>
-            {state.lines.length === 0 ? (
-              <p
-                className="font-body"
-                style={{
-                  fontSize: 12,
-                  color: 'rgba(26,10,46,0.5)',
-                  fontStyle: 'italic',
-                  margin: '4px 0 12px',
-                }}
-              >
-                No lines yet — tap a starter above to begin. 🧾
-              </p>
-            ) : (
-              <div style={{ marginBottom: 12 }}>
-                {state.lines.map((line, i) => (
-                  <LineEditor
-                    key={line.id}
-                    line={line}
-                    isFirst={i === 0}
-                    isLast={i === state.lines.length - 1}
-                    onChange={(field, value) =>
-                      dispatch({
-                        type: 'updateLine',
-                        id: line.id,
-                        field,
-                        value,
-                      })
-                    }
-                    onMove={(dir) =>
-                      dispatch({ type: 'moveLine', id: line.id, dir })
-                    }
-                    onRemove={() =>
-                      dispatch({ type: 'removeLine', id: line.id })
-                    }
-                  />
-                ))}
-              </div>
-            )}
-
-            <PreviewPane payload={payload} />
-
-            <NavRow>
-              <WinButton variant="grey" onClick={() => goto(1)}>
-                ◀ Back
-              </WinButton>
-              <WinButton
-                variant="pink"
-                onClick={() => goto(3)}
-                disabled={!canContinueStep2}
-                style={canContinueStep2 ? undefined : { opacity: 0.6 }}
-              >
-                Ring it up ▶
-              </WinButton>
-            </NavRow>
-          </div>
-
-          {/* ── Step 3 — ring it up ── */}
-          <div>
-            <Headline
-              title="Ring it up 🩷"
-              subtitle="Pick the grand total and a stamp, then send it to the till."
-            />
-
-            <WinLabel>TOTAL — pick one</WinLabel>
-            <div style={{ marginBottom: 8 }}>
-              {TOTAL_OPTIONS.map((opt) => (
-                <ChipButton
-                  key={opt}
-                  active={state.total === opt}
-                  onClick={() => {
-                    playClick();
-                    dispatch({ type: 'setTotal', value: opt });
-                  }}
-                >
-                  {opt}
-                </ChipButton>
-              ))}
-            </div>
-            <WinInput
-              label="…or write your own total"
-              value={state.total}
-              onChange={(e) =>
-                dispatch({ type: 'setTotal', value: e.target.value })
-              }
-              maxLength={48}
-            />
-
-            <WinLabel>Meme stamp (optional)</WinLabel>
-            <div style={{ marginBottom: 14 }}>
-              <ChipButton
-                active={state.memeStamp === null}
-                onClick={() => {
-                  playClick();
-                  dispatch({ type: 'setStamp', value: null });
-                }}
-              >
-                No stamp
-              </ChipButton>
-              {MEME_STAMPS.map((opt) => (
-                <ChipButton
-                  key={opt}
-                  active={state.memeStamp === opt}
-                  onClick={() => {
-                    playClick();
-                    dispatch({ type: 'setStamp', value: opt });
-                  }}
-                >
-                  {opt}
-                </ChipButton>
-              ))}
-            </div>
-
             {/* fine print (collapsible) */}
             <button
               type="button"
@@ -566,13 +553,6 @@ export function LoveReceiptSender() {
             </button>
             {fineOpen ? (
               <div style={{ marginBottom: 14 }}>
-                <FineInput
-                  label="Store name"
-                  value={state.fine.storeName ?? scaffold.storeName}
-                  onChange={(v) =>
-                    dispatch({ type: 'setFine', field: 'storeName', value: v })
-                  }
-                />
                 <FineInput
                   label="Subtitle"
                   value={state.fine.subtitle ?? scaffold.subtitle}
@@ -617,10 +597,32 @@ export function LoveReceiptSender() {
                   }
                   multiline
                 />
+                <WinLabel>Meme stamp</WinLabel>
+                <div>
+                  <ChipButton
+                    active={state.memeStamp === null}
+                    onClick={() => {
+                      playClick();
+                      dispatch({ type: 'setStamp', value: null });
+                    }}
+                  >
+                    No stamp
+                  </ChipButton>
+                  {MEME_STAMPS.map((opt) => (
+                    <ChipButton
+                      key={opt}
+                      active={state.memeStamp === opt}
+                      onClick={() => {
+                        playClick();
+                        dispatch({ type: 'setStamp', value: opt });
+                      }}
+                    >
+                      {opt}
+                    </ChipButton>
+                  ))}
+                </div>
               </div>
             ) : null}
-
-            <PreviewPane payload={payload} />
 
             {error ? (
               <p
@@ -638,15 +640,16 @@ export function LoveReceiptSender() {
             <NavRow>
               <WinButton
                 variant="grey"
-                onClick={() => goto(2)}
+                onClick={() => goto(1)}
                 disabled={pending}
               >
-                ◀ Edit
+                ◀ Back
               </WinButton>
               <WinButton
                 variant="whatsapp"
                 onClick={handleSend}
-                disabled={pending}
+                disabled={pending || !canSend}
+                style={!canSend && !pending ? { opacity: 0.6 } : undefined}
               >
                 {pending ? 'Printing…' : 'Send receipt 💌'}
               </WinButton>
@@ -784,90 +787,6 @@ function ChipButton({
   );
 }
 
-function LineEditor({
-  line,
-  isFirst,
-  isLast,
-  onChange,
-  onMove,
-  onRemove,
-}: {
-  line: ReceiptLine;
-  isFirst: boolean;
-  isLast: boolean;
-  onChange: (field: 'text' | 'price', value: string) => void;
-  onMove: (dir: -1 | 1) => void;
-  onRemove: () => void;
-}) {
-  const iconBtn = (label: string, onClick: () => void, disabled?: boolean) => (
-    <button
-      type="button"
-      aria-label={label}
-      onClick={() => {
-        if (disabled) return;
-        playClick();
-        onClick();
-      }}
-      disabled={disabled}
-      className="font-pixel"
-      style={{
-        width: 26,
-        height: 28,
-        flexShrink: 0,
-        fontSize: 12,
-        cursor: disabled ? 'default' : 'pointer',
-        opacity: disabled ? 0.4 : 1,
-        background: 'var(--win-chrome)',
-        borderStyle: 'solid',
-        borderWidth: 2,
-        borderTopColor: 'var(--win-chrome-light)',
-        borderLeftColor: 'var(--win-chrome-light)',
-        borderRightColor: 'var(--win-chrome-dark)',
-        borderBottomColor: 'var(--win-chrome-dark)',
-        color: 'var(--ink, #1a0a2e)',
-      }}
-    >
-      {label}
-    </button>
-  );
-
-  return (
-    <div
-      style={{
-        border: '1px dashed rgba(26,10,46,0.2)',
-        padding: 6,
-        marginBottom: 6,
-        background: '#fbf8fd',
-      }}
-    >
-      <input
-        value={line.text}
-        onChange={(e) => onChange('text', e.target.value)}
-        maxLength={NEW_LINE_MAX}
-        className="font-body text-ink"
-        style={{ ...fieldStyle, width: '100%', marginBottom: 5 }}
-      />
-      <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
-        <input
-          value={line.price}
-          onChange={(e) => onChange('price', e.target.value)}
-          maxLength={PRICE_MAX}
-          className="font-body"
-          style={{
-            ...fieldStyle,
-            flex: 1,
-            minWidth: 0,
-            color: 'var(--win-magenta)',
-          }}
-        />
-        {iconBtn('▲', () => onMove(-1), isFirst)}
-        {iconBtn('▼', () => onMove(1), isLast)}
-        {iconBtn('✕', onRemove)}
-      </div>
-    </div>
-  );
-}
-
 function FineInput({
   label,
   value,
@@ -898,28 +817,6 @@ function FineInput({
           style={{ ...fieldStyle, width: '100%' }}
         />
       )}
-    </div>
-  );
-}
-
-function PreviewPane({ payload }: { payload: ReceiptPayload }) {
-  return (
-    <div>
-      <WinLabel>Live preview</WinLabel>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          padding: '18px 8px',
-          background:
-            'repeating-linear-gradient(45deg, #b8b0c4, #b8b0c4 10px, #b0a8bd 10px, #b0a8bd 20px)',
-          border: '2px solid var(--win-chrome-dark)',
-          borderRightColor: 'var(--win-chrome-light)',
-          borderBottomColor: 'var(--win-chrome-light)',
-        }}
-      >
-        <ReceiptPaper payload={payload} showStamp />
-      </div>
     </div>
   );
 }
