@@ -47,10 +47,14 @@ export async function generateReceipt(
         generationConfig: {
           temperature: input.spice === 'extra' ? 1.15 : 0.95,
           topP: 0.95,
-          // 8-12 Hinglish lines + scaffolding can overflow 1024 and truncate
-          // the JSON (→ parse fails). Give it ample room.
+          // 8-12 Hinglish lines + scaffolding can overflow a small budget and
+          // truncate the JSON (→ parse fails). Give it ample room.
           maxOutputTokens: 2048,
           responseMimeType: 'application/json',
+          // gemini-2.5-flash is a "thinking" model — without this it spends the
+          // output budget on internal reasoning and returns truncated/empty
+          // JSON. Disable thinking so all tokens go to the answer.
+          thinkingConfig: { thinkingBudget: 0 },
         },
       }),
     });
