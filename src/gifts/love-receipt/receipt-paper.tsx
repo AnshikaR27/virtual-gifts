@@ -27,15 +27,16 @@ import {
  * is identical to a plain printed receipt, so the recipient view is untouched.
  */
 
-// ── ink + paper palette (faded thermal print on warm beige) ────────────
-const INK = '#46423b';
-const INK_SOFT = 'rgba(70, 66, 59, 0.62)';
-const RULE = 'rgba(70, 66, 59, 0.5)';
-// Warm Y2K beige/tan paper.
-const PAPER = '#e7d8bb';
+// ── ink + paper palette (faded thermal print on cool light-greige) ─────
+const INK = '#3b3a37';
+const INK_SOFT = 'rgba(59, 58, 55, 0.62)';
+const RULE = 'rgba(59, 58, 55, 0.5)';
+const HEADING_INK = '#33322f';
+// Cool light-greige paper (no warm/orange tilt).
+const PAPER = '#dad6c9';
 const EDIT_ACCENT = '#b6303a';
 const EDIT_BG = 'rgba(182, 48, 58, 0.08)';
-const EDIT_HINT = 'rgba(70, 66, 59, 0.28)';
+const EDIT_HINT = 'rgba(59, 58, 55, 0.28)';
 
 const HEADING_FONT =
   "var(--font-oswald), 'Arial Narrow', 'Helvetica Neue', Impact, sans-serif";
@@ -46,20 +47,15 @@ const MONO_FONT =
 const GRAIN =
   "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 240 240' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E\")";
 
-// Crumple creases — paired dark folds (multiply) + bright ridges (screen) so
-// the paper reads as physically crinkled. Low-opacity to keep text legible.
-const CREASE_SHADOWS =
-  'linear-gradient(108deg, transparent 17%, rgba(86,66,38,0.10) 19.5%, transparent 22%),' +
-  'linear-gradient(72deg, transparent 54%, rgba(86,66,38,0.08) 57%, transparent 60%),' +
-  'linear-gradient(156deg, transparent 38%, rgba(86,66,38,0.07) 41%, transparent 44%),' +
-  'linear-gradient(24deg, transparent 71%, rgba(86,66,38,0.07) 74%, transparent 77%),' +
-  'radial-gradient(90% 50% at 75% 12%, rgba(86,66,38,0.10), transparent 60%),' +
-  'radial-gradient(80% 50% at 18% 82%, rgba(86,66,38,0.09), transparent 60%)';
-const CREASE_HIGHLIGHTS =
-  'linear-gradient(108deg, transparent 18.5%, rgba(255,250,235,0.55) 20.5%, transparent 23%),' +
-  'linear-gradient(72deg, transparent 55.5%, rgba(255,250,235,0.45) 58%, transparent 61%),' +
-  'linear-gradient(156deg, transparent 39.5%, rgba(255,250,235,0.4) 42%, transparent 45%),' +
-  'linear-gradient(24deg, transparent 72.5%, rgba(255,250,235,0.4) 75%, transparent 78%)';
+// Procedural crumpled-paper: a fractal-noise height map lit from the upper-left
+// (feDiffuseLighting) so multi-directional wrinkles cast soft shadows in their
+// creases — chaotic in a way gradients can't be. Multiply-blended at low opacity
+// behind the ink. Tune `baseFrequency` for wrinkle size (lower = bigger folds)
+// and `surfaceScale` for crease depth.
+// NOTE: if iOS Safari renders this filter poorly/janky, swap for a crumpled-
+// paper PNG + multiply (same overlay div, just backgroundImage: url(png)).
+const CRUMPLE =
+  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='620'%3E%3Cfilter id='c'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.014' numOctaves='5' seed='8' result='noise'/%3E%3CfeDiffuseLighting in='noise' lighting-color='%23ffffff' surfaceScale='2.2' diffuseConstant='1' result='light'%3E%3CfeDistantLight azimuth='235' elevation='55'/%3E%3C/feDiffuseLighting%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23c)'/%3E%3C/svg%3E\")";
 
 // Distress/grunge alpha-mask so the rubber stamp prints patchy & bled, never a
 // clean solid shape. feTurbulence → alpha; discrete A punches transparent holes.
@@ -214,30 +210,23 @@ export function ReceiptPaper({
           clipPath: `polygon(${TORN_CLIP})`,
           padding: '26px 20px 24px',
           color: INK,
-          // soft crumple highlights + shadow streaks
+          // soft edge vignette + cool paper highlight (greige, not warm)
           boxShadow:
-            'inset 0 0 40px rgba(120, 100, 70, 0.12), inset 0 0 8px rgba(255,255,255,0.4)',
+            'inset 0 0 40px rgba(60, 58, 52, 0.14), inset 0 0 10px rgba(232,228,218,0.55)',
         }}
       >
-        {/* crumple — fold shadows (multiply) + ridge highlights (screen) */}
+        {/* procedural crumple — lit fractal-noise wrinkles, behind the ink */}
         <div
           aria-hidden
           style={{
             position: 'absolute',
             inset: 0,
             pointerEvents: 'none',
-            background: CREASE_SHADOWS,
+            backgroundImage: CRUMPLE,
+            backgroundSize: 'cover',
+            backgroundRepeat: 'no-repeat',
             mixBlendMode: 'multiply',
-          }}
-        />
-        <div
-          aria-hidden
-          style={{
-            position: 'absolute',
-            inset: 0,
-            pointerEvents: 'none',
-            background: CREASE_HIGHLIGHTS,
-            mixBlendMode: 'screen',
+            opacity: 0.45,
           }}
         />
 
@@ -338,7 +327,7 @@ function Header({
     lineHeight: 1.02,
     letterSpacing: '0.5px',
     textTransform: 'uppercase',
-    color: INK,
+    color: HEADING_INK,
   };
 
   return (
@@ -409,6 +398,7 @@ function Header({
           letterSpacing: '1px',
           textTransform: 'uppercase',
           marginTop: 12,
+          color: HEADING_INK,
         }}
       >
         {payload.receiptLabel}
@@ -677,7 +667,7 @@ function TotalRow({
         fontFamily: HEADING_FONT,
         fontWeight: 700,
         textTransform: 'uppercase',
-        color: INK,
+        color: HEADING_INK,
         padding: '2px 0',
       }}
     >
@@ -737,6 +727,7 @@ function Footer({ payload }: { payload: ReceiptPayload }) {
           fontWeight: 700,
           fontSize: 18,
           letterSpacing: '0.5px',
+          color: HEADING_INK,
         }}
       >
         Thank you!
