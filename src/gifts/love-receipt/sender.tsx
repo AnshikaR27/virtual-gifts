@@ -10,19 +10,23 @@ import { playClick } from '@/components/retro-sounds';
 import { buildWaUrl } from '@/lib/whatsapp';
 import { ReceiptPaper, type ReceiptEditable } from './receipt-paper';
 import { createLoveReceipt } from './actions';
+import { generateReceipt } from './gemini';
 import {
   buildScaffold,
   DEFAULT_PRICE,
   formatReceiptDate,
+  getReceiptType,
   MEME_STAMPS,
   NEW_LINE_MAX,
+  PERSONAL_QUESTIONS,
   PRICE_MAX,
-  resolveSeedText,
-  SUGGESTIONS,
+  RECEIPT_TYPES,
   TOTAL_OPTIONS,
+  type GeneratedReceipt,
   type ReceiptLanguage,
   type ReceiptLine,
   type ReceiptPayload,
+  type ReceiptTypeKey,
 } from './lines';
 
 const RELATIONSHIP_OPTIONS = [
@@ -40,13 +44,14 @@ let idCounter = 0;
 const newId = () => `l${Date.now().toString(36)}${idCounter++}`;
 
 // ── overrides for the auto-filled scaffolding ──────────────────────────
-// storeName lives here too (edited on the receipt); the rest are fine print.
 interface FineOverrides {
   storeName?: string;
   subtitle?: string;
   subtotalPrice?: string;
   discountLabel?: string;
+  discountPrice?: string;
   taxLabel?: string;
+  taxPrice?: string;
   footer?: string;
 }
 
@@ -56,6 +61,8 @@ interface State {
   recipientName: string;
   senderName: string;
   relationship: string;
+  receiptType: ReceiptTypeKey | null;
+  answers: Record<string, string>;
   lines: ReceiptLine[];
   total: string;
   memeStamp: string | null;
@@ -68,9 +75,12 @@ type Action =
   | { type: 'set'; field: 'recipientName' | 'senderName'; value: string }
   | { type: 'setLanguage'; value: ReceiptLanguage }
   | { type: 'setRelationship'; value: string }
+  | { type: 'setType'; value: ReceiptTypeKey }
+  | { type: 'setAnswer'; key: string; value: string }
   | { type: 'setTotal'; value: string }
   | { type: 'setStamp'; value: string | null }
   | { type: 'setFine'; field: keyof FineOverrides; value: string }
+  | { type: 'applyGenerated'; gen: GeneratedReceipt }
   | { type: 'addLine'; text: string; price: string }
   | { type: 'updateLine'; id: string; field: 'text' | 'price'; value: string }
   | { type: 'removeLine'; id: string }
@@ -84,6 +94,8 @@ const initialState: State = {
   recipientName: '',
   senderName: '',
   relationship: RELATIONSHIP_OPTIONS[0],
+  receiptType: null,
+  answers: {},
   lines: [],
   total: TOTAL_OPTIONS[0],
   memeStamp: MEME_STAMPS[0],
@@ -100,6 +112,21 @@ function reducer(state: State, action: Action): State {
       return { ...state, language: action.value };
     case 'setRelationship':
       return { ...state, relationship: action.value };
+    case 'setType': {
+      const t = getReceiptType(action.value);
+      // Pick reflects on the receipt immediately: stamp + subtitle match it.
+      return {
+        ...state,
+        receiptType: action.value,
+        memeStamp: t.stamp,
+        fine: { ...state.fine, subtitle: t.subtitle },
+      };
+    }
+    case 'setAnswer':
+      return {
+        ...state,
+        answers: { ...state.answers, [action.key]: action.value },
+      };
     case 'setTotal':
       return { ...state, total: action.value };
     case 'setStamp':
@@ -109,6 +136,30 @@ function reducer(state: State, action: Action): State {
         ...state,
         fine: { ...state.fine, [action.field]: action.value },
       };
+    case 'applyGenerated': {
+      const g = action.gen;
+      return {
+        ...state,
+        lines: g.lines.map((l) => ({
+          id: newId(),
+          text: l.text,
+          price: l.price.trim() || DEFAULT_PRICE,
+        })),
+        total: g.total || state.total,
+        memeStamp: g.memeStamp ?? state.memeStamp,
+        fine: {
+          ...state.fine,
+          storeName: g.storeName ?? state.fine.storeName,
+          subtitle: g.subtitle,
+          subtotalPrice: g.subtotal.price,
+          discountLabel: g.discount.label,
+          discountPrice: g.discount.price,
+          taxLabel: g.tax.label,
+          taxPrice: g.tax.price,
+          footer: g.footer,
+        },
+      };
+    }
     case 'addLine':
       return {
         ...state,
@@ -172,11 +223,11 @@ function buildPayload(state: State): ReceiptPayload {
     },
     discount: {
       label: fine.discountLabel ?? scaffold.discount.label,
-      price: scaffold.discount.price,
+      price: fine.discountPrice ?? scaffold.discount.price,
     },
     tax: {
       label: fine.taxLabel ?? scaffold.tax.label,
-      price: scaffold.tax.price,
+      price: fine.taxPrice ?? scaffold.tax.price,
     },
     total: state.total.trim() || TOTAL_OPTIONS[0],
     footer: fine.footer ?? scaffold.footer,
@@ -189,6 +240,10 @@ export function LoveReceiptSender() {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fineOpen, setFineOpen] = useState(false);
+  const [personalOpen, setPersonalOpen] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [genSource, setGenSource] = useState<'ai' | 'fallback' | null>(null);
+  const [hasGenerated, setHasGenerated] = useState(false);
 
   // edit-on-receipt UI state (which cell is being edited)
   const [activeLineId, setActiveLineId] = useState<string | null>(null);
@@ -250,7 +305,32 @@ export function LoveReceiptSender() {
       playClick();
       dispatch({ type: 'moveLine', id, dir });
     },
-    emptyHint: 'tap a starter line below to add it ✨',
+    emptyHint: 'pick a vibe below & hit ✨ Generate',
+  };
+
+  const generate = async (spice: 'normal' | 'extra') => {
+    if (!state.receiptType || generating) return;
+    playClick();
+    setGenerating(true);
+    setError(null);
+    try {
+      const { receipt, source } = await generateReceipt({
+        recipientName: state.recipientName,
+        senderName: state.senderName,
+        relationship: state.relationship,
+        language: state.language,
+        receiptType: state.receiptType,
+        answers: state.answers,
+        spice,
+      });
+      dispatch({ type: 'applyGenerated', gen: receipt });
+      setGenSource(source);
+      setHasGenerated(true);
+    } catch {
+      setGenSource('fallback');
+    } finally {
+      setGenerating(false);
+    }
   };
 
   const addDraft = () => {
@@ -260,11 +340,6 @@ export function LoveReceiptSender() {
     dispatch({ type: 'addLine', text, price: state.draftPrice });
     dispatch({ type: 'setDraft', field: 'draftText', value: '' });
     dispatch({ type: 'setDraft', field: 'draftPrice', value: '' });
-  };
-
-  const addSuggestion = (text: string, price: string) => {
-    playClick();
-    dispatch({ type: 'addLine', text, price });
   };
 
   const handleSend = async () => {
@@ -407,72 +482,114 @@ export function LoveReceiptSender() {
               }}
             >
               ✎ Tap the <strong>store name</strong>, any <strong>line</strong>,
-              or the <strong>total</strong> on the receipt to edit it. Add lines
-              from below 👇
+              or the <strong>total</strong> to edit. Pick a vibe & generate
+              below 👇
             </p>
 
-            {/* suggestion library */}
-            <WinLabel>Starter lines — tap to add</WinLabel>
+            {/* receipt-type picker (required) */}
+            <WinLabel>Receipt type — pick one</WinLabel>
             <div
-              className="scrollbar-hide"
               style={{
-                maxHeight: 160,
-                overflowY: 'auto',
-                border: '2px solid var(--win-chrome-dark)',
-                borderRightColor: 'var(--win-chrome-light)',
-                borderBottomColor: 'var(--win-chrome-light)',
-                background: '#fff',
-                padding: 4,
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: 6,
                 marginBottom: 12,
               }}
             >
-              {SUGGESTIONS[state.language].map((seed, i) => {
-                const text = resolveSeedText(
-                  seed,
-                  state.recipientName,
-                  state.senderName,
-                );
-                return (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => addSuggestion(text, seed.price)}
-                    className="font-body"
-                    style={{
-                      display: 'flex',
-                      width: '100%',
-                      justifyContent: 'space-between',
-                      gap: 8,
-                      alignItems: 'center',
-                      textAlign: 'left',
-                      padding: '8px 8px',
-                      fontSize: 12.5,
-                      color: 'var(--ink, #1a0a2e)',
-                      background: 'transparent',
-                      border: 'none',
-                      borderBottom: '1px dashed rgba(26,10,46,0.14)',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <span style={{ flex: 1 }}>{text}</span>
-                    <span
-                      style={{
-                        whiteSpace: 'nowrap',
-                        color: 'var(--win-magenta)',
-                        fontSize: 11,
-                      }}
-                    >
-                      {seed.price}
-                    </span>
-                    <span
-                      style={{ color: 'var(--win-magenta)', fontWeight: 700 }}
-                    >
-                      +
-                    </span>
-                  </button>
-                );
-              })}
+              {RECEIPT_TYPES.map((t) => (
+                <TypeChip
+                  key={t.key}
+                  active={state.receiptType === t.key}
+                  onClick={() => {
+                    playClick();
+                    dispatch({ type: 'setType', value: t.key });
+                  }}
+                  emoji={t.emoji}
+                  label={t.label}
+                />
+              ))}
             </div>
+
+            {/* make it personal (optional) */}
+            <button
+              type="button"
+              onClick={() => {
+                playClick();
+                setPersonalOpen((o) => !o);
+              }}
+              className="font-pixel"
+              style={disclosureStyle(personalOpen)}
+            >
+              {personalOpen ? '▼' : '▶'} make it personal 💕 (optional)
+            </button>
+            {personalOpen ? (
+              <div style={{ marginBottom: 12 }}>
+                {PERSONAL_QUESTIONS.map((q) => (
+                  <FineInput
+                    key={q.key}
+                    label={q.label}
+                    value={state.answers[q.key] ?? ''}
+                    placeholder={q.placeholder}
+                    onChange={(v) =>
+                      dispatch({ type: 'setAnswer', key: q.key, value: v })
+                    }
+                  />
+                ))}
+              </div>
+            ) : null}
+
+            {/* generate */}
+            <WinButton
+              variant="pink"
+              onClick={() => generate('normal')}
+              disabled={!state.receiptType || generating}
+              style={{
+                width: '100%',
+                marginBottom: 8,
+                ...(!state.receiptType && !generating ? { opacity: 0.6 } : {}),
+              }}
+            >
+              {generating
+                ? 'Generating…'
+                : hasGenerated
+                  ? '✨ Generate again'
+                  : '✨ Generate my receipt'}
+            </WinButton>
+            {hasGenerated ? (
+              <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
+                <WinButton
+                  variant="grey"
+                  onClick={() => generate('normal')}
+                  disabled={generating}
+                  style={{ flex: 1 }}
+                >
+                  🔁 Regenerate
+                </WinButton>
+                <WinButton
+                  variant="grey"
+                  onClick={() => generate('extra')}
+                  disabled={generating}
+                  style={{ flex: 1 }}
+                >
+                  🌶️ Cringier
+                </WinButton>
+              </div>
+            ) : null}
+            {genSource === 'fallback' && hasGenerated ? (
+              <p
+                className="font-body"
+                style={{
+                  fontSize: 11,
+                  color: 'rgba(26,10,46,0.5)',
+                  fontStyle: 'italic',
+                  marginBottom: 12,
+                }}
+              >
+                ✨ used a starter set — tap a line to tweak, or generate again.
+              </p>
+            ) : (
+              <div style={{ marginBottom: 12 }} />
+            )}
 
             {/* manual add line */}
             <WinLabel>+ Add your own line</WinLabel>
@@ -535,18 +652,7 @@ export function LoveReceiptSender() {
                 setFineOpen((o) => !o);
               }}
               className="font-pixel"
-              style={{
-                width: '100%',
-                textAlign: 'left',
-                background: '#e8e0ed',
-                border: '2px solid var(--win-chrome-dark)',
-                borderRightColor: 'var(--win-chrome-light)',
-                borderBottomColor: 'var(--win-chrome-light)',
-                padding: '6px 8px',
-                fontSize: 12,
-                cursor: 'pointer',
-                marginBottom: fineOpen ? 8 : 14,
-              }}
+              style={disclosureStyle(fineOpen)}
             >
               {fineOpen ? '▼' : '▶'} ✎ Edit the fine print
             </button>
@@ -689,6 +795,21 @@ const fieldStyle = {
   borderRadius: 0,
 };
 
+function disclosureStyle(open: boolean): React.CSSProperties {
+  return {
+    width: '100%',
+    textAlign: 'left',
+    background: '#e8e0ed',
+    border: '2px solid var(--win-chrome-dark)',
+    borderRightColor: 'var(--win-chrome-light)',
+    borderBottomColor: 'var(--win-chrome-light)',
+    padding: '6px 8px',
+    fontSize: 12,
+    cursor: 'pointer',
+    marginBottom: open ? 8 : 12,
+  };
+}
+
 function Headline({ title, subtitle }: { title: string; subtitle: string }) {
   return (
     <>
@@ -752,6 +873,62 @@ function LanguageToggle({
   );
 }
 
+function TypeChip({
+  active,
+  onClick,
+  emoji,
+  label,
+}: {
+  active: boolean;
+  onClick: () => void;
+  emoji: string;
+  label: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="font-body"
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 6,
+        textAlign: 'left',
+        padding: '8px 9px',
+        fontSize: 12,
+        lineHeight: 1.15,
+        cursor: 'pointer',
+        borderStyle: 'solid',
+        borderWidth: 2,
+        borderRadius: 0,
+        boxShadow: '1px 1px 0 0 #000',
+        minHeight: 44,
+        ...(active
+          ? {
+              background:
+                'linear-gradient(180deg, var(--win-hot-pink), var(--win-magenta))',
+              color: '#fff',
+              borderTopColor: '#ffb1d6',
+              borderLeftColor: '#ffb1d6',
+              borderRightColor: '#a01060',
+              borderBottomColor: '#a01060',
+            }
+          : {
+              background: 'var(--win-chrome)',
+              color: 'var(--ink, #1a0a2e)',
+              borderTopColor: 'var(--win-chrome-light)',
+              borderLeftColor: 'var(--win-chrome-light)',
+              borderRightColor: 'var(--win-chrome-dark)',
+              borderBottomColor: 'var(--win-chrome-dark)',
+            }),
+      }}
+    >
+      <span style={{ fontSize: 17 }}>{emoji}</span>
+      <span>{label}</span>
+    </button>
+  );
+}
+
 function ChipButton({
   active,
   onClick,
@@ -806,11 +983,13 @@ function FineInput({
   value,
   onChange,
   multiline,
+  placeholder,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   multiline?: boolean;
+  placeholder?: string;
 }) {
   return (
     <div className="mb-2.5 w-full">
@@ -820,6 +999,7 @@ function FineInput({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           rows={3}
+          placeholder={placeholder}
           className="font-body text-ink"
           style={{ ...fieldStyle, width: '100%', resize: 'none' }}
         />
@@ -827,6 +1007,7 @@ function FineInput({
         <input
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
           className="font-body text-ink"
           style={{ ...fieldStyle, width: '100%' }}
         />

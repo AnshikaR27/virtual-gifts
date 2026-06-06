@@ -27,11 +27,12 @@ import {
  * is identical to a plain printed receipt, so the recipient view is untouched.
  */
 
-// ── ink + paper palette (faded thermal print, not pure black) ──────────
+// ── ink + paper palette (faded thermal print on warm beige) ────────────
 const INK = '#46423b';
 const INK_SOFT = 'rgba(70, 66, 59, 0.62)';
 const RULE = 'rgba(70, 66, 59, 0.5)';
-const PAPER = '#f4efe3';
+// Warm Y2K beige/tan paper.
+const PAPER = '#e7d8bb';
 const EDIT_ACCENT = '#b6303a';
 const EDIT_BG = 'rgba(182, 48, 58, 0.08)';
 const EDIT_HINT = 'rgba(70, 66, 59, 0.28)';
@@ -44,6 +45,26 @@ const MONO_FONT =
 // Faint paper grain (low-opacity fractal noise) for the crumpled texture.
 const GRAIN =
   "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 240 240' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E\")";
+
+// Crumple creases — paired dark folds (multiply) + bright ridges (screen) so
+// the paper reads as physically crinkled. Low-opacity to keep text legible.
+const CREASE_SHADOWS =
+  'linear-gradient(108deg, transparent 17%, rgba(86,66,38,0.10) 19.5%, transparent 22%),' +
+  'linear-gradient(72deg, transparent 54%, rgba(86,66,38,0.08) 57%, transparent 60%),' +
+  'linear-gradient(156deg, transparent 38%, rgba(86,66,38,0.07) 41%, transparent 44%),' +
+  'linear-gradient(24deg, transparent 71%, rgba(86,66,38,0.07) 74%, transparent 77%),' +
+  'radial-gradient(90% 50% at 75% 12%, rgba(86,66,38,0.10), transparent 60%),' +
+  'radial-gradient(80% 50% at 18% 82%, rgba(86,66,38,0.09), transparent 60%)';
+const CREASE_HIGHLIGHTS =
+  'linear-gradient(108deg, transparent 18.5%, rgba(255,250,235,0.55) 20.5%, transparent 23%),' +
+  'linear-gradient(72deg, transparent 55.5%, rgba(255,250,235,0.45) 58%, transparent 61%),' +
+  'linear-gradient(156deg, transparent 39.5%, rgba(255,250,235,0.4) 42%, transparent 45%),' +
+  'linear-gradient(24deg, transparent 72.5%, rgba(255,250,235,0.4) 75%, transparent 78%)';
+
+// Distress/grunge alpha-mask so the rubber stamp prints patchy & bled, never a
+// clean solid shape. feTurbulence → alpha; discrete A punches transparent holes.
+const GRUNGE_MASK =
+  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='140'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.05 0.08' numOctaves='4' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.5 0.5 0.5 0 0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='discrete' tableValues='0 0 0 1 1 1 1 1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E\")";
 
 // Torn/uneven top + bottom edges via a jagged clip-path polygon.
 const TORN_CLIP = [
@@ -198,16 +219,25 @@ export function ReceiptPaper({
             'inset 0 0 40px rgba(120, 100, 70, 0.12), inset 0 0 8px rgba(255,255,255,0.4)',
         }}
       >
-        {/* crumple light/shadow streaks */}
+        {/* crumple — fold shadows (multiply) + ridge highlights (screen) */}
         <div
           aria-hidden
           style={{
             position: 'absolute',
             inset: 0,
             pointerEvents: 'none',
-            background:
-              'radial-gradient(120% 60% at 30% 0%, rgba(255,255,255,0.45), transparent 55%), radial-gradient(100% 50% at 85% 100%, rgba(120,100,70,0.12), transparent 60%), linear-gradient(115deg, transparent 40%, rgba(120,100,70,0.06) 50%, transparent 60%)',
+            background: CREASE_SHADOWS,
             mixBlendMode: 'multiply',
+          }}
+        />
+        <div
+          aria-hidden
+          style={{
+            position: 'absolute',
+            inset: 0,
+            pointerEvents: 'none',
+            background: CREASE_HIGHLIGHTS,
+            mixBlendMode: 'screen',
           }}
         />
 
@@ -785,42 +815,59 @@ function Barcode() {
 }
 
 // ── rubber meme-stamp ──────────────────────────────────────────────────
+// Authentic stamped look: faded red ink, double-ruled rounded seal, rotated,
+// and a grunge alpha-mask so the ink is patchy/bled — stamped, not printed.
+// Sits low on the receipt, slammed over the barcode area.
+const STAMP_INK = '#a52a2f';
+
 function Stamp({ text, show }: { text: string; show: boolean }) {
   return (
     <motion.div
       aria-hidden
-      initial={{ opacity: 0, scale: 2.4, rotate: -14 }}
+      initial={{ opacity: 0, scale: 2.2, rotate: -12 }}
       animate={
         show
-          ? { opacity: 0.78, scale: 1, rotate: -14 }
-          : { opacity: 0, scale: 2.4, rotate: -14 }
+          ? { opacity: 0.72, scale: 1, rotate: -12 }
+          : { opacity: 0, scale: 2.2, rotate: -12 }
       }
-      transition={{ type: 'spring', stiffness: 260, damping: 16 }}
+      transition={{ type: 'spring', stiffness: 280, damping: 15 }}
       style={{
         position: 'absolute',
-        top: '58%',
+        bottom: 30,
         left: '50%',
         x: '-50%',
-        y: '-50%',
-        zIndex: 5,
+        zIndex: 6,
         pointerEvents: 'none',
-        fontFamily: HEADING_FONT,
-        fontWeight: 700,
-        fontSize: 21,
-        lineHeight: 1.05,
-        letterSpacing: '1px',
-        textTransform: 'uppercase',
-        textAlign: 'center',
-        color: '#b6303a',
-        border: '3px solid #b6303a',
-        borderRadius: 6,
-        padding: '8px 14px',
-        maxWidth: 200,
+        color: STAMP_INK,
         mixBlendMode: 'multiply',
-        boxShadow: 'inset 0 0 0 2px rgba(182,48,58,0.25)',
+        // grunge mask → patchy, bled ink instead of a clean shape
+        WebkitMaskImage: GRUNGE_MASK,
+        maskImage: GRUNGE_MASK,
+        WebkitMaskSize: 'cover',
+        maskSize: 'cover',
+        WebkitMaskRepeat: 'no-repeat',
+        maskRepeat: 'no-repeat',
       }}
     >
-      {text}
+      <div
+        style={{
+          // double-ruled "official seal" border
+          border: `4px double ${STAMP_INK}`,
+          borderRadius: 10,
+          padding: '7px 16px',
+          maxWidth: 220,
+          fontFamily: HEADING_FONT,
+          fontWeight: 700,
+          fontSize: 20,
+          lineHeight: 1.04,
+          letterSpacing: '1.5px',
+          textTransform: 'uppercase',
+          textAlign: 'center',
+          boxShadow: `inset 0 0 0 1px ${STAMP_INK}`,
+        }}
+      >
+        {text}
+      </div>
     </motion.div>
   );
 }
