@@ -56,7 +56,7 @@ const swayAngles = [-4, 2, -3, 5, -1, 3, -5, 1, -2, 4];
 
 // Slugs with a real, built sender flow route to /create/<slug>; the rest still
 // point at the /gift/<slug> detail page until their flows exist.
-const BUILT_SENDER_SLUGS = new Set(['tiffin-note']);
+const BUILT_SENDER_SLUGS = new Set(['tiffin-note', 'love-receipt']);
 const giftHref = (slug: string) =>
   BUILT_SENDER_SLUGS.has(slug) ? `/create/${slug}` : `/gift/${slug}`;
 

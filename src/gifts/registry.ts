@@ -3,6 +3,8 @@ import type { ReplayBehavior } from '@/types';
 import type { GiftData } from '@/components/gift-frame/gift-frame';
 import { TiffinNoteSender } from './tiffin-note/sender';
 import { TiffinNoteReceiver } from './tiffin-note/receiver';
+import { LoveReceiptSender } from './love-receipt/sender';
+import { LoveReceiptReceiver } from './love-receipt/receiver';
 
 /**
  * Gift registry — maps a slug to its sender + receiver components so routes can
@@ -50,5 +52,15 @@ registerGift({
   ReceiverComponent: TiffinNoteReceiver,
   replayBehavior: 'replayable',
   // The café 3D scene has its own SEND ONE BACK / OPEN AGAIN action bar.
+  ownsPostGiftCta: true,
+});
+
+registerGift({
+  slug: 'love-receipt',
+  tier: '₹49',
+  SenderComponent: LoveReceiptSender,
+  ReceiverComponent: LoveReceiptReceiver,
+  replayBehavior: 'replayable',
+  // The receipt prints its own screenshot hint + SHARE / MAKE YOUR OWN bar.
   ownsPostGiftCta: true,
 });
