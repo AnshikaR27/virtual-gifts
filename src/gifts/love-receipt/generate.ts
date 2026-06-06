@@ -15,11 +15,12 @@ import {
  * Phase 2 — optional AI generation. Builds a full receipt (same shape as the
  * scaffolding) from the sender's type + answers.
  *
- * Provider-agnostic: prefers OpenAI (OPENAI_API_KEY), falls back to Google
- * Gemini (GEMINI_API_KEY), and on ANY failure (or no key) silently returns
- * {@link buildFallbackReceipt} so the gift never breaks. Override the choice
- * with AI_PROVIDER="openai" | "gemini". Keys are read server-side only and
- * never reach the client. The prompt ({@link buildPrompt}) is shared by both.
+ * Provider-agnostic. By default it tries Google Gemini first (free tier), then
+ * OpenAI — trying each provider whose key is present in order and falling
+ * through to the next on any failure, then to {@link buildFallbackReceipt} so
+ * the gift never breaks. Set AI_PROVIDER="openai" to prefer GPT first. Keys are
+ * read server-side only and never reach the client. The prompt
+ * ({@link buildPrompt}) is shared by both.
  */
 
 const TIMEOUT_MS = 12_000;
@@ -28,52 +29,64 @@ const TIMEOUT_MS = 12_000;
 const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini';
 const OPENAI_ENDPOINT = 'https://api.openai.com/v1/chat/completions';
 
-// Gemini fallback.
+// Gemini (default — free tier).
 const GEMINI_MODEL = 'gemini-2.5-flash';
 const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
 type Provider = 'openai' | 'gemini';
 
-function pickProvider(): Provider | null {
+/**
+ * Providers to attempt, in order. Defaults to Gemini first (free tier), OpenAI
+ * second; AI_PROVIDER="openai" flips OpenAI to the front. Only providers whose
+ * key is present are included.
+ */
+function providerOrder(): Provider[] {
+  const have: Record<Provider, boolean> = {
+    openai: !!process.env.OPENAI_API_KEY,
+    gemini: !!process.env.GEMINI_API_KEY,
+  };
   const explicit = process.env.AI_PROVIDER?.toLowerCase();
-  if (explicit === 'openai' && process.env.OPENAI_API_KEY) return 'openai';
-  if (explicit === 'gemini' && process.env.GEMINI_API_KEY) return 'gemini';
-  if (process.env.OPENAI_API_KEY) return 'openai';
-  if (process.env.GEMINI_API_KEY) return 'gemini';
-  return null;
+  const order: Provider[] =
+    explicit === 'openai' ? ['openai', 'gemini'] : ['gemini', 'openai'];
+  return order.filter((p) => have[p]);
 }
 
 export async function generateReceipt(
   input: GenerateInput,
 ): Promise<{ receipt: GeneratedReceipt; source: 'ai' | 'fallback' }> {
-  const provider = pickProvider();
-  if (!provider) {
+  const order = providerOrder();
+  if (!order.length) {
     // TEMP DIAGNOSTIC — remove once AI generation is confirmed working.
     console.warn('[love-receipt] no AI key present in this runtime');
     return { receipt: buildFallbackReceipt(input), source: 'fallback' };
   }
 
-  try {
-    const text =
-      provider === 'openai' ? await callOpenAI(input) : await callGemini(input);
-    const receipt = coerce(parseJson(text), input);
-    if (!receipt) {
-      console.error(
-        `[love-receipt] ${provider} unusable shape; raw=${text.slice(0, 300)}`,
+  // Try each provider in order; fall through to the next on any failure, then
+  // to the built-in starter set so the builder never breaks.
+  for (const provider of order) {
+    try {
+      const text =
+        provider === 'openai'
+          ? await callOpenAI(input)
+          : await callGemini(input);
+      const receipt = coerce(parseJson(text), input);
+      if (!receipt) {
+        console.error(
+          `[love-receipt] ${provider} unusable shape; raw=${text.slice(0, 300)}`,
+        );
+        continue;
+      }
+      console.info(
+        `[love-receipt] ${provider} OK — ${receipt.lines.length} lines`,
       );
-      throw new Error('unusable shape');
+      return { receipt, source: 'ai' };
+    } catch (e) {
+      console.error(
+        `[love-receipt] ${provider} failed → next: ${e instanceof Error ? e.message : String(e)}`,
+      );
     }
-    console.info(
-      `[love-receipt] ${provider} OK — ${receipt.lines.length} lines`,
-    );
-    return { receipt, source: 'ai' };
-  } catch (e) {
-    // Any failure → silent fallback so the builder never breaks.
-    console.error(
-      `[love-receipt] ${provider} failed → fallback: ${e instanceof Error ? e.message : String(e)}`,
-    );
-    return { receipt: buildFallbackReceipt(input), source: 'fallback' };
   }
+  return { receipt: buildFallbackReceipt(input), source: 'fallback' };
 }
 
 // ── providers (each returns the raw model text; shared parse/coerce after) ──
