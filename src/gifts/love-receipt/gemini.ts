@@ -21,7 +21,7 @@ import {
  * The key is read from process.env.GEMINI_API_KEY and never reaches the client.
  */
 
-const MODEL = 'gemini-2.0-flash';
+const MODEL = 'gemini-2.5-flash';
 const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
 const TIMEOUT_MS = 12_000;
 
@@ -30,6 +30,8 @@ export async function generateReceipt(
 ): Promise<{ receipt: GeneratedReceipt; source: 'ai' | 'fallback' }> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
+    // TEMP DIAGNOSTIC — remove once AI generation is confirmed working.
+    console.warn('[love-receipt] GEMINI_API_KEY not present in this runtime');
     return { receipt: buildFallbackReceipt(input), source: 'fallback' };
   }
 
@@ -50,15 +52,31 @@ export async function generateReceipt(
         },
       }),
     });
-    if (!res.ok) throw new Error(`gemini ${res.status}`);
+    if (!res.ok) {
+      // TEMP DIAGNOSTIC — log status + body (never the key) to runtime logs.
+      const body = await res.text().catch(() => '');
+      console.error(
+        `[love-receipt] gemini HTTP ${res.status}: ${body.slice(0, 400)}`,
+      );
+      throw new Error(`gemini ${res.status}`);
+    }
     const data = await res.json();
     const text: string = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
     const parsed = parseJson(text);
     const receipt = coerce(parsed, input);
-    if (!receipt) throw new Error('unusable shape');
+    if (!receipt) {
+      console.error(
+        `[love-receipt] gemini unusable shape; raw=${text.slice(0, 300)}`,
+      );
+      throw new Error('unusable shape');
+    }
+    console.info(`[love-receipt] gemini OK — ${receipt.lines.length} lines`);
     return { receipt, source: 'ai' };
-  } catch {
+  } catch (e) {
     // Any failure → silent fallback so the builder never breaks.
+    console.error(
+      `[love-receipt] gemini failed → fallback: ${e instanceof Error ? e.message : String(e)}`,
+    );
     return { receipt: buildFallbackReceipt(input), source: 'fallback' };
   } finally {
     clearTimeout(timer);
