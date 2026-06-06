@@ -272,27 +272,27 @@ export const RECEIPT_TYPES: ReceiptType[] = [
       en: [
         {
           text: 'ur conspiracy theories somehow sound romantic at 2am',
-          price: '₹7 (delulu member rate)',
+          price: '₹7 member rate',
         },
         {
           text: 'the way you manifest us like unpaid intern energy',
-          price: 'auto-renews monthly 💀',
+          price: 'auto-renews 💀',
         },
         {
           text: 'calling every coincidence fate like a wattpad protagonist',
-          price: '₹4,99,999 + emotional damage',
+          price: '₹4,99,999 💀',
         },
         {
           text: 'ur fake wedding plans after one date fr',
-          price: 'non-refundable btw',
+          price: 'non-refundable',
         },
         {
           text: 'the way you stalk my spotify like FBI lite',
-          price: 'free trial expired',
+          price: 'trial expired',
         },
         {
           text: 'ur delusional confidence during zero-text-response eras',
-          price: 'EMI available for heartbreak',
+          price: 'EMI: heartbreak',
         },
         {
           text: "telling ur friends we're endgame after eye contact",
@@ -300,15 +300,15 @@ export const RECEIPT_TYPES: ReceiptType[] = [
         },
         {
           text: 'the way you romanticize bare minimum replies sm',
-          price: '₹0 (still buying)',
+          price: '₹0 still buying',
         },
         {
           text: 'making fake scenarios before sleeping every night',
-          price: 'billed annually in tears',
+          price: 'billed in tears',
         },
         {
           text: 'ur imaginary future baby names kinda ate though',
-          price: 'BOGO heartbreak combo',
+          price: 'BOGO combo',
         },
         {
           text: 'thinking the universe ships us harder than twitter',
@@ -320,31 +320,31 @@ export const RECEIPT_TYPES: ReceiptType[] = [
         },
         {
           text: 'saving my selfies like treasured historical documents',
-          price: 'out of stock emotionally',
+          price: 'out of stock 🥲',
         },
         {
           text: 'the way you overanalyze every emoji i send',
-          price: 'processing fee applies',
+          price: 'processing fee',
         },
         {
           text: 'ur notes app paragraphs after one good conversation',
-          price: 'subscription paused temporarily',
+          price: 'sub paused 💀',
         },
         {
           text: 'believing every song lyric secretly about us',
-          price: '₹88 plus clown tax',
+          price: '₹88 + clown tax',
         },
         {
           text: 'the way you claim telepathy during dry texting',
-          price: 'conditions apply babe',
+          price: '*conditions apply',
         },
         {
           text: 'ur pinterest board titled future apartment together',
-          price: 'lease not included',
+          price: 'lease extra',
         },
         {
           text: 'pretending my reposts are secret love confessions',
-          price: 'no returns accepted',
+          price: 'no returns',
         },
         {
           text: 'ur dramatic sighs after seeing my following list',
@@ -352,27 +352,27 @@ export const RECEIPT_TYPES: ReceiptType[] = [
         },
         {
           text: 'ur fake arguments prepared before i even reply',
-          price: 'battery not included',
+          price: 'batteries extra',
         },
         {
           text: 'thinking one compliment equals lifelong commitment fr',
-          price: '₹9,999 emotionally adjusted',
+          price: '₹9,999 adjusted',
         },
         {
           text: 'ur delulu pep talks before opening my messages',
-          price: 'cashback in serotonin',
+          price: 'cashback: vibes',
         },
         {
           text: 'calling us enemies-to-lovers after mild disagreement',
-          price: 'trial version only',
+          price: 'trial version',
         },
         {
           text: 'the way you screenshot cute chats for archives',
-          price: 'archived permanently',
+          price: 'archived 4ever',
         },
         {
           text: 'ur obsession with reading into my typing pauses',
-          price: '₹404 reality not found',
+          price: '₹404 not found',
         },
         {
           text: 'ur fake vows during traffic jams together somehow',
@@ -380,55 +380,55 @@ export const RECEIPT_TYPES: ReceiptType[] = [
         },
         {
           text: 'the way you assume my mom already likes you',
-          price: '₹56 plus family pack',
+          price: '₹56 family pack',
         },
         {
           text: 'manifesting texts instead of actually texting first',
-          price: 'network charges apply',
+          price: 'network charges',
         },
         {
           text: 'ur confidence saying when we get married someday',
-          price: '₹12,121 wedding surcharge',
+          price: '₹12,121 wedding',
         },
         {
           text: 'ur fake anniversary countdowns lowkey terrifying adorable',
-          price: 'subscription cannot cancel',
+          price: "can't cancel 💀",
         },
         {
           text: 'the way you gaslight urself into staying hopeful',
-          price: '₹73 and blind faith',
+          price: 'paid in faith',
         },
         {
           text: 'ur lil jealous moments over fictional competition',
-          price: 'restocking soon maybe',
+          price: 'restocking maybe',
         },
         {
           text: 'the way you rehearse confessions in shower concerts',
-          price: 'taxes emotionally included',
+          price: 'taxes included 🥲',
         },
         {
           text: 'thinking our eye contact deserved background music instantly',
-          price: 'audio sold separately',
+          price: 'audio extra',
         },
         {
           text: 'the way you defend my red flags publicly',
-          price: '₹666 clown premium',
+          price: '₹666 clown tax',
         },
         {
           text: 'ur delulu optimism after getting left on read',
-          price: 'lifetime membership activated',
+          price: 'lifetime member',
         },
         {
           text: 'ur random future travel itineraries for us both',
-          price: 'visa fees pending',
+          price: 'visa pending',
         },
         {
           text: "thinking we'd survive apocalypse because vibes match",
-          price: '₹999 apocalypse bundle',
+          price: '₹999 bundle',
         },
         {
           text: 'ur hopeless romantic delusions somehow still working',
-          price: '₹∞ but make it embarrassing',
+          price: '₹∞ embarrassing',
         },
       ],
     },
@@ -454,31 +454,31 @@ export const RECEIPT_TYPES: ReceiptType[] = [
       en: [
         {
           text: 'ate the last slice like a tiny villain sorry',
-          price: 'full pizza restitution pending',
+          price: 'owes 1 pizza 🍕',
         },
         {
           text: 'picked a dumb fight then missed you immediately',
-          price: 'complaint acknowledged',
+          price: 'complaint filed',
         },
         {
           text: 'forgot the thing you literally reminded me about',
-          price: 'memory upgrade fee paid',
+          price: 'memory upgrade',
         },
         {
           text: 'was being extra annoying for recreational purposes',
-          price: 'goodwill credit applied',
+          price: 'goodwill credit',
         },
         {
           text: 'accidentally stole all the blanket real estate again',
-          price: 'territory returned promptly',
+          price: 'land returned',
         },
         {
           text: 'sent mixed signals instead of complete sentences fr',
-          price: 'communication patch deployed',
+          price: 'patch deployed',
         },
         {
           text: 'made fun of you then missed your face',
-          price: 'reparations: unlimited snacks',
+          price: 'pays in snacks',
         },
         {
           text: 'took forever to reply while staring at phone',
@@ -486,31 +486,31 @@ export const RECEIPT_TYPES: ReceiptType[] = [
         },
         {
           text: 'acted dramatic over absolutely nothing my bad',
-          price: 'theater tax refunded',
+          price: 'theatre tax 💀',
         },
         {
           text: 'forgot ur coffee order like a fake fan',
-          price: '₹4,99,999 apology surcharge',
+          price: '₹4,99,999 sorry',
         },
         {
           text: 'was stubborn longer than necessary and kinda impressive',
-          price: 'ego buyback program',
+          price: 'ego buyback',
         },
         {
           text: 'borrowed ur hoodie and entered witness protection',
-          price: 'item recovery in progress',
+          price: 'recovery pending',
         },
         {
           text: 'accidentally turned a discussion into olympic debating',
-          price: 'gold medal surrendered',
+          price: 'medal returned',
         },
         {
           text: 'hogged all the cuddles without proper licensing',
-          price: 'cuddle credits issued',
+          price: 'cuddle credits',
         },
         {
           text: 'made a joke during ur serious lil moment',
-          price: 'tone update available',
+          price: 'tone update due',
         },
         {
           text: 'forgot to text back then overexplained everything',
@@ -518,51 +518,51 @@ export const RECEIPT_TYPES: ReceiptType[] = [
         },
         {
           text: 'was a certified menace before breakfast again',
-          price: 'breakfast compensation included',
+          price: 'breakfast owed',
         },
         {
           text: 'ate ur fries under quality control regulations',
-          price: 'snack refund approved',
+          price: 'snack refund',
         },
         {
           text: 'interrupted ur story with my own plot twist',
-          price: 'listener subscription restored',
+          price: 'will listen now',
         },
         {
           text: 'accidentally weaponized sarcasm during peaceful operations',
-          price: 'ceasefire agreement signed',
+          price: 'ceasefire signed',
         },
         {
           text: 'was clingy then disappeared like a magician',
-          price: 'tracking number provided',
+          price: 'tracking added',
         },
         {
           text: 'forgot our plan then remembered dramatically later',
-          price: 'calendar patch installed',
+          price: 'calendar fixed',
         },
         {
           text: 'sent the wrong emoji with catastrophic consequences',
-          price: 'emoji correction fee',
+          price: 'emoji fix fee',
         },
         {
           text: 'was a lil gremlin instead of communicating',
-          price: 'customer satisfaction credit',
+          price: 'sorry credit',
         },
         {
           text: 'kept saying one minute for twenty-seven minutes',
-          price: 'time refund processing',
+          price: 'time refund 💀',
         },
         {
           text: 'accidentally made ur day harder than necessary',
-          price: 'free dish duty included',
+          price: 'free dish duty',
         },
         {
           text: "missed the hint so aggressively it's embarrassing",
-          price: 'awareness DLC purchased',
+          price: 'awareness DLC',
         },
         {
           text: 'talked over you then realized immediately oops',
-          price: 'priority listening upgrade',
+          price: 'ears upgraded',
         },
         {
           text: 'forgot something important but remembered ur cute face',
@@ -570,47 +570,44 @@ export const RECEIPT_TYPES: ReceiptType[] = [
         },
         {
           text: 'made a mountain from a pebble again',
-          price: 'terrain restoration fee',
+          price: 'mountain refund',
         },
         {
           text: 'stressed you out with unnecessary detective work',
-          price: 'investigation budget revoked',
+          price: 'case closed',
         },
         {
           text: 'borrowed ur charger indefinitely my sincerest apologies',
-          price: 'EMI available on forgiveness',
+          price: 'EMI: forgiveness',
         },
         {
           text: 'responded with haha when effort was required',
-          price: 'effort balance repaid',
+          price: 'effort repaid',
         },
         {
           text: 'was emotionally buffering during a simple conversation',
-          price: 'system reboot completed',
+          price: 'rebooted 💀',
         },
         {
           text: 'made everything about me for a minute',
-          price: 'spotlight returned immediately',
+          price: 'spotlight: urs',
         },
-        {
-          text: 'was late because time and i beef',
-          price: 'arrival compensation pending',
-        },
+        { text: 'was late because time and i beef', price: 'late fee owed' },
         {
           text: 'accidentally annoyed my favorite human again',
-          price: 'BOGO forehead kisses',
+          price: 'BOGO kisses',
         },
         {
           text: 'was a walking plot twist nobody requested',
-          price: 'limited edition apology bundle',
+          price: 'limited edition',
         },
         {
           text: "sorry for being ridiculous you're stuck with me",
-          price: 'non-refundable attachment fee',
+          price: 'non-refundable',
         },
         {
           text: 'i owe you one grand apology and snacks',
-          price: '₹∞ snack tab open',
+          price: '₹∞ snack tab',
         },
       ],
     },
@@ -636,128 +633,125 @@ export const RECEIPT_TYPES: ReceiptType[] = [
       en: [
         {
           text: 'ur side of the bed filing abandonment reports again',
-          price: 'occupancy fee pending',
+          price: 'occupancy fee',
         },
         {
           text: 'the pillow doing a terrible impression of you',
-          price: 'quality mismatch surcharge',
+          price: 'quality mismatch',
         },
         {
           text: 'saving lil stories till ur next appearance fr',
-          price: 'delivery delayed indefinitely',
+          price: 'delivery delayed',
         },
         {
           text: 'my person quota emptying faster than expected',
-          price: 'restock urgently requested',
+          price: 'restock asap',
         },
         {
           text: 'ur hugs currently unavailable in my region',
-          price: 'out of stock till sunday',
+          price: 'out of stock',
         },
         {
           text: 'counting days like a kid before holidays',
-          price: 'calendar refresh fee',
+          price: 'calendar fee',
         },
         {
           text: 'the way every song suddenly sounds extra about you',
-          price: 'streaming charges apply',
+          price: 'streaming fee',
         },
         {
           text: 'ur absence increasing screen time dramatically',
-          price: 'billed monthly in yearning',
+          price: 'billed in yearning',
         },
         {
           text: "checking flight times like they're sports scores",
-          price: 'tracking subscription active',
+          price: 'now tracking 📍',
         },
         {
           text: 'the couch missing its favorite second occupant',
-          price: 'seat reservation fee',
+          price: 'seat reserved',
         },
         {
           text: 'the way i keep reaching for ur hand',
-          price: 'connection timeout error',
+          price: 'connection lost',
         },
         {
           text: 'ur laugh unavailable due to geographic restrictions',
-          price: 'premium access required',
+          price: 'premium only',
         },
         {
           text: 'the distance acting personally rude again',
-          price: 'formal complaint submitted',
+          price: 'complaint filed',
         },
         {
           text: 'every sunset needing live commentary from you',
-          price: 'broadcast unavailable',
+          price: 'broadcast down',
         },
         {
           text: 'ur face currently loading at unacceptable speeds',
-          price: 'buffering fee ₹199',
+          price: 'buffering ₹199',
         },
         { text: 'the way i open chats just to smile', price: 'auto-renews 💀' },
         {
           text: 'ur goodnight texts carrying entire economies lately',
-          price: '₹4,99,999 emotional value',
+          price: '₹4,99,999 💌',
         },
         {
           text: 'missing ur random interruptions during my day',
-          price: 'service outage ongoing',
+          price: 'service outage',
         },
         {
           text: 'the way time slows down after goodbye hugs',
-          price: 'speed upgrade unavailable',
+          price: 'speed downgrade',
         },
         {
           text: 'ur presence currently trapped in transit',
-          price: 'shipping label created',
+          price: 'in transit 📦',
         },
         {
           text: 'my jokes waiting for their target audience',
-          price: 'audience backordered',
+          price: 'backordered',
         },
         {
           text: "the way i keep spotting things you'd love",
-          price: 'saved for pickup',
+          price: 'saved for u',
         },
         {
           text: 'the room feeling suspiciously less cute lately',
-          price: 'decor package missing',
+          price: 'decor missing',
         },
         {
           text: 'waiting for ur return like limited sneaker drops',
-          price: 'preorder open now',
+          price: 'preorder open',
         },
         {
           text: 'ur forehead kisses currently under maintenance',
-          price: 'technician en route',
+          price: 'under maintenance',
         },
         {
           text: 'the distance refusing same-day delivery options',
-          price: 'express shipping denied',
+          price: 'shipping denied',
         },
         {
           text: 'my favorite notification arriving way too rarely',
-          price: 'frequency upgrade needed',
+          price: 'low frequency',
         },
         {
           text: 'the way weekends feel understaffed without you',
-          price: 'vacancy charges apply',
+          price: 'vacancy open',
         },
-        {
-          text: 'the way i replay old voice notes sm',
-          price: 'rewatch pass purchased',
-        },
+        { text: 'the way i replay old voice notes sm', price: 'rewatch pass' },
         {
           text: 'ur hand-holding services temporarily suspended',
-          price: 'EMI available on patience',
+          price: 'EMI: patience',
         },
         {
           text: 'ur hugs stuck somewhere between here and soon',
-          price: 'customs clearance pending',
+          price: 'at customs 📦',
         },
         {
           text: 'the universe delaying my favorite delivery again',
-          price: 'refund requested from management',
+          price: 'refund pls',
         },
         {
           text: 'ur seat in the car looking unemployed',
@@ -765,19 +759,19 @@ export const RECEIPT_TYPES: ReceiptType[] = [
         },
         {
           text: 'missing ur voice during boring errands fr',
-          price: 'audio pack sold separately',
+          price: 'audio extra',
         },
         {
           text: 'ur comeback tour taking forever honestly',
-          price: 'ticket processing delay',
+          price: 'ticket delay',
         },
         {
           text: 'my heart refreshing arrival status every hour',
-          price: 'live tracking enabled',
+          price: 'live tracking',
         },
         {
           text: 'the way i miss being annoying together',
-          price: 'BOGO clinginess special',
+          price: 'BOGO clinginess',
         },
         {
           text: 'ur return date becoming my favorite holiday',
@@ -786,7 +780,7 @@ export const RECEIPT_TYPES: ReceiptType[] = [
         { text: 'the way i keep imagining reunion hugs', price: '₹1 cr +gst' },
         {
           text: 'the wait for you feels illegally long',
-          price: '₹∞ express delivery requested',
+          price: '₹∞ express pls',
         },
       ],
     },
@@ -812,15 +806,15 @@ export const RECEIPT_TYPES: ReceiptType[] = [
       en: [
         {
           text: 'another year of being unfairly cute congratulations fr',
-          price: 'birthday discount 100%',
+          price: 'discount 100%',
         },
         {
           text: "the day you spawned became everyone's favorite update",
-          price: 'release notes included',
+          price: 'release notes',
         },
         {
           text: "ur existence carrying today's party single-handedly",
-          price: 'VIP guest of honor',
+          price: 'VIP guest 👑',
         },
         {
           text: "cake is cute but you're clearly the main treat",
@@ -828,67 +822,67 @@ export const RECEIPT_TYPES: ReceiptType[] = [
         },
         {
           text: 'ur smile aging like premium downloadable content',
-          price: 'subscription upgraded',
+          price: 'sub upgraded',
         },
         {
           text: 'the way you make birthdays look suspiciously easy',
-          price: 'professional fees waived',
+          price: 'fees waived',
         },
         {
           text: 'another year hotter somehow explain that immediately',
-          price: '₹4,99,999 mystery surcharge',
+          price: '₹4,99,999 🔥',
         },
         {
           text: 'ur birthday energy powering entire friend groups today',
-          price: 'grid connection active',
+          price: 'grid online',
         },
         {
           text: 'the world got luckier when you logged in',
-          price: 'server access granted',
+          price: 'access granted',
         },
         {
           text: 'ur laugh deserves candles of its own honestly',
-          price: 'candles not included',
+          price: 'candles extra',
         },
         {
           text: "today's forecast mostly sunshine and ur face",
-          price: 'weather sponsorship secured',
+          price: 'weather: sunny',
         },
         {
           text: 'ur birthday outfit already winning every competition',
-          price: 'trophy shipped separately',
+          price: 'trophy extra',
         },
         {
           text: 'another lap around the sun absolutely crushed',
-          price: 'achievement unlocked',
+          price: 'achievement 🏆',
         },
         {
           text: 'the way everyone shows up for you says plenty',
-          price: 'attendance fees covered',
+          price: 'attendance free',
         },
         {
           text: 'ur cuteness levels violating several birthday regulations',
-          price: 'fine dismissed today',
+          price: 'fine waived',
         },
         {
           text: "today you're legally required to accept compliments",
-          price: 'compliance mandatory',
+          price: 'mandatory today',
         },
         {
           text: 'the universe cooked when it made you fr',
-          price: "chef's special today",
+          price: "chef's special",
         },
         {
           text: "another year of being everyone's fave notification",
-          price: 'priority delivery enabled',
+          price: 'fast delivery',
         },
         {
           text: 'ur birthday deserves national holiday consideration honestly',
-          price: 'petition filing fee',
+          price: 'petition fee',
         },
         {
           text: 'the way you glow today feels pay-to-win',
-          price: 'premium skin equipped',
+          price: 'premium skin',
         },
         {
           text: 'celebrating ur existence remains my favorite annual event',
@@ -896,19 +890,19 @@ export const RECEIPT_TYPES: ReceiptType[] = [
         },
         {
           text: 'ur face card still refusing to decline ever',
-          price: 'lifetime validity granted',
+          price: 'lifetime valid',
         },
         {
           text: 'the way you make getting older look fun',
-          price: 'aging fee refunded',
+          price: 'aging refund',
         },
         {
           text: 'another year of stealing hearts without proper permits',
-          price: 'licensing review pending',
+          price: 'permit pending',
         },
         {
           text: "today's spotlight rented exclusively for you",
-          price: 'on the house today',
+          price: 'on the house',
         },
         {
           text: 'the way you exist deserves gift wrapping',
@@ -916,43 +910,43 @@ export const RECEIPT_TYPES: ReceiptType[] = [
         },
         {
           text: 'ur charm inventory somehow restocked again this year',
-          price: 'limited edition drop',
+          price: 'limited edition',
         },
         {
           text: 'another year of being ridiculously easy to celebrate',
-          price: 'BOGO compliments special',
+          price: 'BOGO compliments',
         },
         {
           text: 'the way you brighten rooms remains undefeated',
-          price: 'electricity bill waived',
+          price: 'lights on us',
         },
         {
           text: 'ur birthday cake competing for second place today',
-          price: 'runner-up ribbon awarded',
+          price: 'runner-up: cake',
         },
         {
           text: "today's mission spoil you rotten respectfully",
-          price: 'EMI available on gifts',
+          price: 'EMI on gifts',
         },
         {
           text: "ur existence remains everyone's favorite plot twist",
-          price: 'story expansion pack',
+          price: 'expansion pack',
         },
         {
           text: 'ur birthday crown fits suspiciously well',
-          price: 'royalty tax exempt',
+          price: 'tax exempt 👑',
         },
         {
           text: 'ur laugh still top-charting after all these years',
-          price: 'streaming royalties due',
+          price: 'royalties due',
         },
         {
           text: "today's happiness package addressed directly to you",
-          price: 'signature required',
+          price: 'sign here ✍️',
         },
         {
           text: 'ur favorite people gathering like limited collectibles',
-          price: "collector's edition release",
+          price: "collector's edition",
         },
         {
           text: 'the way you age backwards needs investigation',
@@ -964,12 +958,9 @@ export const RECEIPT_TYPES: ReceiptType[] = [
         },
         {
           text: 'the way you make life sweeter than cake',
-          price: 'non-refundable joy charge',
+          price: 'non-refundable',
         },
-        {
-          text: 'happy birthday to my fave human ever',
-          price: '₹∞ celebration package',
-        },
+        { text: 'happy birthday to my fave human ever', price: '₹∞ party 🎉' },
       ],
     },
   },
@@ -1000,27 +991,27 @@ export const RECEIPT_TYPES: ReceiptType[] = [
       en: [
         {
           text: 'ur lil snores sound like buffering raccoons every night',
-          price: 'noise complaint pending',
+          price: 'noise complaint',
         },
         {
           text: 'the way you lose arguments to the GPS fr',
-          price: 'rerouting fee ₹299',
+          price: 'rerouting ₹299',
         },
         {
           text: 'ur blanket stealing skills deserve professional licensing honestly',
-          price: 'premium theft surcharge',
+          price: 'premium theft',
         },
         {
           text: 'the way you send terrible memes so confidently',
-          price: 'taste not included',
+          price: 'taste extra',
         },
         {
           text: 'ur five-minute naps becoming accidental world tours',
-          price: 'extended stay charges',
+          price: 'extended stay',
         },
         {
           text: 'the way you misplace ur phone while holding it',
-          price: 'lost and found fee',
+          price: 'lost & found',
         },
         {
           text: 'ur dramatic goodbye waves after thirty-second hangouts',
@@ -1028,27 +1019,27 @@ export const RECEIPT_TYPES: ReceiptType[] = [
         },
         {
           text: 'the way you read menus like legal documents',
-          price: 'processing delay applies',
+          price: 'processing delay',
         },
         {
           text: 'the way you start stories from chapter fourteen',
-          price: 'context sold separately',
+          price: 'context extra',
         },
         {
           text: 'ur alarm clock battles lasting three business days',
-          price: 'auto-renews daily 💀',
+          price: 'auto-renews 💀',
         },
         {
           text: 'the way you laugh before finishing the joke',
-          price: 'spoiler fee included',
+          price: 'spoiler fee',
         },
         {
           text: 'the way you forget why you entered rooms',
-          price: 'memory pack unavailable',
+          price: 'memory not found',
         },
         {
           text: 'ur obsession with checking locked doors twice',
-          price: 'security subscription active',
+          price: 'security sub 🔒',
         },
         {
           text: 'the way you aggressively lose at easy games',
@@ -1056,95 +1047,92 @@ export const RECEIPT_TYPES: ReceiptType[] = [
         },
         {
           text: 'the way you say one episode then six',
-          price: 'free trial expired',
+          price: 'trial expired',
         },
         {
           text: 'ur parking style keeping geometry professors employed',
-          price: 'valet refused service',
+          price: 'valet quit',
         },
         {
           text: 'the way you pack seventeen outfits for weekends',
-          price: 'baggage fee doubled',
+          price: 'baggage fee x2',
         },
         {
           text: 'ur random dance moves during grocery store trips',
-          price: 'public performance tax',
+          price: 'performance tax',
         },
-        {
-          text: 'the way you make tea then forget it',
-          price: 'reheating fee recurring',
-        },
+        { text: 'the way you make tea then forget it', price: 'reheating fee' },
         {
           text: 'the way you apologize to furniture after bumping it',
-          price: 'kindness bundle included',
+          price: 'kindness bundle',
         },
         {
           text: 'ur talent for opening tabs and disappearing',
-          price: '87 tabs maintenance fee',
+          price: '87 tabs open 💀',
         },
         {
           text: 'the way you narrate pet thoughts so seriously',
-          price: 'translation pack extra',
+          price: 'translation extra',
         },
         {
           text: 'ur lil panic when waiter asks for order',
-          price: 'decision-making DLC unavailable',
+          price: 'decision DLC 💀',
         },
         {
           text: 'the way you miss calls then call instantly',
-          price: 'reverse uno charges',
+          price: 'reverse uno 🃏',
         },
         {
           text: 'ur dramatic blanket burrito transformation every winter',
-          price: 'limited edition cocoon',
+          price: 'limited edition',
         },
         {
           text: 'ur confidence explaining directions completely wrong',
-          price: '₹4,99,999 navigation damages',
+          price: '₹4,99,999 lost',
         },
         {
           text: 'ur tendency to water plants then overthink it',
-          price: 'plant therapist fee',
+          price: 'plant therapy',
         },
         {
           text: 'the way you send voice notes for one sentence',
-          price: 'audio expansion pack',
+          price: 'audio extra',
         },
         {
           text: 'the way you check fridge hoping new food spawned',
-          price: 'restock fantasy charge',
+          price: 'restock fantasy',
         },
         {
           text: 'ur dramatic reactions to mildly spicy chips',
-          price: 'fire insurance pending',
+          price: 'fire insurance',
         },
         {
           text: 'the way you wave at dogs before humans',
-          price: 'species preference fee',
+          price: 'dogs first 🐶',
         },
         {
           text: 'ur chaotic charging habits stressing every cable',
-          price: 'warranty voided immediately',
+          price: 'warranty voided',
         },
         {
           text: 'ur obsession with collecting emotional support water bottles',
-          price: 'BOGO hydration deal',
+          price: 'BOGO hydration',
         },
         {
           text: 'ur lil side quests before every main task',
-          price: 'EMI available on productivity',
+          price: 'EMI: productivity',
         },
         {
           text: 'the way you aggressively befriend random animals',
-          price: 'adoption forms pending',
+          price: 'adoption pending',
         },
         {
           text: 'the way you guess lyrics with full confidence',
-          price: 'accuracy not in stock',
+          price: 'accuracy: 0%',
         },
         {
           text: 'ur cute refusal to follow recipe instructions ever',
-          price: 'chef warranty cancelled',
+          price: 'recipe ignored',
         },
         {
           text: 'ur tiny gremlin energy before morning coffee',
@@ -1152,11 +1140,11 @@ export const RECEIPT_TYPES: ReceiptType[] = [
         },
         {
           text: 'the way you make every inconvenience a sitcom',
-          price: 'no returns accepted',
+          price: 'no returns',
         },
         {
           text: 'ur lovable chaos somehow improving every single day',
-          price: '₹∞ but worth it',
+          price: '₹∞ worth it',
         },
       ],
     },
@@ -1185,19 +1173,19 @@ export const RECEIPT_TYPES: ReceiptType[] = [
       en: [
         {
           text: 'still choosing you daily despite knowing all updates',
-          price: 'renewed for another year',
+          price: 'renewed 1 year',
         },
         {
           text: 'our inside jokes became a whole cinematic universe',
-          price: 'franchise rights secured',
+          price: 'franchise secured',
         },
         {
           text: 'best swipe decision in recorded human history fr',
-          price: 'founding member rate',
+          price: 'founding member',
         },
         {
           text: 'the way you still make me blush somehow',
-          price: 'subscription undefeated',
+          price: 'undefeated',
         },
         {
           text: 'another year of being down catastrophically bad',
@@ -1205,123 +1193,114 @@ export const RECEIPT_TYPES: ReceiptType[] = [
         },
         {
           text: 'ur face still my favorite daily notification',
-          price: 'priority access granted',
+          price: 'priority access',
         },
         {
           text: 'the way forever started feeling suspiciously reasonable',
-          price: 'warranty extended indefinitely',
+          price: 'warranty ∞',
         },
         {
           text: 'our love surviving every weird phase successfully',
-          price: 'stress-tested and approved',
+          price: 'stress-tested ✅',
         },
         {
           text: 'still obsessed after all this time embarrassing honestly',
-          price: '₹4,99,999 loyalty surcharge',
+          price: '₹4,99,999 💀',
         },
         {
           text: 'ur laugh remains my longest running favorite series',
-          price: 'season pass active',
+          price: 'season pass',
         },
         {
           text: 'the way home somehow became a person',
-          price: 'address update completed',
+          price: 'address updated',
         },
         {
           text: 'another year of stealing my fries legally',
-          price: 'joint account benefits',
+          price: 'joint account',
         },
         {
           text: 'ur weirdness matching mine remains elite matchmaking',
-          price: 'algorithm never recovered',
+          price: 'algorithm broke',
         },
         {
           text: 'still flirting with you like day one',
-          price: 'introductory offer never ended',
+          price: 'intro offer 4ever',
         },
         {
           text: 'the way we turned ordinary days iconic',
-          price: 'premium memories bundle',
+          price: 'premium memories',
         },
         {
           text: 'ur hand still fitting mine suspiciously perfectly',
-          price: 'custom sizing included',
+          price: 'custom sizing',
         },
-        {
-          text: 'the way you became my favorite habit',
-          price: 'billed monthly in butterflies',
-        },
+        { text: 'the way you became my favorite habit', price: 'billed in 🦋' },
         {
           text: 'our arguments somehow ending with snacks still',
-          price: 'conflict resolution bonus',
+          price: 'snack bonus',
         },
         {
           text: 'ur existence remains my favorite long-term investment',
-          price: 'returns exceeding expectations',
+          price: 'returns 📈',
         },
         {
           text: 'the way forever keeps looking good on us',
-          price: 'lifetime member status',
+          price: 'lifetime member',
         },
         {
           text: 'another anniversary of accidentally finding my person',
-          price: 'search fees refunded',
+          price: 'search refunded',
         },
         {
           text: 'our comfort level now legally concerning',
-          price: 'personal space sold separately',
+          price: 'space sold off',
         },
-        {
-          text: 'the way you know all my settings',
-          price: 'admin privileges granted',
-        },
+        { text: 'the way you know all my settings', price: 'admin access' },
         {
           text: 'another year of choosing us over everything',
           price: '₹7 loyalty rate',
         },
         {
           text: 'ur hugs remain my preferred operating system',
-          price: 'software support extended',
+          price: 'support extended',
         },
         {
           text: 'still crushing on you after all receipts',
-          price: 'no expiration date',
+          price: 'no expiry date',
         },
         {
           text: 'our relationship patch notes keep getting better',
-          price: 'free upgrades included',
+          price: 'free upgrades',
         },
-        {
-          text: 'the way you tolerate my nonsense daily',
-          price: 'hazard pay approved',
-        },
+        { text: 'the way you tolerate my nonsense daily', price: 'hazard pay' },
         {
           text: 'another year of sharing one braincell lovingly',
-          price: 'resource pooling active',
+          price: 'shared resource',
         },
         {
           text: 'ur smile still causing unreasonable productivity losses',
-          price: 'workplace disruption fee',
+          price: 'disruption fee',
         },
         {
           text: 'our love language mostly snacks and memes',
-          price: 'BOGO emotional support',
+          price: 'BOGO support',
         },
         {
           text: 'ur favorite seat remaining right beside me',
-          price: 'reserved indefinitely',
+          price: 'reserved 4ever',
         },
         {
           text: 'still finding new reasons to adore you',
-          price: 'inventory continuously restocked',
+          price: 'always restocked',
         },
         {
           text: 'our anniversary proving good decisions do exist',
-          price: 'evidence package included',
+          price: 'evidence: us',
         },
         {
           text: 'the way we built something worth staying for',
-          price: 'non-refundable commitment fee',
+          price: 'non-refundable',
         },
         {
           text: 'still obsessed with ur lil everyday habits',
@@ -1329,11 +1308,11 @@ export const RECEIPT_TYPES: ReceiptType[] = [
         },
         {
           text: 'the way you feel like luck every day',
-          price: 'limited edition treasure',
+          price: 'limited edition',
         },
         {
           text: "another anniversary and i'm somehow even softer",
-          price: 'EMI available on feelings',
+          price: 'EMI: feelings',
         },
         {
           text: 'ur name still my favorite thing to hear',
@@ -1341,7 +1320,7 @@ export const RECEIPT_TYPES: ReceiptType[] = [
         },
         {
           text: "stuck with me forever hope that's okay",
-          price: 'no cancellation option',
+          price: 'no cancelling',
         },
       ],
     },
