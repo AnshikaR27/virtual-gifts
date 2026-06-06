@@ -47,7 +47,9 @@ export async function generateReceipt(
         generationConfig: {
           temperature: input.spice === 'extra' ? 1.15 : 0.95,
           topP: 0.95,
-          maxOutputTokens: 1024,
+          // 8-12 Hinglish lines + scaffolding can overflow 1024 and truncate
+          // the JSON (→ parse fails). Give it ample room.
+          maxOutputTokens: 2048,
           responseMimeType: 'application/json',
         },
       }),
