@@ -1,5 +1,12 @@
 import type { Metadata, Viewport } from 'next';
-import { Fraunces, Outfit, Caveat, VT323 } from 'next/font/google';
+import {
+  Fraunces,
+  Outfit,
+  Caveat,
+  VT323,
+  Oswald,
+  JetBrains_Mono,
+} from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 import { Taskbar } from '@/components/layout/taskbar';
@@ -38,6 +45,22 @@ const vt323 = VT323({
   display: 'swap',
 });
 
+// Heavy condensed grotesque for the Love Receipt store header (realistic
+// thermal-receipt look). JetBrains Mono backs `font-mono` / the receipt body.
+const oswald = Oswald({
+  subsets: ['latin'],
+  variable: '--font-oswald',
+  weight: ['500', '600', '700'],
+  display: 'swap',
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  variable: '--font-jetbrains-mono',
+  weight: ['400', '700'],
+  display: 'swap',
+});
+
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
@@ -63,7 +86,7 @@ export default async function RootLayout({
   return (
     <html
       lang={locale}
-      className={`${fraunces.variable} ${outfit.variable} ${caveat.variable} ${vt323.variable}`}
+      className={`${fraunces.variable} ${outfit.variable} ${caveat.variable} ${vt323.variable} ${oswald.variable} ${jetbrainsMono.variable}`}
     >
       <body className="safe-area-pad font-body antialiased">
         <div className="scanline-overlay" aria-hidden />
