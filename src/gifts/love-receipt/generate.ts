@@ -252,12 +252,14 @@ function buildPrompt(input: GenerateInput): string {
     `- Each "price" MUST be one of: "priceless", "₹0 (worth it)", "₹∞", "non-refundable", "anmol", "invaluable", "unpayable", OR a short readable phrase ≤4 words (e.g. "take my money", "no eviction", "worth the wait").`,
     `- Vary them; never repeat the same price. NEVER invent random uppercase tokens like "₹FUJISOKU" or "₹BAHUTHIGH".`,
     `- subtotal / discount / tax: short, readable, funny labels + readable values. total: a short sweet phrase like "my whole heart" or "everything I have" (NOT a random uppercase string).`,
-    `- "footer": thank them for shopping + mention the cashier (${you}).`,
+    `- "paidVia": a short funny "payment method" (≤4 words), e.g. "emotional damage", "pure delusion", "forehead kisses".`,
+    `- "finePrint": a tiny mock-legal disclaimer (one short line), e.g. "all sales final. no refunds on feelings.".`,
+    `- "footer": a short cheeky closing line (≤6 words), e.g. "come again (tonight?)".`,
     `- "memeStamp": a SHORT uppercase rubber-stamp phrase (≤3 words), e.g. "CERTIFIED DELULU".`,
     ``,
     `OUTPUT`,
     `Return ONLY valid minified JSON (no markdown, no code fences, no commentary) matching exactly:`,
-    `{"storeName":string,"subtitle":string,"lines":[{"text":string,"price":string}],"subtotal":{"label":string,"price":string},"discount":{"label":string,"price":string},"tax":{"label":string,"price":string},"total":string,"footer":string,"memeStamp":string}`,
+    `{"storeName":string,"subtitle":string,"lines":[{"text":string,"price":string}],"subtotal":{"label":string,"price":string},"discount":{"label":string,"price":string},"tax":{"label":string,"price":string},"total":string,"paidVia":string,"finePrint":string,"footer":string,"memeStamp":string}`,
   ]
     .filter(Boolean)
     .join('\n');
@@ -315,11 +317,18 @@ function coerce(raw: unknown, input: GenerateInput): GeneratedReceipt | null {
   return {
     storeName: str(o.storeName, fb.storeName ?? ''),
     subtitle: str(o.subtitle, fb.subtitle),
+    // cashier / billNumber / scanLine stay scaffold-driven; only paidVia +
+    // finePrint are worth letting the model flavour.
+    cashier: fb.cashier,
+    billNumber: fb.billNumber,
     lines,
     subtotal: summary(o.subtotal, fb.subtotal),
     discount: summary(o.discount, fb.discount),
     tax: summary(o.tax, fb.tax),
     total: str(o.total, fb.total),
+    paidVia: str(o.paidVia, fb.paidVia ?? ''),
+    finePrint: str(o.finePrint, fb.finePrint ?? ''),
+    scanLine: fb.scanLine,
     footer: str(o.footer, fb.footer),
     memeStamp: str(o.memeStamp, fb.memeStamp ?? '') || null,
   };

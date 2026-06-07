@@ -56,6 +56,8 @@ interface FineOverrides {
   discountPrice?: string;
   taxLabel?: string;
   taxPrice?: string;
+  paidVia?: string;
+  finePrint?: string;
   footer?: string;
 }
 
@@ -160,6 +162,8 @@ function reducer(state: State, action: Action): State {
           discountPrice: g.discount.price,
           taxLabel: g.tax.label,
           taxPrice: g.tax.price,
+          paidVia: g.paidVia ?? state.fine.paidVia,
+          finePrint: g.finePrint ?? state.fine.finePrint,
           footer: g.footer,
         },
       };
@@ -220,6 +224,8 @@ function buildPayload(state: State): ReceiptPayload {
     subtitle: fine.subtitle ?? scaffold.subtitle,
     receiptLabel: scaffold.receiptLabel,
     dateLabel: formatReceiptDate(),
+    cashier: scaffold.cashier,
+    billNumber: scaffold.billNumber,
     lines: state.lines,
     subtotal: {
       label: scaffold.subtotal.label,
@@ -234,6 +240,9 @@ function buildPayload(state: State): ReceiptPayload {
       price: fine.taxPrice ?? scaffold.tax.price,
     },
     total: state.total.trim() || TOTAL_OPTIONS[0],
+    paidVia: fine.paidVia ?? scaffold.paidVia,
+    finePrint: fine.finePrint ?? scaffold.finePrint,
+    scanLine: scaffold.scanLine,
     footer: fine.footer ?? scaffold.footer,
     memeStamp: state.memeStamp,
   };
@@ -355,11 +364,16 @@ export function LoveReceiptSender() {
     return {
       storeName: scaffold.storeName,
       subtitle: type.subtitle,
+      cashier: scaffold.cashier,
+      billNumber: scaffold.billNumber,
       lines: batch.map((l) => ({ text: l.text, price: l.price })),
       subtotal: { ...scaffold.subtotal },
       discount: { ...scaffold.discount },
       tax: { ...scaffold.tax },
       total: type.total,
+      paidVia: scaffold.paidVia,
+      finePrint: scaffold.finePrint,
+      scanLine: scaffold.scanLine,
       footer: scaffold.footer,
       memeStamp: type.stamp,
     };

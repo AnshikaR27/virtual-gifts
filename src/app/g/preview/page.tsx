@@ -53,6 +53,8 @@ function loveReceiptMock(): GiftData {
     subtitle: scaffold.subtitle,
     receiptLabel: scaffold.receiptLabel,
     dateLabel: formatReceiptDate(),
+    cashier: scaffold.cashier,
+    billNumber: scaffold.billNumber,
     lines: [
       {
         id: 'a',
@@ -80,6 +82,9 @@ function loveReceiptMock(): GiftData {
     discount: scaffold.discount,
     tax: scaffold.tax,
     total: 'everything I have + thoda extra 🥹',
+    paidVia: scaffold.paidVia,
+    finePrint: scaffold.finePrint,
+    scanLine: scaffold.scanLine,
     footer: scaffold.footer,
     memeStamp: 'CERTIFIED DELULU',
   };

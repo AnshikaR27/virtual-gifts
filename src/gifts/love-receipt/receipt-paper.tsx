@@ -41,7 +41,7 @@ const EDIT_HINT = 'rgba(59, 58, 55, 0.28)';
 const HEADING_FONT =
   "var(--font-oswald), 'Arial Narrow', 'Helvetica Neue', Impact, sans-serif";
 const MONO_FONT =
-  "var(--font-jetbrains-mono), ui-monospace, 'SFMono-Regular', Menlo, Consolas, 'Liberation Mono', monospace";
+  "var(--font-courier-prime), 'Courier Prime', 'Courier New', Courier, monospace";
 
 // Faint paper grain (low-opacity fractal noise) for the crumpled texture.
 const GRAIN =
@@ -112,10 +112,12 @@ export interface ReceiptEditable {
 type RowKind =
   | 'header'
   | 'rule'
+  | 'meta'
   | 'item'
   | 'emptyhint'
   | 'summary'
   | 'total'
+  | 'fineprint'
   | 'footer'
   | 'barcode';
 
@@ -145,6 +147,8 @@ export function buildSequence(
   return [
     { kind: 'header' },
     { kind: 'rule' },
+    { kind: 'meta' },
+    { kind: 'rule' },
     ...itemSection,
     { kind: 'rule' },
     { kind: 'summary', summary: 'subtotal' },
@@ -152,8 +156,11 @@ export function buildSequence(
     { kind: 'summary', summary: 'tax' },
     { kind: 'rule' },
     { kind: 'total' },
-    { kind: 'footer' },
+    { kind: 'rule' },
+    { kind: 'fineprint' },
+    { kind: 'rule' },
     { kind: 'barcode' },
+    { kind: 'footer' },
   ];
 }
 
@@ -210,6 +217,10 @@ export function ReceiptPaper({
           clipPath: `polygon(${TORN_CLIP})`,
           padding: '26px 20px 24px',
           color: INK,
+          // faded thermal ink: open body tracking + a hair of edge softening so
+          // glyphs read "printed and slightly faded", never razor-sharp/blurry
+          letterSpacing: '0.02em',
+          textShadow: '0 0 0.4px rgba(59, 58, 55, 0.22)',
           // soft edge vignette + cool paper highlight (greige, not warm)
           boxShadow:
             'inset 0 0 40px rgba(60, 58, 52, 0.14), inset 0 0 10px rgba(232,228,218,0.55)',
@@ -277,6 +288,8 @@ function renderRow(
       return <Header payload={payload} editable={editable} />;
     case 'rule':
       return <Rule />;
+    case 'meta':
+      return <MetaBlock payload={payload} />;
     case 'emptyhint':
       return (
         <EmptyHint
@@ -302,11 +315,19 @@ function renderRow(
       return <SummaryRow label={r.label} price={r.price} />;
     }
     case 'total':
-      return <TotalRow total={payload.total} editable={editable} />;
+      return (
+        <TotalRow
+          total={payload.total}
+          paidVia={payload.paidVia}
+          editable={editable}
+        />
+      );
+    case 'fineprint':
+      return <FinePrint text={payload.finePrint} />;
     case 'footer':
       return <Footer payload={payload} />;
     case 'barcode':
-      return <Barcode />;
+      return <Barcode scanLine={payload.scanLine} />;
     default:
       return null;
   }
@@ -325,57 +346,77 @@ function Header({
     fontWeight: 700,
     fontSize: 30,
     lineHeight: 1.02,
-    letterSpacing: '0.5px',
+    letterSpacing: '-0.3px',
     textTransform: 'uppercase',
     color: HEADING_INK,
   };
 
+  // ♥ glyphs flank the store name — slightly smaller than the heading.
+  const heart = (
+    <span aria-hidden style={{ ...storeStyle, fontSize: 20, lineHeight: 1 }}>
+      ♥
+    </span>
+  );
+
   return (
     <div style={{ textAlign: 'center', marginBottom: 6 }}>
-      {editable ? (
-        editable.editingStore ? (
-          <input
-            autoFocus
-            value={payload.storeName}
-            maxLength={40}
-            onChange={(e) => editable.onChangeStore(e.target.value)}
-            onBlur={() => editable.onActivateStore(false)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') editable.onActivateStore(false);
-            }}
-            style={{
-              ...storeStyle,
-              fontSize: 26,
-              width: '100%',
-              textAlign: 'center',
-              background: EDIT_BG,
-              border: 'none',
-              borderBottom: `2px solid ${EDIT_ACCENT}`,
-              outline: 'none',
-              padding: '2px 4px',
-            }}
-          />
-        ) : (
-          <button
-            type="button"
-            onClick={() => editable.onActivateStore(true)}
-            style={{
-              ...storeStyle,
-              display: 'block',
-              width: '100%',
-              background: 'transparent',
-              border: 'none',
-              borderBottom: `1px dashed ${EDIT_HINT}`,
-              cursor: 'pointer',
-              padding: '2px 0',
-            }}
-          >
-            {payload.storeName}
-          </button>
-        )
-      ) : (
-        <div style={storeStyle}>{payload.storeName}</div>
-      )}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 8,
+        }}
+      >
+        {heart}
+        <div style={{ flex: editable ? '1 1 auto' : '0 1 auto', minWidth: 0 }}>
+          {editable ? (
+            editable.editingStore ? (
+              <input
+                autoFocus
+                value={payload.storeName}
+                maxLength={40}
+                onChange={(e) => editable.onChangeStore(e.target.value)}
+                onBlur={() => editable.onActivateStore(false)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') editable.onActivateStore(false);
+                }}
+                style={{
+                  ...storeStyle,
+                  fontSize: 24,
+                  width: '100%',
+                  textAlign: 'center',
+                  background: EDIT_BG,
+                  border: 'none',
+                  borderBottom: `2px solid ${EDIT_ACCENT}`,
+                  outline: 'none',
+                  padding: '2px 4px',
+                }}
+              />
+            ) : (
+              <button
+                type="button"
+                onClick={() => editable.onActivateStore(true)}
+                style={{
+                  ...storeStyle,
+                  display: 'block',
+                  width: '100%',
+                  background: 'transparent',
+                  border: 'none',
+                  borderBottom: `1px dashed ${EDIT_HINT}`,
+                  cursor: 'pointer',
+                  padding: '2px 0',
+                }}
+              >
+                {payload.storeName}
+              </button>
+            )
+          ) : (
+            <div style={storeStyle}>{payload.storeName}</div>
+          )}
+        </div>
+        {heart}
+      </div>
 
       {payload.subtitle ? (
         <div
@@ -390,36 +431,92 @@ function Header({
           {payload.subtitle}
         </div>
       ) : null}
-      <div
-        style={{
-          fontFamily: HEADING_FONT,
-          fontWeight: 700,
-          fontSize: 17,
-          letterSpacing: '1px',
-          textTransform: 'uppercase',
-          marginTop: 12,
-          color: HEADING_INK,
-        }}
-      >
-        {payload.receiptLabel}
-      </div>
-      <div
-        style={{
-          fontFamily: MONO_FONT,
-          fontSize: 10.5,
-          color: INK_SOFT,
-          textAlign: 'right',
-          marginTop: 4,
-        }}
-      >
-        {payload.dateLabel}
-      </div>
+    </div>
+  );
+}
+
+// ── meta block — left-aligned Cashier / Bill # (no dot leaders) ─────────
+function MetaBlock({ payload }: { payload: ReceiptPayload }) {
+  const row: CSSProperties = {
+    fontFamily: MONO_FONT,
+    fontSize: 11.5,
+    lineHeight: 1.65,
+    color: INK,
+  };
+  return (
+    <div style={{ textAlign: 'left' }}>
+      <div style={row}>Cashier: {payload.cashier}</div>
+      <div style={row}>Bill #{payload.billNumber}</div>
     </div>
   );
 }
 
 function Rule() {
-  return <div style={{ borderTop: `1px solid ${RULE}`, margin: '8px 0' }} />;
+  return <div style={{ borderTop: `1px dotted ${RULE}`, margin: '8px 0' }} />;
+}
+
+// ── dot-leader row primitive ────────────────────────────────────────────
+// A flex row whose middle element is a dotted rule that fills the gap and hugs
+// the baseline (align-items:flex-end). The name is allowed to wrap, with a
+// hanging indent so continuation lines sit slightly inset; the price/value
+// never wraps. Shared by line items, summary rows, and the total.
+function LeaderRow({
+  name,
+  value,
+  rowStyle,
+  nameStyle,
+  valueStyle,
+}: {
+  name: React.ReactNode;
+  value: React.ReactNode;
+  rowStyle?: CSSProperties;
+  nameStyle?: CSSProperties;
+  valueStyle?: CSSProperties;
+}) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'flex-end',
+        fontFamily: MONO_FONT,
+        color: INK,
+        ...rowStyle,
+      }}
+    >
+      <span
+        style={{
+          flex: '0 1 auto',
+          minWidth: 0,
+          // hanging indent: first line flush, wrapped lines inset ~1em
+          paddingLeft: '1em',
+          textIndent: '-1em',
+          ...nameStyle,
+        }}
+      >
+        {name}
+      </span>
+      <span
+        aria-hidden
+        style={{
+          flex: '1 1 auto',
+          minWidth: '1.6em',
+          alignSelf: 'flex-end',
+          borderBottom: `1px dotted ${INK_SOFT}`,
+          margin: '0 0.4em 0.28em',
+        }}
+      />
+      <span
+        style={{
+          flex: '0 0 auto',
+          whiteSpace: 'nowrap',
+          textAlign: 'right',
+          ...valueStyle,
+        }}
+      >
+        {value}
+      </span>
+    </div>
+  );
 }
 
 function EmptyHint({ text }: { text: string }) {
@@ -442,22 +539,11 @@ function EmptyHint({ text }: { text: string }) {
 
 function ItemRow({ text, price }: { text: string; price: string }) {
   return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        gap: 12,
-        fontFamily: MONO_FONT,
-        fontSize: 13,
-        lineHeight: 1.45,
-        color: INK,
-        padding: '3px 0',
-      }}
-    >
-      <span style={{ flex: 1 }}>{text}</span>
-      <span style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>{price}</span>
-    </div>
+    <LeaderRow
+      name={text}
+      value={price}
+      rowStyle={{ fontSize: 13, lineHeight: 1.45, padding: '3px 0' }}
+    />
   );
 }
 
@@ -482,10 +568,8 @@ function EditableItem({
         onClick={() => editable.onActivateLine(line.id)}
         style={{
           display: 'flex',
+          alignItems: 'flex-end',
           width: '100%',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start',
-          gap: 12,
           fontFamily: MONO_FONT,
           fontSize: 13,
           lineHeight: 1.45,
@@ -498,8 +582,32 @@ function EditableItem({
           padding: '7px 0',
         }}
       >
-        <span style={{ flex: 1 }}>{line.text}</span>
-        <span style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>
+        <span
+          style={{
+            flex: '0 1 auto',
+            minWidth: 0,
+            paddingLeft: '1em',
+            textIndent: '-1em',
+          }}
+        >
+          {line.text}
+        </span>
+        <span
+          aria-hidden
+          style={{
+            flex: '1 1 auto',
+            minWidth: '1.6em',
+            borderBottom: `1px dotted ${INK_SOFT}`,
+            margin: '0 0.4em 0.28em',
+          }}
+        />
+        <span
+          style={{
+            flex: '0 0 auto',
+            whiteSpace: 'nowrap',
+            textAlign: 'right',
+          }}
+        >
           {line.price}
         </span>
       </button>
@@ -621,137 +729,175 @@ function CtrlBtn({
 
 function SummaryRow({ label, price }: { label: string; price: string }) {
   return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        gap: 12,
-        fontFamily: MONO_FONT,
-        fontSize: 12.5,
-        lineHeight: 1.45,
-        color: INK_SOFT,
-        padding: '2px 0',
-      }}
-    >
-      <span style={{ flex: 1 }}>{label}</span>
-      <span style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>{price}</span>
-    </div>
+    <LeaderRow
+      name={label}
+      value={price}
+      rowStyle={{ fontSize: 12.5, lineHeight: 1.45, padding: '2px 0' }}
+      nameStyle={{ color: INK_SOFT }}
+      valueStyle={{ color: INK_SOFT }}
+    />
   );
 }
 
 function TotalRow({
   total,
+  paidVia,
   editable,
 }: {
   total: string;
+  paidVia: string;
   editable?: ReceiptEditable;
 }) {
+  // Emphasized but PROPORTIONAL — ~1.15x the 13px body, never a headline; the
+  // store name stays the heaviest thing on the page.
   const valueStyle: CSSProperties = {
-    fontSize: 18,
-    textAlign: 'right',
-    letterSpacing: '0.3px',
-    textTransform: 'none',
+    fontSize: 15,
     fontFamily: MONO_FONT,
     fontWeight: 700,
     color: INK,
+    textAlign: 'right',
+    whiteSpace: 'nowrap',
   };
 
-  return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'baseline',
-        gap: 12,
-        fontFamily: HEADING_FONT,
-        fontWeight: 700,
-        textTransform: 'uppercase',
-        color: HEADING_INK,
-        padding: '2px 0',
-      }}
-    >
-      <span style={{ fontSize: 21, letterSpacing: '1px' }}>Total</span>
-      {editable ? (
-        editable.editingTotal ? (
-          <input
-            autoFocus
-            value={total}
-            maxLength={48}
-            onChange={(e) => editable.onChangeTotal(e.target.value)}
-            onBlur={() => editable.onActivateTotal(false)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') editable.onActivateTotal(false);
-            }}
-            style={{
-              ...valueStyle,
-              flex: 1,
-              minWidth: 0,
-              background: EDIT_BG,
-              border: 'none',
-              borderBottom: `1.5px solid ${EDIT_ACCENT}`,
-              outline: 'none',
-              padding: '4px 4px',
-            }}
-          />
-        ) : (
-          <button
-            type="button"
-            onClick={() => editable.onActivateTotal(true)}
-            style={{
-              ...valueStyle,
-              background: 'transparent',
-              border: 'none',
-              borderBottom: `1px dashed ${EDIT_HINT}`,
-              cursor: 'pointer',
-              padding: '2px 0',
-              maxWidth: '64%',
-            }}
-          >
-            {total}
-          </button>
-        )
-      ) : (
-        <span style={valueStyle}>{total}</span>
-      )}
-    </div>
-  );
-}
-
-function Footer({ payload }: { payload: ReceiptPayload }) {
-  return (
-    <div style={{ textAlign: 'center', marginTop: 14 }}>
-      <div
+  let valueNode: React.ReactNode;
+  if (editable) {
+    valueNode = editable.editingTotal ? (
+      <input
+        autoFocus
+        value={total}
+        maxLength={48}
+        onChange={(e) => editable.onChangeTotal(e.target.value)}
+        onBlur={() => editable.onActivateTotal(false)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') editable.onActivateTotal(false);
+        }}
         style={{
-          fontFamily: HEADING_FONT,
-          fontWeight: 700,
-          fontSize: 18,
-          letterSpacing: '0.5px',
-          color: HEADING_INK,
+          ...valueStyle,
+          fontSize: 16, // ≥16 avoids iOS focus-zoom
+          whiteSpace: 'normal',
+          width: '100%',
+          minWidth: 0,
+          background: EDIT_BG,
+          border: 'none',
+          borderBottom: `1.5px solid ${EDIT_ACCENT}`,
+          outline: 'none',
+          padding: '2px 4px',
+        }}
+      />
+    ) : (
+      <button
+        type="button"
+        onClick={() => editable.onActivateTotal(true)}
+        style={{
+          ...valueStyle,
+          whiteSpace: 'normal',
+          background: 'transparent',
+          border: 'none',
+          borderBottom: `1px dashed ${EDIT_HINT}`,
+          cursor: 'pointer',
+          padding: '1px 0',
         }}
       >
-        Thank you!
+        {total}
+      </button>
+    );
+  } else {
+    valueNode = <span style={valueStyle}>{total}</span>;
+  }
+
+  return (
+    <div style={{ padding: '2px 0' }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'flex-end',
+          fontFamily: MONO_FONT,
+          fontWeight: 700,
+          color: INK,
+        }}
+      >
+        <span
+          style={{
+            flex: '0 0 auto',
+            fontSize: 15,
+            letterSpacing: '0.5px',
+            textTransform: 'uppercase',
+          }}
+        >
+          Total Due
+        </span>
+        <span
+          aria-hidden
+          style={{
+            flex: '1 1 auto',
+            minWidth: '1.6em',
+            borderBottom: `1px dotted ${INK_SOFT}`,
+            margin: '0 0.4em 0.3em',
+          }}
+        />
+        <span style={{ flex: '0 1 auto', minWidth: 0, maxWidth: '62%' }}>
+          {valueNode}
+        </span>
       </div>
-      {payload.footer ? (
+      {paidVia ? (
         <div
           style={{
             fontFamily: MONO_FONT,
-            fontSize: 10.5,
-            lineHeight: 1.6,
+            fontSize: 11,
+            letterSpacing: '0.3px',
             color: INK_SOFT,
-            marginTop: 8,
-            padding: '0 2px',
+            marginTop: 5,
           }}
         >
-          {payload.footer}
+          PAID VIA: {paidVia}
         </div>
       ) : null}
     </div>
   );
 }
 
-// ── barcode that spells ILOVEYOU ───────────────────────────────────────
-function Barcode() {
+// ── fine print — italic mock-legal disclaimer ───────────────────────────
+function FinePrint({ text }: { text: string }) {
+  if (!text) return null;
+  return (
+    <div
+      style={{
+        fontFamily: MONO_FONT,
+        fontStyle: 'italic',
+        fontSize: 10.5,
+        lineHeight: 1.5,
+        color: INK_SOFT,
+        textAlign: 'center',
+        padding: '2px 8px',
+      }}
+    >
+      {text}
+    </div>
+  );
+}
+
+function Footer({ payload }: { payload: ReceiptPayload }) {
+  if (!payload.footer) return null;
+  return (
+    <div
+      style={{
+        fontFamily: MONO_FONT,
+        fontSize: 11,
+        letterSpacing: '0.3px',
+        lineHeight: 1.5,
+        color: INK_SOFT,
+        textAlign: 'center',
+        marginTop: 8,
+        padding: '0 2px',
+      }}
+    >
+      {payload.footer}
+    </div>
+  );
+}
+
+// ── barcode that spells ILOVEYOU (caption is a cheeky "scan = …" line) ──
+function Barcode({ scanLine }: { scanLine: string }) {
   // Deterministic bar widths derived from the letters of ILOVEYOU so it looks
   // like a real Code-39-ish barcode but always encodes the same "message".
   const bars: { w: number; gap: number }[] = [];
@@ -792,14 +938,14 @@ function Barcode() {
       <div
         style={{
           fontFamily: MONO_FONT,
-          fontSize: 12,
-          letterSpacing: '6px',
-          color: INK,
-          marginTop: 5,
-          paddingLeft: 6,
+          fontSize: 11,
+          letterSpacing: '0.3px',
+          color: INK_SOFT,
+          textAlign: 'center',
+          marginTop: 6,
         }}
       >
-        {BARCODE_TEXT.split('').join(' ')}
+        {scanLine}
       </div>
     </div>
   );

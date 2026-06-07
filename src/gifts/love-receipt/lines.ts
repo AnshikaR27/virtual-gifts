@@ -42,11 +42,20 @@ export interface ReceiptPayload {
   /** "Receipt" sub-header — kept in payload so it can be localized later. */
   receiptLabel: string;
   dateLabel: string;
+  /** meta block under the header — "Cashier: …" and "Bill #…". */
+  cashier: string;
+  billNumber: string;
   lines: ReceiptLine[];
   subtotal: ReceiptSummaryRow;
   discount: ReceiptSummaryRow;
   tax: ReceiptSummaryRow;
   total: string;
+  /** how the bill was "paid" — shown under TOTAL DUE. */
+  paidVia: string;
+  /** italic mock-legal disclaimer near the bottom. */
+  finePrint: string;
+  /** caption under the faux barcode. */
+  scanLine: string;
   footer: string;
   /** null = no stamp. */
   memeStamp: string | null;
@@ -125,9 +134,14 @@ interface ScaffoldDefaults {
   storeName: string;
   subtitle: string;
   receiptLabel: string;
+  cashier: string;
+  billNumber: string;
   subtotal: ReceiptSummaryRow;
   discount: ReceiptSummaryRow;
   tax: ReceiptSummaryRow;
+  paidVia: string;
+  finePrint: string;
+  scanLine: string;
   footer: string;
 }
 
@@ -138,29 +152,37 @@ interface ScaffoldDefaults {
 const SCAFFOLD: Record<ReceiptLanguage, ScaffoldDefaults> = {
   en: {
     storeName: "[Name]'s Heart Mart",
-    subtitle: 'Open 24/7 · Aisle of Adoration · No. 143',
+    subtitle: 'est. the day i met u',
     receiptLabel: 'Receipt',
-    subtotal: { label: 'Subtotal', price: 'my entire heart' },
+    cashier: '[you]',
+    billNumber: '4EVER-143',
+    subtotal: { label: 'Subtotal', price: 'too much' },
     discount: {
       label: 'Loyalty Discount — day one se tu hi tu',
       price: '−100%',
     },
-    tax: { label: 'Emotional Damage Tax', price: "₹0 (you're worth it)" },
-    footer:
-      "Thank you for shopping at [Name]'s Heart Mart 💕 — Cashier: [you] — No refunds, no returns, you're stuck with me 4ever",
+    tax: { label: 'delusion tax (200%)', price: 'generous' },
+    paidVia: 'emotional damage',
+    finePrint: 'all sales final. no refunds on feelings.',
+    scanLine: 'scan = how down bad i am',
+    footer: 'come again 💕 (tonight?)',
   },
   hinglish: {
     storeName: "[Name]'s Heart Mart",
-    subtitle: 'Open 24/7 · Pyaar ka aisle · Counter No. 143',
+    subtitle: 'est. jis din tu mila',
     receiptLabel: 'Receipt',
-    subtotal: { label: 'Subtotal', price: 'mera poora dil' },
+    cashier: '[you]',
+    billNumber: '4EVER-143',
+    subtotal: { label: 'Subtotal', price: 'bahut zyada' },
     discount: {
       label: 'Loyalty Discount — day one se tu hi tu',
       price: '−100%',
     },
-    tax: { label: 'Emotional Damage Tax', price: "₹0 (you're worth it)" },
-    footer:
-      "Thank you for shopping at [Name]'s Heart Mart 💕 — Cashier: [you] — No refunds, no returns, you're stuck with me 4ever",
+    tax: { label: 'delulu tax (200%)', price: 'generous' },
+    paidVia: 'emotional damage (dil se)',
+    finePrint: 'all sales final. feelings pe no refund, sorry.',
+    scanLine: 'scan karo = kitna down bad hoon',
+    footer: 'phir aana 💕 (aaj raat?)',
   },
 };
 
@@ -187,9 +209,14 @@ export function buildScaffold(
     storeName: fill(base.storeName),
     subtitle: base.subtitle,
     receiptLabel: base.receiptLabel,
+    cashier: fill(base.cashier),
+    billNumber: base.billNumber,
     subtotal: { ...base.subtotal },
     discount: { ...base.discount },
     tax: { ...base.tax },
+    paidVia: base.paidVia,
+    finePrint: base.finePrint,
+    scanLine: base.scanLine,
     footer: fill(base.footer),
   };
 }
@@ -1377,11 +1404,16 @@ export const PERSONAL_QUESTIONS: PersonalQuestion[] = [
 export interface GeneratedReceipt {
   storeName?: string;
   subtitle: string;
+  cashier?: string;
+  billNumber?: string;
   lines: SuggestionSeed[];
   subtotal: ReceiptSummaryRow;
   discount: ReceiptSummaryRow;
   tax: ReceiptSummaryRow;
   total: string;
+  paidVia?: string;
+  finePrint?: string;
+  scanLine?: string;
   footer: string;
   memeStamp: string | null;
 }
@@ -1473,11 +1505,16 @@ export function buildFallbackReceipt(input: GenerateInput): GeneratedReceipt {
   return {
     storeName: scaffold.storeName,
     subtitle: type.subtitle,
+    cashier: scaffold.cashier,
+    billNumber: scaffold.billNumber,
     lines,
     subtotal: { ...scaffold.subtotal },
     discount: { ...scaffold.discount },
     tax: { ...scaffold.tax },
     total: type.total,
+    paidVia: scaffold.paidVia,
+    finePrint: scaffold.finePrint,
+    scanLine: scaffold.scanLine,
     footer: scaffold.footer,
     memeStamp: type.stamp,
   };
