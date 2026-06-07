@@ -8,7 +8,7 @@ import { useGiftContext } from '@/components/gift-frame/gift-frame';
 import type { GiftData } from '@/components/gift-frame/gift-frame';
 import { playClick } from '@/components/retro-sounds';
 import { ReceiptPaper, getSequenceMeta } from './receipt-paper';
-import { formatReceiptDate, type ReceiptPayload } from './lines';
+import { buildScaffold, formatReceiptDate, type ReceiptPayload } from './lines';
 
 // Pacing for the paper feeding out (ms).
 const FIRST_DELAY = 350;
@@ -22,28 +22,33 @@ function normalize(
   gift: GiftData,
 ): ReceiptPayload {
   const p = raw as Partial<ReceiptPayload>;
+  // Defaults come from the single locked frame so old/partial payloads still
+  // render the full DELULU MART receipt.
+  const frame = buildScaffold();
   return {
     version: 1,
     language: p.language === 'hinglish' ? 'hinglish' : 'en',
     recipientName: p.recipientName || gift.recipientName || 'you',
     senderName: p.senderName || gift.senderName || '',
     relationship: p.relationship || '',
-    storeName: p.storeName || `${gift.recipientName || 'Your'}'s Heart Mart`,
-    subtitle: p.subtitle || '',
-    receiptLabel: p.receiptLabel || 'Receipt',
+    storeName: p.storeName || frame.storeName,
+    subtitle: p.subtitle || frame.subtitle,
+    receiptLabel: p.receiptLabel || frame.receiptLabel,
     dateLabel: p.dateLabel || formatReceiptDate(),
-    cashier: p.cashier || gift.senderName || 'me',
-    billNumber: p.billNumber || '4EVER-143',
+    cashier: p.cashier || frame.cashier,
+    billNumber: p.billNumber || frame.billNumber,
+    gstin: p.gstin || frame.gstin,
     lines: Array.isArray(p.lines) ? p.lines : [],
-    subtotal: p.subtotal || { label: 'Subtotal', price: 'too much' },
-    discount: p.discount || { label: 'Loyalty Discount', price: '−100%' },
-    tax: p.tax || { label: 'delusion tax (200%)', price: 'generous' },
-    total: p.total || 'priceless',
-    paidVia: p.paidVia || 'emotional damage',
-    finePrint: p.finePrint || 'all sales final. no refunds on feelings.',
-    scanLine: p.scanLine || 'scan = how down bad i am',
-    footer: p.footer || 'come again 💕',
-    memeStamp: p.memeStamp ?? null,
+    subtotal: p.subtotal || { ...frame.subtotal },
+    discount: p.discount || { ...frame.discount },
+    tax: p.tax || { ...frame.tax },
+    total: p.total || frame.total,
+    paidVia: p.paidVia || frame.paidVia,
+    finePrint: p.finePrint || frame.finePrint,
+    returnPolicy: p.returnPolicy || frame.returnPolicy,
+    scanLine: p.scanLine || frame.scanLine,
+    footer: p.footer || frame.footer,
+    memeStamp: p.memeStamp ?? frame.stamp,
   };
 }
 

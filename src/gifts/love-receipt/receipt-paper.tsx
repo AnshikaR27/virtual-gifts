@@ -323,7 +323,7 @@ function renderRow(
         />
       );
     case 'fineprint':
-      return <FinePrint text={payload.finePrint} />;
+      return <FinePrint payload={payload} />;
     case 'footer':
       return <Footer payload={payload} />;
     case 'barcode':
@@ -447,6 +447,7 @@ function MetaBlock({ payload }: { payload: ReceiptPayload }) {
     <div style={{ textAlign: 'left' }}>
       <div style={row}>Cashier: {payload.cashier}</div>
       <div style={row}>Bill #{payload.billNumber}</div>
+      {payload.gstin ? <div style={row}>GSTIN: {payload.gstin}</div> : null}
     </div>
   );
 }
@@ -856,23 +857,27 @@ function TotalRow({
   );
 }
 
-// ── fine print — italic mock-legal disclaimer ───────────────────────────
-function FinePrint({ text }: { text: string }) {
-  if (!text) return null;
+// ── fine print — italic mock-legal disclaimer + return policy ───────────
+function FinePrint({ payload }: { payload: ReceiptPayload }) {
+  const lines = [payload.finePrint, payload.returnPolicy].filter(Boolean);
+  if (!lines.length) return null;
+  const lineStyle: CSSProperties = {
+    fontFamily: MONO_FONT,
+    fontStyle: 'italic',
+    fontSize: 10.5,
+    lineHeight: 1.5,
+    color: INK_SOFT,
+    textAlign: 'center',
+    padding: '2px 8px',
+  };
   return (
-    <div
-      style={{
-        fontFamily: MONO_FONT,
-        fontStyle: 'italic',
-        fontSize: 10.5,
-        lineHeight: 1.5,
-        color: INK_SOFT,
-        textAlign: 'center',
-        padding: '2px 8px',
-      }}
-    >
-      {text}
-    </div>
+    <>
+      {lines.map((text, i) => (
+        <div key={i} style={lineStyle}>
+          {text}
+        </div>
+      ))}
+    </>
   );
 }
 

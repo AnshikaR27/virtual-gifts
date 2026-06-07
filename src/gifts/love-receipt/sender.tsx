@@ -14,24 +14,16 @@ import { generateReceipt } from './generate';
 import {
   buildScaffold,
   DEFAULT_PRICE,
+  DEFAULT_STARTING_IDS,
   formatReceiptDate,
-  getReceiptType,
-  MEME_STAMPS,
+  getStartingLines,
   NEW_LINE_MAX,
   PERSONAL_QUESTIONS,
   PRICE_MAX,
-  RECEIPT_TYPES,
-  sampleFromPool,
-  TOTAL_OPTIONS,
-  type GeneratedReceipt,
-  type ReceiptLanguage,
+  sampleBalanced,
   type ReceiptLine,
   type ReceiptPayload,
-  type ReceiptTypeKey,
 } from './lines';
-
-// How many pool lines a Generate/Regenerate draws onto the receipt.
-const POOL_COUNT = 7;
 
 const RELATIONSHIP_OPTIONS = [
   'girlfriend',
@@ -47,10 +39,16 @@ const RELATIONSHIP_OPTIONS = [
 let idCounter = 0;
 const newId = () => `l${Date.now().toString(36)}${idCounter++}`;
 
-// ── overrides for the auto-filled scaffolding ──────────────────────────
+// The single locked frame (DELULU MART). Static, but every field stays editable.
+const FRAME = buildScaffold();
+
+// ── overrides for the locked frame (user edits only) ────────────────────
 interface FineOverrides {
   storeName?: string;
   subtitle?: string;
+  cashier?: string;
+  billNumber?: string;
+  gstin?: string;
   subtotalPrice?: string;
   discountLabel?: string;
   discountPrice?: string;
@@ -58,16 +56,16 @@ interface FineOverrides {
   taxPrice?: string;
   paidVia?: string;
   finePrint?: string;
+  returnPolicy?: string;
+  scanLine?: string;
   footer?: string;
 }
 
 interface State {
   step: 1 | 2;
-  language: ReceiptLanguage;
   recipientName: string;
   senderName: string;
   relationship: string;
-  receiptType: ReceiptTypeKey | null;
   answers: Record<string, string>;
   lines: ReceiptLine[];
   total: string;
@@ -79,14 +77,12 @@ interface State {
 
 type Action =
   | { type: 'set'; field: 'recipientName' | 'senderName'; value: string }
-  | { type: 'setLanguage'; value: ReceiptLanguage }
   | { type: 'setRelationship'; value: string }
-  | { type: 'setType'; value: ReceiptTypeKey }
   | { type: 'setAnswer'; key: string; value: string }
   | { type: 'setTotal'; value: string }
   | { type: 'setStamp'; value: string | null }
   | { type: 'setFine'; field: keyof FineOverrides; value: string }
-  | { type: 'applyGenerated'; gen: GeneratedReceipt }
+  | { type: 'applyLines'; lines: { text: string; price: string }[] }
   | { type: 'addLine'; text: string; price: string }
   | { type: 'updateLine'; id: string; field: 'text' | 'price'; value: string }
   | { type: 'removeLine'; id: string }
@@ -94,17 +90,20 @@ type Action =
   | { type: 'setDraft'; field: 'draftText' | 'draftPrice'; value: string }
   | { type: 'step'; step: State['step'] };
 
+// Balanced starting-4 render immediately on load — no empty state.
 const initialState: State = {
   step: 1,
-  language: 'en',
   recipientName: '',
   senderName: '',
   relationship: RELATIONSHIP_OPTIONS[0],
-  receiptType: null,
   answers: {},
-  lines: [],
-  total: TOTAL_OPTIONS[0],
-  memeStamp: MEME_STAMPS[0],
+  lines: getStartingLines().map((l) => ({
+    id: newId(),
+    text: l.text,
+    price: l.price,
+  })),
+  total: FRAME.total,
+  memeStamp: FRAME.stamp,
   fine: {},
   draftText: '',
   draftPrice: '',
@@ -114,20 +113,8 @@ function reducer(state: State, action: Action): State {
   switch (action.type) {
     case 'set':
       return { ...state, [action.field]: action.value };
-    case 'setLanguage':
-      return { ...state, language: action.value };
     case 'setRelationship':
       return { ...state, relationship: action.value };
-    case 'setType': {
-      const t = getReceiptType(action.value);
-      // Pick reflects on the receipt immediately: stamp + subtitle match it.
-      return {
-        ...state,
-        receiptType: action.value,
-        memeStamp: t.stamp,
-        fine: { ...state.fine, subtitle: t.subtitle },
-      };
-    }
     case 'setAnswer':
       return {
         ...state,
@@ -142,32 +129,15 @@ function reducer(state: State, action: Action): State {
         ...state,
         fine: { ...state.fine, [action.field]: action.value },
       };
-    case 'applyGenerated': {
-      const g = action.gen;
+    case 'applyLines':
       return {
         ...state,
-        lines: g.lines.map((l) => ({
+        lines: action.lines.map((l) => ({
           id: newId(),
           text: l.text,
           price: l.price.trim() || DEFAULT_PRICE,
         })),
-        total: g.total || state.total,
-        memeStamp: g.memeStamp ?? state.memeStamp,
-        fine: {
-          ...state.fine,
-          storeName: g.storeName ?? state.fine.storeName,
-          subtitle: g.subtitle,
-          subtotalPrice: g.subtotal.price,
-          discountLabel: g.discount.label,
-          discountPrice: g.discount.price,
-          taxLabel: g.tax.label,
-          taxPrice: g.tax.price,
-          paidVia: g.paidVia ?? state.fine.paidVia,
-          finePrint: g.finePrint ?? state.fine.finePrint,
-          footer: g.footer,
-        },
       };
-    }
     case 'addLine':
       return {
         ...state,
@@ -206,44 +176,42 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-/** Assemble the effective payload from state (overrides win over scaffold). */
+/** Assemble the effective payload from state (overrides win over the frame). */
 function buildPayload(state: State): ReceiptPayload {
   const { fine } = state;
-  const scaffold = buildScaffold(
-    state.language,
-    state.recipientName,
-    state.senderName,
-  );
+  const frame = buildScaffold();
   return {
     version: 1,
-    language: state.language,
+    language: 'en', // REVISIT: Hinglish later as a data drop, not a refactor
     recipientName: state.recipientName.trim() || 'you',
     senderName: state.senderName.trim(),
     relationship: state.relationship,
-    storeName: fine.storeName ?? scaffold.storeName,
-    subtitle: fine.subtitle ?? scaffold.subtitle,
-    receiptLabel: scaffold.receiptLabel,
+    storeName: fine.storeName ?? frame.storeName,
+    subtitle: fine.subtitle ?? frame.subtitle,
+    receiptLabel: frame.receiptLabel,
     dateLabel: formatReceiptDate(),
-    cashier: scaffold.cashier,
-    billNumber: scaffold.billNumber,
+    cashier: fine.cashier ?? frame.cashier,
+    billNumber: fine.billNumber ?? frame.billNumber,
+    gstin: fine.gstin ?? frame.gstin,
     lines: state.lines,
     subtotal: {
-      label: scaffold.subtotal.label,
-      price: fine.subtotalPrice ?? scaffold.subtotal.price,
+      label: frame.subtotal.label,
+      price: fine.subtotalPrice ?? frame.subtotal.price,
     },
     discount: {
-      label: fine.discountLabel ?? scaffold.discount.label,
-      price: fine.discountPrice ?? scaffold.discount.price,
+      label: fine.discountLabel ?? frame.discount.label,
+      price: fine.discountPrice ?? frame.discount.price,
     },
     tax: {
-      label: fine.taxLabel ?? scaffold.tax.label,
-      price: fine.taxPrice ?? scaffold.tax.price,
+      label: fine.taxLabel ?? frame.tax.label,
+      price: fine.taxPrice ?? frame.tax.price,
     },
-    total: state.total.trim() || TOTAL_OPTIONS[0],
-    paidVia: fine.paidVia ?? scaffold.paidVia,
-    finePrint: fine.finePrint ?? scaffold.finePrint,
-    scanLine: scaffold.scanLine,
-    footer: fine.footer ?? scaffold.footer,
+    total: state.total.trim() || frame.total,
+    paidVia: fine.paidVia ?? frame.paidVia,
+    finePrint: fine.finePrint ?? frame.finePrint,
+    returnPolicy: fine.returnPolicy ?? frame.returnPolicy,
+    scanLine: fine.scanLine ?? frame.scanLine,
+    footer: fine.footer ?? frame.footer,
     memeStamp: state.memeStamp,
   };
 }
@@ -257,9 +225,12 @@ export function LoveReceiptSender() {
   const [generating, setGenerating] = useState(false);
   const [genSource, setGenSource] = useState<'ai' | 'fallback' | null>(null);
   const [hasGenerated, setHasGenerated] = useState(false);
-  // Pool line-ids shown so far for the current type+language, so Regenerate can
-  // avoid repeats. Reset whenever the type or language (= the pool) changes.
-  const [shownIds, setShownIds] = useState<Set<string>>(new Set());
+  // Balanced-shuffle bookkeeping: pool ids already shown (so regenerate stays
+  // fresh) + the tone cursor (so tones rotate across consecutive draws).
+  const [shownIds, setShownIds] = useState<Set<string>>(
+    () => new Set(DEFAULT_STARTING_IDS),
+  );
+  const [toneCursor, setToneCursor] = useState(0);
 
   // edit-on-receipt UI state (which cell is being edited)
   const [activeLineId, setActiveLineId] = useState<string | null>(null);
@@ -267,10 +238,6 @@ export function LoveReceiptSender() {
   const [editingTotal, setEditingTotal] = useState(false);
 
   const payload = useMemo(() => buildPayload(state), [state]);
-  const scaffold = useMemo(
-    () => buildScaffold(state.language, state.recipientName, state.senderName),
-    [state.language, state.recipientName, state.senderName],
-  );
 
   const goto = (step: State['step']) => {
     playClick();
@@ -321,11 +288,17 @@ export function LoveReceiptSender() {
       playClick();
       dispatch({ type: 'moveLine', id, dir });
     },
-    emptyHint: 'pick a vibe below & hit ✨ Generate',
+    emptyHint: 'tap ✨ Generate for a fresh set of lines',
   };
 
+  const hasPersonalAnswers = Object.values(state.answers).some(
+    (v) => v.trim().length > 0,
+  );
+
+  // AI generate (used when the sender added personal details, or 🌶️ Cringier).
+  // Only the line items vary — the locked frame is applied in buildPayload.
   const generate = async (spice: 'normal' | 'extra') => {
-    if (!state.receiptType || generating) return;
+    if (generating) return;
     playClick();
     setGenerating(true);
     setError(null);
@@ -334,12 +307,11 @@ export function LoveReceiptSender() {
         recipientName: state.recipientName,
         senderName: state.senderName,
         relationship: state.relationship,
-        language: state.language,
-        receiptType: state.receiptType,
+        language: 'en',
         answers: state.answers,
         spice,
       });
-      dispatch({ type: 'applyGenerated', gen: receipt });
+      dispatch({ type: 'applyLines', lines: receipt.lines });
       setGenSource(source);
       setHasGenerated(true);
     } catch {
@@ -349,62 +321,19 @@ export function LoveReceiptSender() {
     }
   };
 
-  const hasPersonalAnswers = Object.values(state.answers).some(
-    (v) => v.trim().length > 0,
-  );
-
-  // Assemble a full receipt from a sampled pool batch: type scaffolding + lines.
-  const buildPoolReceipt = (batch: ReceiptLine[]): GeneratedReceipt => {
-    const scaffold = buildScaffold(
-      state.language,
-      state.recipientName,
-      state.senderName,
-    );
-    const type = getReceiptType(state.receiptType!);
-    return {
-      storeName: scaffold.storeName,
-      subtitle: type.subtitle,
-      cashier: scaffold.cashier,
-      billNumber: scaffold.billNumber,
-      lines: batch.map((l) => ({ text: l.text, price: l.price })),
-      subtotal: { ...scaffold.subtotal },
-      discount: { ...scaffold.discount },
-      tax: { ...scaffold.tax },
-      total: type.total,
-      paidVia: scaffold.paidVia,
-      finePrint: scaffold.finePrint,
-      scanLine: scaffold.scanLine,
-      footer: scaffold.footer,
-      memeStamp: type.stamp,
-    };
-  };
-
-  // Pool-backed Generate/Regenerate (instant, no AI). 'fresh' seeds shownIds;
-  // 'more' excludes everything already shown. The sampler resets internally when
-  // it can't fill a fresh batch — we mirror that by restarting shownIds the
-  // moment a returned batch overlaps what we've already shown, so we never fight
-  // its reset (and Regenerate never dead-ends).
-  const runPool = (mode: 'fresh' | 'more') => {
-    if (!state.receiptType) return;
+  // Instant, offline-safe balanced draw of 4 from the single pool.
+  const drawPool = () => {
     playClick();
-    const batch = sampleFromPool(
-      state.receiptType,
-      state.language,
-      POOL_COUNT,
-      mode === 'more' ? shownIds : undefined,
-    );
-    dispatch({ type: 'applyGenerated', gen: buildPoolReceipt(batch) });
-    setShownIds((prev) => {
-      if (mode === 'fresh') return new Set(batch.map((l) => l.id));
-      const wrapped = batch.some((l) => prev.has(l.id)); // sampler reset → restart
-      if (wrapped) return new Set(batch.map((l) => l.id));
-      const next = new Set(prev);
-      batch.forEach((l) => next.add(l.id));
-      return next;
-    });
+    const draw = sampleBalanced(shownIds, toneCursor);
+    dispatch({ type: 'applyLines', lines: draw.lines });
+    setShownIds(draw.shownIds);
+    setToneCursor(draw.toneCursor);
     setGenSource(null); // pool is the intended default, not an error fallback
     setHasGenerated(true);
   };
+
+  const regenerate = () =>
+    hasPersonalAnswers ? generate('normal') : drawPool();
 
   const addDraft = () => {
     const text = state.draftText.trim();
@@ -463,16 +392,8 @@ export function LoveReceiptSender() {
               onChange={(v) => dispatch({ type: 'setRelationship', value: v })}
               options={[...RELATIONSHIP_OPTIONS]}
             />
-            <LanguageToggle
-              language={state.language}
-              onChange={(v) => {
-                playClick();
-                dispatch({ type: 'setLanguage', value: v });
-                setShownIds(new Set()); // new pool → start fresh
-              }}
-            />
             <WinInput
-              label="Cashier (you):"
+              label="From (you):"
               value={state.senderName}
               onChange={(e) =>
                 dispatch({
@@ -516,34 +437,6 @@ export function LoveReceiptSender() {
               <div style={{ display: 'flex', justifyContent: 'center' }}>
                 <ReceiptPaper payload={payload} editable={editable} showStamp />
               </div>
-              {editingTotal ? (
-                <div style={{ marginTop: 10, textAlign: 'center' }}>
-                  <div
-                    className="font-pixel"
-                    style={{
-                      fontSize: 11,
-                      color: '#fff',
-                      letterSpacing: '0.5px',
-                      marginBottom: 4,
-                      textShadow: '1px 1px 0 rgba(26,10,46,.4)',
-                    }}
-                  >
-                    ✨ total ideas
-                  </div>
-                  {TOTAL_OPTIONS.map((opt) => (
-                    <ChipButton
-                      key={opt}
-                      active={state.total === opt}
-                      onClick={() => {
-                        playClick();
-                        dispatch({ type: 'setTotal', value: opt });
-                      }}
-                    >
-                      {opt}
-                    </ChipButton>
-                  ))}
-                </div>
-              ) : null}
             </div>
 
             <p
@@ -556,34 +449,9 @@ export function LoveReceiptSender() {
               }}
             >
               ✎ Tap the <strong>store name</strong>, any <strong>line</strong>,
-              or the <strong>total</strong> to edit. Pick a vibe & generate
+              or the <strong>total</strong> to edit. Shuffle in fresh lines
               below 👇
             </p>
-
-            {/* receipt-type picker (required) */}
-            <WinLabel>Receipt type — pick one</WinLabel>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: 6,
-                marginBottom: 12,
-              }}
-            >
-              {RECEIPT_TYPES.map((t) => (
-                <TypeChip
-                  key={t.key}
-                  active={state.receiptType === t.key}
-                  onClick={() => {
-                    playClick();
-                    dispatch({ type: 'setType', value: t.key });
-                    setShownIds(new Set()); // new pool → start fresh
-                  }}
-                  emoji={t.emoji}
-                  label={t.label}
-                />
-              ))}
-            </div>
 
             {/* make it personal (optional) */}
             <button
@@ -617,14 +485,10 @@ export function LoveReceiptSender() {
             <WinButton
               variant="pink"
               onClick={() =>
-                hasPersonalAnswers ? generate('normal') : runPool('fresh')
+                hasPersonalAnswers ? generate('normal') : drawPool()
               }
-              disabled={!state.receiptType || generating}
-              style={{
-                width: '100%',
-                marginBottom: 8,
-                ...(!state.receiptType && !generating ? { opacity: 0.6 } : {}),
-              }}
+              disabled={generating}
+              style={{ width: '100%', marginBottom: 8 }}
             >
               {generating
                 ? 'Generating…'
@@ -636,9 +500,7 @@ export function LoveReceiptSender() {
               <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
                 <WinButton
                   variant="grey"
-                  onClick={() =>
-                    hasPersonalAnswers ? generate('normal') : runPool('more')
-                  }
+                  onClick={regenerate}
                   disabled={generating}
                   style={{ flex: 1 }}
                 >
@@ -708,7 +570,7 @@ export function LoveReceiptSender() {
                     addDraft();
                   }
                 }}
-                placeholder="₹ / priceless"
+                placeholder="₹ / copium"
                 maxLength={PRICE_MAX}
                 className="font-body text-ink"
                 style={{ ...fieldStyle, flex: 1, minWidth: 0 }}
@@ -723,7 +585,7 @@ export function LoveReceiptSender() {
               + Add line
             </WinButton>
 
-            {/* fine print (collapsible) */}
+            {/* fine print (collapsible) — every frame field stays editable */}
             <button
               type="button"
               onClick={() => {
@@ -739,14 +601,35 @@ export function LoveReceiptSender() {
               <div style={{ marginBottom: 14 }}>
                 <FineInput
                   label="Subtitle"
-                  value={state.fine.subtitle ?? scaffold.subtitle}
+                  value={state.fine.subtitle ?? FRAME.subtitle}
                   onChange={(v) =>
                     dispatch({ type: 'setFine', field: 'subtitle', value: v })
                   }
                 />
                 <FineInput
+                  label="Cashier"
+                  value={state.fine.cashier ?? FRAME.cashier}
+                  onChange={(v) =>
+                    dispatch({ type: 'setFine', field: 'cashier', value: v })
+                  }
+                />
+                <FineInput
+                  label="Bill #"
+                  value={state.fine.billNumber ?? FRAME.billNumber}
+                  onChange={(v) =>
+                    dispatch({ type: 'setFine', field: 'billNumber', value: v })
+                  }
+                />
+                <FineInput
+                  label="GSTIN"
+                  value={state.fine.gstin ?? FRAME.gstin}
+                  onChange={(v) =>
+                    dispatch({ type: 'setFine', field: 'gstin', value: v })
+                  }
+                />
+                <FineInput
                   label="Subtotal value"
-                  value={state.fine.subtotalPrice ?? scaffold.subtotal.price}
+                  value={state.fine.subtotalPrice ?? FRAME.subtotal.price}
                   onChange={(v) =>
                     dispatch({
                       type: 'setFine',
@@ -757,7 +640,7 @@ export function LoveReceiptSender() {
                 />
                 <FineInput
                   label="Discount note"
-                  value={state.fine.discountLabel ?? scaffold.discount.label}
+                  value={state.fine.discountLabel ?? FRAME.discount.label}
                   onChange={(v) =>
                     dispatch({
                       type: 'setFine',
@@ -768,43 +651,56 @@ export function LoveReceiptSender() {
                 />
                 <FineInput
                   label="Tax note"
-                  value={state.fine.taxLabel ?? scaffold.tax.label}
+                  value={state.fine.taxLabel ?? FRAME.tax.label}
                   onChange={(v) =>
                     dispatch({ type: 'setFine', field: 'taxLabel', value: v })
                   }
                 />
                 <FineInput
-                  label="Footer"
-                  value={state.fine.footer ?? scaffold.footer}
+                  label="Paid via"
+                  value={state.fine.paidVia ?? FRAME.paidVia}
                   onChange={(v) =>
-                    dispatch({ type: 'setFine', field: 'footer', value: v })
+                    dispatch({ type: 'setFine', field: 'paidVia', value: v })
+                  }
+                />
+                <FineInput
+                  label="Fine print"
+                  value={state.fine.finePrint ?? FRAME.finePrint}
+                  onChange={(v) =>
+                    dispatch({ type: 'setFine', field: 'finePrint', value: v })
                   }
                   multiline
                 />
-                <WinLabel>Meme stamp</WinLabel>
-                <div>
-                  <ChipButton
-                    active={state.memeStamp === null}
-                    onClick={() => {
-                      playClick();
-                      dispatch({ type: 'setStamp', value: null });
-                    }}
-                  >
-                    No stamp
-                  </ChipButton>
-                  {MEME_STAMPS.map((opt) => (
-                    <ChipButton
-                      key={opt}
-                      active={state.memeStamp === opt}
-                      onClick={() => {
-                        playClick();
-                        dispatch({ type: 'setStamp', value: opt });
-                      }}
-                    >
-                      {opt}
-                    </ChipButton>
-                  ))}
-                </div>
+                <FineInput
+                  label="Return policy"
+                  value={state.fine.returnPolicy ?? FRAME.returnPolicy}
+                  onChange={(v) =>
+                    dispatch({
+                      type: 'setFine',
+                      field: 'returnPolicy',
+                      value: v,
+                    })
+                  }
+                  multiline
+                />
+                <FineInput
+                  label="Footer"
+                  value={state.fine.footer ?? FRAME.footer}
+                  onChange={(v) =>
+                    dispatch({ type: 'setFine', field: 'footer', value: v })
+                  }
+                />
+                <FineInput
+                  label="Stamp"
+                  value={state.memeStamp ?? ''}
+                  placeholder="(leave blank for no stamp)"
+                  onChange={(v) =>
+                    dispatch({
+                      type: 'setStamp',
+                      value: v.trim() ? v : null,
+                    })
+                  }
+                />
               </div>
             ) : null}
 
@@ -919,142 +815,6 @@ function Headline({ title, subtitle }: { title: string; subtitle: string }) {
 
 function NavRow({ children }: { children: React.ReactNode }) {
   return <div className="mt-3 flex gap-2">{children}</div>;
-}
-
-function LanguageToggle({
-  language,
-  onChange,
-}: {
-  language: ReceiptLanguage;
-  onChange: (v: ReceiptLanguage) => void;
-}) {
-  return (
-    <div className="mb-2.5 w-full">
-      <WinLabel>Vibe / language</WinLabel>
-      <div style={{ display: 'flex', gap: 6 }}>
-        {(
-          [
-            ['en', 'English'],
-            ['hinglish', 'Hinglish'],
-          ] as const
-        ).map(([value, label]) => (
-          <WinButton
-            key={value}
-            variant={language === value ? 'pink' : 'grey'}
-            onClick={() => onChange(value)}
-            style={{ flex: 1 }}
-          >
-            {label}
-          </WinButton>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function TypeChip({
-  active,
-  onClick,
-  emoji,
-  label,
-}: {
-  active: boolean;
-  onClick: () => void;
-  emoji: string;
-  label: string;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="font-body"
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 6,
-        textAlign: 'left',
-        padding: '8px 9px',
-        fontSize: 12,
-        lineHeight: 1.15,
-        cursor: 'pointer',
-        borderStyle: 'solid',
-        borderWidth: 2,
-        borderRadius: 0,
-        boxShadow: '1px 1px 0 0 #000',
-        minHeight: 44,
-        ...(active
-          ? {
-              background:
-                'linear-gradient(180deg, var(--win-hot-pink), var(--win-magenta))',
-              color: '#fff',
-              borderTopColor: '#ffb1d6',
-              borderLeftColor: '#ffb1d6',
-              borderRightColor: '#a01060',
-              borderBottomColor: '#a01060',
-            }
-          : {
-              background: 'var(--win-chrome)',
-              color: 'var(--ink, #1a0a2e)',
-              borderTopColor: 'var(--win-chrome-light)',
-              borderLeftColor: 'var(--win-chrome-light)',
-              borderRightColor: 'var(--win-chrome-dark)',
-              borderBottomColor: 'var(--win-chrome-dark)',
-            }),
-      }}
-    >
-      <span style={{ fontSize: 17 }}>{emoji}</span>
-      <span>{label}</span>
-    </button>
-  );
-}
-
-function ChipButton({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="font-body"
-      style={{
-        display: 'inline-block',
-        margin: '0 6px 6px 0',
-        padding: '6px 10px',
-        fontSize: 12.5,
-        cursor: 'pointer',
-        borderStyle: 'solid',
-        borderWidth: 2,
-        borderRadius: 0,
-        boxShadow: '1px 1px 0 0 #000',
-        ...(active
-          ? {
-              background:
-                'linear-gradient(180deg, var(--win-hot-pink), var(--win-magenta))',
-              color: '#fff',
-              borderTopColor: '#ffb1d6',
-              borderLeftColor: '#ffb1d6',
-              borderRightColor: '#a01060',
-              borderBottomColor: '#a01060',
-            }
-          : {
-              background: 'var(--win-chrome)',
-              color: 'var(--ink, #1a0a2e)',
-              borderTopColor: 'var(--win-chrome-light)',
-              borderLeftColor: 'var(--win-chrome-light)',
-              borderRightColor: 'var(--win-chrome-dark)',
-              borderBottomColor: 'var(--win-chrome-dark)',
-            }),
-      }}
-    >
-      {children}
-    </button>
-  );
 }
 
 function FineInput({

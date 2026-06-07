@@ -2,12 +2,10 @@
 
 import {
   buildFallbackReceipt,
-  getReceiptType,
   PERSONAL_QUESTIONS,
   DEFAULT_PRICE,
   type GeneratedReceipt,
   type GenerateInput,
-  type ReceiptSummaryRow,
   type SuggestionSeed,
 } from './lines';
 
@@ -58,7 +56,7 @@ export async function generateReceipt(
   if (!order.length) {
     // TEMP DIAGNOSTIC — remove once AI generation is confirmed working.
     console.warn('[love-receipt] no AI key present in this runtime');
-    return { receipt: buildFallbackReceipt(input), source: 'fallback' };
+    return { receipt: buildFallbackReceipt(), source: 'fallback' };
   }
 
   // Try each provider in order; fall through to the next on any failure, then
@@ -69,7 +67,7 @@ export async function generateReceipt(
         provider === 'openai'
           ? await callOpenAI(input)
           : await callGemini(input);
-      const receipt = coerce(parseJson(text), input);
+      const receipt = coerce(parseJson(text));
       if (!receipt) {
         console.error(
           `[love-receipt] ${provider} unusable shape; raw=${text.slice(0, 300)}`,
@@ -86,7 +84,7 @@ export async function generateReceipt(
       );
     }
   }
-  return { receipt: buildFallbackReceipt(input), source: 'fallback' };
+  return { receipt: buildFallbackReceipt(), source: 'fallback' };
 }
 
 // ── providers (each returns the raw model text; shared parse/coerce after) ──
@@ -167,47 +165,14 @@ async function callGemini(input: GenerateInput): Promise<string> {
   }
 }
 
-// ── prompt (shared by both providers) ──────────────────────────────────
+// ── prompt — one voice (Certified Delulu), English only ─────────────────
+// The fixed DELULU MART frame is applied in code; the model only writes the
+// LINE ITEMS, so the prompt asks for nothing but `lines`. // REVISIT: add a
+// Hinglish variant once a Hinglish pool exists.
 function buildPrompt(input: GenerateInput): string {
-  const type = getReceiptType(input.receiptType);
   const name = input.recipientName.trim() || 'them';
   const you = input.senderName.trim() || 'me';
   const rel = input.relationship.trim() || 'partner';
-  const isHinglish = input.language === 'hinglish';
-
-  const langRule = isHinglish
-    ? 'Write in HINGLISH: mix Hindi + English WITHIN each single line (never a full-Hindi or full-English line), Romanized in Latin script. Natural Gen-Z texting style.'
-    : 'Write in casual, very-online Gen-Z English.';
-
-  const hinglishRules = isHinglish
-    ? [
-        `HINGLISH RULES (strict):`,
-        `- Use casual "tu / tera / tujhe" — NEVER formal "aap / tumhari". Keep ONE register, consistently.`,
-        `- Blend Hindi + English mid-sentence like the examples; don't write a clean full sentence in either language.`,
-        `- Write Hindi the way Indians actually TEXT (casual, natural). If a Hindi phrase sounds clunky or translated, lean more English.`,
-      ].join('\n')
-    : '';
-
-  // Few-shot examples teach the exact voice. Show the set matching the language.
-  const examples = isHinglish
-    ? [
-        `EXAMPLES — copy this VOICE + register, but write BRAND-NEW lines (never reuse these):`,
-        `- the way you say mera naam, I'm literally unwell | priceless`,
-        `- you live rent free in my dimaag 24/7 | ₹0 (no eviction)`,
-        `- neend mein bhi paas kheench lete ho, I'm down bad | ₹∞`,
-        `- double text kar diya bc 4 min mein hi miss kar diya | non-refundable`,
-        `- teri hassi has me in a chokehold fr | anmol`,
-        `- "ghar jaana" ab matlab "tere paas jaana", pls fix | invaluable`,
-      ].join('\n')
-    : [
-        `EXAMPLES — copy this VOICE, but write BRAND-NEW lines (never reuse these):`,
-        `- stealing the blanket every single night | ₹0 (worth it)`,
-        `- your laugh that lives rent free in my head | priceless`,
-        `- letting me win arguments, knowingly | invaluable`,
-        `- 3am "are you up?" texts | non-refundable`,
-        `- you're my roman empire, I think about you 24/7 | ₹∞`,
-        `- the audacity to be this cute on a Tuesday | unpayable`,
-      ].join('\n');
 
   const answered = PERSONAL_QUESTIONS.map((q) => {
     const v = (input.answers[q.key] || '').trim();
@@ -215,51 +180,51 @@ function buildPrompt(input: GenerateInput): string {
   }).filter(Boolean) as string[];
 
   const personalRule = answered.length
-    ? `The sender shared these personal details — build at least 3 line items SPECIFICALLY from them (use the actual detail; make it specific, not generic):\n${answered.join('\n')}`
-    : 'No personal details shared; invent sweet, oddly-specific-feeling lines that fit the type (specific beats generic).';
+    ? `The sender shared these — build at least 3 line items SPECIFICALLY from them (use the actual detail; specific beats generic):\n${answered.join('\n')}`
+    : 'No personal details shared; invent oddly-specific lines (specific beats generic, every time).';
 
   const spiceRule =
     input.spice === 'extra'
-      ? 'CRANK THE CRINGE TO MAXIMUM: more unhinged, delulu, terminally-online energy.'
+      ? 'CRANK THE CRINGE TO MAXIMUM: more unhinged, delulu, down-bad, terminally-online.'
       : '';
 
   return [
-    `You write playful "love receipts": a fake store receipt where every line item is a cute/funny reason the sender adores the recipient, each with a joke "price".`,
+    `You write a playful "love receipt": a fake store receipt where every line item is a cute/funny reason the sender adores the recipient, each with a joke "price".`,
     ``,
     `CONTEXT`,
     `- Recipient (customer): ${name}`,
-    `- Sender (cashier): ${you}`,
+    `- Sender: ${you}`,
     `- Relationship: ${rel}`,
-    `- Receipt type: "${type.label}" — tone: ${type.tone}`,
     ``,
-    `VOICE`,
-    `- ${langRule}`,
-    `- Gen-Z cutesy + cringe, warm, a little unhinged and delulu. PG-13.`,
-    `- Match the receipt TYPE's tone above.`,
+    `VOICE — "Certified Delulu"`,
+    `- Funny-but-secretly-sincere. Lowercase texting style, very-online Gen-Z, warm, a little unhinged and delulu. PG-13.`,
     `- Be SPECIFIC and a little weird — specific beats generic EVERY time. Avoid bland filler like "being my fave person" or "existing, basically".`,
     spiceRule,
-    hinglishRules,
     ``,
-    examples,
+    `EXAMPLES — copy this VOICE (text | price), but write BRAND-NEW lines (never reuse these):`,
+    `- your hoodie (im NOT returning) | kept`,
+    `- 47× futures i planned w u | EMI`,
+    `- 100 arguments i won in the shower | champ`,
+    `- you asked "khaana khaya?" | ∞`,
+    `- your "hmm" caused three business days of overthinking | processing`,
+    `- you said "drive safe" | ₹143`,
     ``,
     `PERSONALIZATION`,
     `- ${personalRule}`,
     ``,
     `LINE RULES`,
-    `- Produce 8-12 SHORT, textable line items (each feels under ~8 words).`,
+    `- Produce 8-12 SHORT, textable line items (each feels under ~8 words), lowercase.`,
     ``,
-    `PRICE RULES (strict)`,
-    `- Each "price" MUST be one of: "priceless", "₹0 (worth it)", "₹∞", "non-refundable", "anmol", "invaluable", "unpayable", OR a short readable phrase ≤4 words (e.g. "take my money", "no eviction", "worth the wait").`,
-    `- Vary them; never repeat the same price. NEVER invent random uppercase tokens like "₹FUJISOKU" or "₹BAHUTHIGH".`,
-    `- subtotal / discount / tax: short, readable, funny labels + readable values. total: a short sweet phrase like "my whole heart" or "everything I have" (NOT a random uppercase string).`,
-    `- "paidVia": a short funny "payment method" (≤4 words), e.g. "emotional damage", "pure delusion", "forehead kisses".`,
-    `- "finePrint": a tiny mock-legal disclaimer (one short line), e.g. "all sales final. no refunds on feelings.".`,
-    `- "footer": a short cheeky closing line (≤6 words), e.g. "come again (tonight?)".`,
-    `- "memeStamp": a SHORT uppercase rubber-stamp phrase (≤3 words), e.g. "CERTIFIED DELULU".`,
+    `PRICE RULES — "stamp as value" (strict)`,
+    `- The price is a tiny STAMP, not a real total. Use EITHER a short word-stamp (≤2 words) like "copium", "pending", "champ", "lease pending", "kept", "void", "EMI" — OR a ₹ amount that MEANS something:`,
+    `  • ₹143 = "i love you" (pager code)   • ₹420 = a fraud / cheeky-crime joke`,
+    `  • ₹108 or ₹786 = auspicious / blessed   • ₹101 or ₹501 = shagun (gift money)`,
+    `  • "EMI" = a long-term-commitment joke (paying it off forever)`,
+    `- Vary them; never repeat the same price in the set. NEVER invent random uppercase tokens like "₹FUJISOKU".`,
     ``,
     `OUTPUT`,
     `Return ONLY valid minified JSON (no markdown, no code fences, no commentary) matching exactly:`,
-    `{"storeName":string,"subtitle":string,"lines":[{"text":string,"price":string}],"subtotal":{"label":string,"price":string},"discount":{"label":string,"price":string},"tax":{"label":string,"price":string},"total":string,"paidVia":string,"finePrint":string,"footer":string,"memeStamp":string}`,
+    `{"lines":[{"text":string,"price":string}]}`,
   ]
     .filter(Boolean)
     .join('\n');
@@ -289,13 +254,12 @@ function str(v: unknown, fallback = ''): string {
   return typeof v === 'string' && v.trim() ? v.trim() : fallback;
 }
 
-function summary(v: unknown, fb: ReceiptSummaryRow): ReceiptSummaryRow {
-  const o = (v ?? {}) as Record<string, unknown>;
-  return { label: str(o.label, fb.label), price: str(o.price, fb.price) };
-}
-
-/** Validate the model's JSON; return null if it's unusable so we fall back. */
-function coerce(raw: unknown, input: GenerateInput): GeneratedReceipt | null {
+/**
+ * Validate the model's JSON; return null if it's unusable so we fall back. The
+ * model only supplies the LINE ITEMS — the rest of the receipt is the locked
+ * DELULU MART frame, taken from {@link buildFallbackReceipt}.
+ */
+function coerce(raw: unknown): GeneratedReceipt | null {
   if (!raw || typeof raw !== 'object') return null;
   const o = raw as Record<string, unknown>;
 
@@ -313,23 +277,5 @@ function coerce(raw: unknown, input: GenerateInput): GeneratedReceipt | null {
   // Need a real set of lines to be worth using; otherwise fall back.
   if (lines.length < 4) return null;
 
-  const fb = buildFallbackReceipt(input);
-  return {
-    storeName: str(o.storeName, fb.storeName ?? ''),
-    subtitle: str(o.subtitle, fb.subtitle),
-    // cashier / billNumber / scanLine stay scaffold-driven; only paidVia +
-    // finePrint are worth letting the model flavour.
-    cashier: fb.cashier,
-    billNumber: fb.billNumber,
-    lines,
-    subtotal: summary(o.subtotal, fb.subtotal),
-    discount: summary(o.discount, fb.discount),
-    tax: summary(o.tax, fb.tax),
-    total: str(o.total, fb.total),
-    paidVia: str(o.paidVia, fb.paidVia ?? ''),
-    finePrint: str(o.finePrint, fb.finePrint ?? ''),
-    scanLine: fb.scanLine,
-    footer: str(o.footer, fb.footer),
-    memeStamp: str(o.memeStamp, fb.memeStamp ?? '') || null,
-  };
+  return { ...buildFallbackReceipt(), lines };
 }

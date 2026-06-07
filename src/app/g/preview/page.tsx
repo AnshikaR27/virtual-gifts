@@ -42,51 +42,36 @@ const TIFFIN_MOCK: GiftData = {
 };
 
 function loveReceiptMock(): GiftData {
-  const scaffold = buildScaffold('hinglish', 'Anaya', 'Rohan');
+  const frame = buildScaffold();
   const payload: ReceiptPayload = {
     version: 1,
-    language: 'hinglish',
+    language: 'en',
     recipientName: 'Anaya',
     senderName: 'Rohan',
     relationship: 'girlfriend',
-    storeName: scaffold.storeName,
-    subtitle: scaffold.subtitle,
-    receiptLabel: scaffold.receiptLabel,
+    storeName: frame.storeName,
+    subtitle: frame.subtitle,
+    receiptLabel: frame.receiptLabel,
     dateLabel: formatReceiptDate(),
-    cashier: scaffold.cashier,
-    billNumber: scaffold.billNumber,
+    cashier: frame.cashier,
+    billNumber: frame.billNumber,
+    gstin: frame.gstin,
     lines: [
-      {
-        id: 'a',
-        text: 'the way you say mera naam, I’m unwell',
-        price: 'priceless',
-      },
-      { id: 'b', text: 'teri hassi has me in a chokehold fr', price: '₹∞' },
-      {
-        id: 'c',
-        text: 'you live rent free in my dimaag 24/7',
-        price: '₹0 (no eviction)',
-      },
-      {
-        id: 'd',
-        text: 'bada wala piece always mujhe?? marry me',
-        price: 'priceless',
-      },
-      {
-        id: 'e',
-        text: 'spiders maar dena so I keep my brave-girl arc',
-        price: 'invaluable',
-      },
+      { id: 'a', text: 'your hoodie (im NOT returning)', price: 'kept' },
+      { id: 'b', text: '47× futures i planned w u', price: 'EMI' },
+      { id: 'c', text: '100 arguments i won in the shower', price: 'champ' },
+      { id: 'd', text: 'you asked "khaana khaya?"', price: '∞' },
     ],
-    subtotal: scaffold.subtotal,
-    discount: scaffold.discount,
-    tax: scaffold.tax,
-    total: 'everything I have + thoda extra 🥹',
-    paidVia: scaffold.paidVia,
-    finePrint: scaffold.finePrint,
-    scanLine: scaffold.scanLine,
-    footer: scaffold.footer,
-    memeStamp: 'CERTIFIED DELULU',
+    subtotal: frame.subtotal,
+    discount: frame.discount,
+    tax: frame.tax,
+    total: frame.total,
+    paidVia: frame.paidVia,
+    finePrint: frame.finePrint,
+    returnPolicy: frame.returnPolicy,
+    scanLine: frame.scanLine,
+    footer: frame.footer,
+    memeStamp: frame.stamp,
   };
   return {
     id: '00000000-0000-0000-0000-000000000001',
