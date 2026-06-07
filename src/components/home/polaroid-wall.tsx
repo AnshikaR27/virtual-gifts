@@ -1,12 +1,11 @@
 'use client';
 
-import { useState, useCallback, useEffect, useRef, Fragment } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { playClick } from '@/components/retro-sounds';
 import { GiftLoading } from '@/components/gift-loading';
 import { allGifts, type GiftItem } from './gift-catalog';
 import { TitlebarButtons } from '@/components/win98-chrome';
-import { CrochetRose, GarlandLeaf } from '@/components/shared/craft-elements';
 
 const INITIAL_STRINGS = 3;
 
@@ -78,105 +77,7 @@ function getSagOffset(index: number, total: number, maxSag: number) {
   return maxSag * 4 * t * (1 - t);
 }
 
-function getThreadPoint(t: number) {
-  const x = (1 - t) * (1 - t) * -10 + 2 * (1 - t) * t * 500 + t * t * 1010;
-  const y = (1 - t) * (1 - t) * 8 + 2 * (1 - t) * t * 34 + t * t * 8;
-  return { left: (x / 1000) * 100, top: (y / 40) * 100 };
-}
-
 const THREAD_D = 'M-10,8 Q500,34 1010,8';
-
-const VINE_SEGMENTS = (() => {
-  const N = 300;
-  const vineAmp = 4;
-  const vineWraps = 3;
-
-  const vine: { x: number; y: number; s: number }[] = [];
-  for (let i = 0; i <= N; i++) {
-    const t = i / N;
-    const x = (1 - t) * (1 - t) * -10 + 2 * (1 - t) * t * 500 + t * t * 1010;
-    const y = (1 - t) * (1 - t) * 8 + 2 * (1 - t) * t * 34 + t * t * 8;
-    const s = Math.sin(2 * Math.PI * vineWraps * t);
-    vine.push({ x, y: y + vineAmp * s, s });
-  }
-
-  const behind: string[] = [];
-  const front: string[] = [];
-  let seg: string[] = [];
-  let isBehind = vine[0].s >= 0;
-
-  for (let i = 0; i <= N; i++) {
-    const p = vine[i];
-    const nowBehind = p.s >= 0;
-    const pt = `${p.x.toFixed(1)},${p.y.toFixed(1)}`;
-    if (nowBehind !== isBehind && seg.length > 0) {
-      seg.push(pt);
-      (isBehind ? behind : front).push('M' + seg.join(' L'));
-      seg = [pt];
-      isBehind = nowBehind;
-    } else {
-      seg.push(pt);
-    }
-  }
-  if (seg.length > 1) {
-    (isBehind ? behind : front).push('M' + seg.join(' L'));
-  }
-
-  return { behind, front };
-})();
-
-const garlandClusters = [
-  {
-    t: 0.1,
-    rose: { rotate: -8, scale: 1.0 },
-    leaves: [
-      { dx: -13, dy: -5, rotate: 30, flip: false, dark: false },
-      { dx: 11, dy: 5, rotate: -20, flip: true, dark: true },
-    ],
-  },
-  {
-    t: 0.25,
-    rose: { rotate: 12, scale: 0.9 },
-    leaves: [
-      { dx: -12, dy: -4, rotate: 25, flip: false, dark: false },
-      { dx: 13, dy: 3, rotate: -25, flip: true, dark: true },
-      { dx: -7, dy: 8, rotate: 10, flip: false, dark: false },
-    ],
-  },
-  {
-    t: 0.42,
-    rose: { rotate: -5, scale: 1.0 },
-    leaves: [
-      { dx: 12, dy: -6, rotate: -18, flip: true, dark: true },
-      { dx: -11, dy: 4, rotate: 22, flip: false, dark: false },
-    ],
-  },
-  {
-    t: 0.58,
-    rose: { rotate: 10, scale: 0.85 },
-    leaves: [
-      { dx: -13, dy: -3, rotate: 15, flip: false, dark: false },
-      { dx: 12, dy: 5, rotate: -22, flip: true, dark: true },
-    ],
-  },
-  {
-    t: 0.75,
-    rose: { rotate: -10, scale: 0.95 },
-    leaves: [
-      { dx: 13, dy: -5, rotate: -12, flip: true, dark: true },
-      { dx: -12, dy: 3, rotate: 18, flip: false, dark: false },
-      { dx: 9, dy: 7, rotate: -8, flip: true, dark: false },
-    ],
-  },
-  {
-    t: 0.9,
-    rose: { rotate: 6, scale: 0.9 },
-    leaves: [
-      { dx: -13, dy: -4, rotate: 28, flip: false, dark: true },
-      { dx: 11, dy: 4, rotate: -15, flip: true, dark: false },
-    ],
-  },
-];
 
 function WallClothespin() {
   return (
@@ -395,17 +296,6 @@ export function PolaroidWall() {
                     viewBox="0 0 1000 40"
                     preserveAspectRatio="none"
                   >
-                    {VINE_SEGMENTS.behind.map((d, i) => (
-                      <path
-                        key={`vb${i}`}
-                        d={d}
-                        stroke="#8B9F80"
-                        strokeWidth="1.5"
-                        fill="none"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    ))}
                     <path
                       d={THREAD_D}
                       stroke="#C19A6B"
@@ -413,51 +303,7 @@ export function PolaroidWall() {
                       fill="none"
                       strokeLinecap="round"
                     />
-                    {VINE_SEGMENTS.front.map((d, i) => (
-                      <path
-                        key={`vf${i}`}
-                        d={d}
-                        stroke="#8B9F80"
-                        strokeWidth="1.5"
-                        fill="none"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    ))}
                   </svg>
-
-                  <div className="garland-flora" aria-hidden="true">
-                    {garlandClusters.map((cluster, ci) => {
-                      const pt = getThreadPoint(cluster.t);
-                      return (
-                        <Fragment key={ci}>
-                          {cluster.leaves.map((leaf, li) => (
-                            <div
-                              key={`l${li}`}
-                              className="garland-flora-item"
-                              style={{
-                                left: `${pt.left}%`,
-                                top: `${pt.top}%`,
-                                transform: `translate(calc(-50% + ${leaf.dx}px), calc(-50% + ${leaf.dy}px)) rotate(${leaf.rotate}deg)`,
-                              }}
-                            >
-                              <GarlandLeaf flip={leaf.flip} dark={leaf.dark} />
-                            </div>
-                          ))}
-                          <div
-                            className="garland-flora-item"
-                            style={{
-                              left: `${pt.left}%`,
-                              top: `${pt.top}%`,
-                              transform: `translate(-50%, -50%) rotate(${cluster.rose.rotate}deg) scale(${cluster.rose.scale})`,
-                            }}
-                          >
-                            <CrochetRose />
-                          </div>
-                        </Fragment>
-                      );
-                    })}
-                  </div>
 
                   <div className="garland-polaroids">
                     {stringGifts.map((gift, i) => {
