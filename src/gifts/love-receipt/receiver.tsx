@@ -8,7 +8,7 @@ import { useGiftContext } from '@/components/gift-frame/gift-frame';
 import type { GiftData } from '@/components/gift-frame/gift-frame';
 import { playClick } from '@/components/retro-sounds';
 import { ReceiptPaper, getSequenceMeta } from './receipt-paper';
-import { buildScaffold, formatReceiptDate, type ReceiptPayload } from './lines';
+import { buildFrame, formatReceiptDate, type ReceiptPayload } from './lines';
 
 // Pacing for the paper feeding out (ms).
 const FIRST_DELAY = 350;
@@ -23,19 +23,23 @@ function normalize(
 ): ReceiptPayload {
   const p = raw as Partial<ReceiptPayload>;
   // Defaults come from the single locked frame so old/partial payloads still
-  // render the full DELULU MART receipt.
-  const frame = buildScaffold();
+  // render the full DELULU MART receipt. Names are threaded from saved metadata
+  // (falling back to the gift's recipient/sender) so personalization survives.
+  const recipientName = p.recipientName || gift.recipientName || 'you';
+  const senderName = p.senderName || gift.senderName || '';
+  const frame = buildFrame({ recipientName, senderName });
   return {
     version: 1,
     language: p.language === 'hinglish' ? 'hinglish' : 'en',
-    recipientName: p.recipientName || gift.recipientName || 'you',
-    senderName: p.senderName || gift.senderName || '',
+    recipientName,
+    senderName,
     relationship: p.relationship || '',
     storeName: p.storeName || frame.storeName,
     subtitle: p.subtitle || frame.subtitle,
     receiptLabel: p.receiptLabel || frame.receiptLabel,
     dateLabel: p.dateLabel || formatReceiptDate(),
     cashier: p.cashier || frame.cashier,
+    billedTo: p.billedTo || frame.billedTo,
     billNumber: p.billNumber || frame.billNumber,
     gstin: p.gstin || frame.gstin,
     lines: Array.isArray(p.lines) ? p.lines : [],

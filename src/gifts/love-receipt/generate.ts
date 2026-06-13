@@ -2,6 +2,7 @@
 
 import {
   buildFallbackReceipt,
+  pickTotal,
   PERSONAL_QUESTIONS,
   DEFAULT_PRICE,
   type GeneratedReceipt,
@@ -277,5 +278,7 @@ function coerce(raw: unknown): GeneratedReceipt | null {
   // Need a real set of lines to be worth using; otherwise fall back.
   if (lines.length < 4) return null;
 
-  return { ...buildFallbackReceipt(), lines };
+  // Re-pick the total against the AI lines so its stamp doesn't echo one of them
+  // (buildFallbackReceipt's total was chosen against the fallback lines).
+  return { ...buildFallbackReceipt(), lines, total: pickTotal(lines).price };
 }

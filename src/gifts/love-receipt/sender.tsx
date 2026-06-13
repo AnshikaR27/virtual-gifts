@@ -12,18 +12,24 @@ import { ReceiptPaper, type ReceiptEditable } from './receipt-paper';
 import { createLoveReceipt } from './actions';
 import { generateReceipt } from './generate';
 import {
-  buildScaffold,
   DEFAULT_PRICE,
   DEFAULT_STARTING_IDS,
   formatReceiptDate,
+  getDefaultTotal,
   getStartingLines,
   NEW_LINE_MAX,
   PERSONAL_QUESTIONS,
   PRICE_MAX,
+  pickTotal,
   sampleBalanced,
   type ReceiptLine,
   type ReceiptPayload,
 } from './lines';
+import { getDefaultChrome, pickChrome, type ReceiptChrome } from './chrome';
+
+/** The store name + barcode are locked constants — never pooled or picked. */
+const LOCKED_STORE_NAME = 'DELULU MART';
+const RECEIPT_LABEL = 'Receipt';
 
 const RELATIONSHIP_OPTIONS = [
   'girlfriend',
@@ -39,13 +45,16 @@ const RELATIONSHIP_OPTIONS = [
 let idCounter = 0;
 const newId = () => `l${Date.now().toString(36)}${idCounter++}`;
 
-// The single locked frame (DELULU MART). Static, but every field stays editable.
-const FRAME = buildScaffold();
+// Name-independent ★ defaults of the locked frame (DELULU MART) — used for the
+// initial total/stamp. Name-bearing fields are filled live via
+// getDefaultChrome(names) inside buildPayload / the fine-print panel.
+const DEFAULT_CHROME = getDefaultChrome();
 
 // ── overrides for the locked frame (user edits only) ────────────────────
 interface FineOverrides {
   storeName?: string;
   subtitle?: string;
+  billedTo?: string;
   cashier?: string;
   billNumber?: string;
   gstin?: string;
@@ -69,7 +78,12 @@ interface State {
   answers: Record<string, string>;
   lines: ReceiptLine[];
   total: string;
+  /** The drawn chrome (frame/meta). null = render the deterministic default,
+   *  recomputed live from the names until the first regenerate shuffles one in. */
+  chrome: ReceiptChrome | null;
   memeStamp: string | null;
+  /** true once the user edits the stamp — stops regenerate from reshuffling it. */
+  stampDirty: boolean;
   fine: FineOverrides;
   draftText: string;
   draftPrice: string;
@@ -81,6 +95,7 @@ type Action =
   | { type: 'setAnswer'; key: string; value: string }
   | { type: 'setTotal'; value: string }
   | { type: 'setStamp'; value: string | null }
+  | { type: 'setChrome'; chrome: ReceiptChrome }
   | { type: 'setFine'; field: keyof FineOverrides; value: string }
   | { type: 'applyLines'; lines: { text: string; price: string }[] }
   | { type: 'addLine'; text: string; price: string }
@@ -102,8 +117,14 @@ const initialState: State = {
     text: l.text,
     price: l.price,
   })),
-  total: FRAME.total,
-  memeStamp: FRAME.stamp,
+  // deterministic first-paint total (DEFAULT_TOTAL_ID); regenerate picks a fresh,
+  // non-colliding one. The total slot renders this stamp.
+  total: getDefaultTotal().price,
+  // chrome starts null → the deterministic default chrome renders, recomputed
+  // live from the names; the first regenerate swaps in a shuffled draw.
+  chrome: null,
+  memeStamp: DEFAULT_CHROME.stamp,
+  stampDirty: false,
   fine: {},
   draftText: '',
   draftPrice: '',
@@ -123,7 +144,9 @@ function reducer(state: State, action: Action): State {
     case 'setTotal':
       return { ...state, total: action.value };
     case 'setStamp':
-      return { ...state, memeStamp: action.value };
+      return { ...state, memeStamp: action.value, stampDirty: true };
+    case 'setChrome':
+      return { ...state, chrome: action.chrome };
     case 'setFine':
       return {
         ...state,
@@ -176,43 +199,122 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-/** Assemble the effective payload from state (overrides win over the frame). */
+/**
+ * The chrome in effect for the current state: the stored draw once the user has
+ * regenerated, otherwise the deterministic default — recomputed live from the
+ * names so the est. line / Billed to / Cashier reflect what's typed before the
+ * first draw.
+ */
+function effectiveChrome(state: State): ReceiptChrome {
+  return (
+    state.chrome ??
+    getDefaultChrome({
+      recipientName: state.recipientName,
+      senderName: state.senderName,
+    })
+  );
+}
+
+/**
+ * The chrome slots the user has edited, derived from the fine overrides (set on
+ * every fine-print edit) plus the stamp's own dirty flag. pickChrome keeps these
+ * from the previous draw on regenerate instead of reshuffling them. A future
+ * "reset frame" affordance would clear the fine overrides + stampDirty to release
+ * every slot back to the shuffle.
+ */
+function lockedChromeSlots(
+  state: State,
+): Partial<Record<keyof ReceiptChrome, boolean>> {
+  const f = state.fine;
+  return {
+    subtitle: f.subtitle !== undefined,
+    cashier: f.cashier !== undefined,
+    billedTo: f.billedTo !== undefined,
+    billNumber: f.billNumber !== undefined,
+    gstin: f.gstin !== undefined,
+    subtotal: f.subtotalPrice !== undefined,
+    discount: f.discountLabel !== undefined || f.discountPrice !== undefined,
+    tax: f.taxLabel !== undefined || f.taxPrice !== undefined,
+    paidVia: f.paidVia !== undefined,
+    finePrint: f.finePrint !== undefined,
+    returnPolicy: f.returnPolicy !== undefined,
+    scanLine: f.scanLine !== undefined,
+    footer: f.footer !== undefined,
+    stamp: state.stampDirty,
+  };
+}
+
+/**
+ * The effective chrome shown on the receipt: the (default or drawn) chrome with
+ * the user's fine-print edits applied on top. Used to build the payload and
+ * passed to pickChrome as `prev`, so locked slots are retained as their EDITED
+ * value and the spicy budget is computed over what's actually on the receipt.
+ * The stamp's null ("no stamp") is squashed to '' here — buildPayload keeps the
+ * real null via state.memeStamp.
+ */
+function mergedChrome(state: State): ReceiptChrome {
+  const base = effectiveChrome(state);
+  const f = state.fine;
+  return {
+    subtitle: f.subtitle ?? base.subtitle,
+    cashier: f.cashier ?? base.cashier,
+    billedTo: f.billedTo ?? base.billedTo,
+    billNumber: f.billNumber ?? base.billNumber,
+    gstin: f.gstin ?? base.gstin,
+    subtotal: {
+      label: base.subtotal.label,
+      price: f.subtotalPrice ?? base.subtotal.price,
+    },
+    discount: {
+      label: f.discountLabel ?? base.discount.label,
+      price: f.discountPrice ?? base.discount.price,
+    },
+    tax: {
+      label: f.taxLabel ?? base.tax.label,
+      price: f.taxPrice ?? base.tax.price,
+    },
+    total: base.total,
+    paidVia: f.paidVia ?? base.paidVia,
+    finePrint: f.finePrint ?? base.finePrint,
+    returnPolicy: f.returnPolicy ?? base.returnPolicy,
+    scanLine: f.scanLine ?? base.scanLine,
+    footer: f.footer ?? base.footer,
+    stamp: state.stampDirty ? (state.memeStamp ?? '') : base.stamp,
+  };
+}
+
+/** Assemble the effective payload from state (overrides win over the chrome). */
 function buildPayload(state: State): ReceiptPayload {
-  const { fine } = state;
-  const frame = buildScaffold();
+  // Store name + barcode + receipt label are locked constants; every other meta
+  // field is the effective chrome (shuffle/default + the user's edits).
+  const chrome = mergedChrome(state);
   return {
     version: 1,
     language: 'en', // REVISIT: Hinglish later as a data drop, not a refactor
     recipientName: state.recipientName.trim() || 'you',
     senderName: state.senderName.trim(),
     relationship: state.relationship,
-    storeName: fine.storeName ?? frame.storeName,
-    subtitle: fine.subtitle ?? frame.subtitle,
-    receiptLabel: frame.receiptLabel,
+    storeName: state.fine.storeName ?? LOCKED_STORE_NAME,
+    subtitle: chrome.subtitle,
+    receiptLabel: RECEIPT_LABEL,
     dateLabel: formatReceiptDate(),
-    cashier: fine.cashier ?? frame.cashier,
-    billNumber: fine.billNumber ?? frame.billNumber,
-    gstin: fine.gstin ?? frame.gstin,
+    cashier: chrome.cashier,
+    billedTo: chrome.billedTo,
+    billNumber: chrome.billNumber,
+    gstin: chrome.gstin,
     lines: state.lines,
-    subtotal: {
-      label: frame.subtotal.label,
-      price: fine.subtotalPrice ?? frame.subtotal.price,
-    },
-    discount: {
-      label: fine.discountLabel ?? frame.discount.label,
-      price: fine.discountPrice ?? frame.discount.price,
-    },
-    tax: {
-      label: fine.taxLabel ?? frame.tax.label,
-      price: fine.taxPrice ?? frame.tax.price,
-    },
-    total: state.total.trim() || frame.total,
-    paidVia: fine.paidVia ?? frame.paidVia,
-    finePrint: fine.finePrint ?? frame.finePrint,
-    returnPolicy: fine.returnPolicy ?? frame.returnPolicy,
-    scanLine: fine.scanLine ?? frame.scanLine,
-    footer: fine.footer ?? frame.footer,
-    memeStamp: state.memeStamp,
+    subtotal: chrome.subtotal,
+    discount: chrome.discount,
+    tax: chrome.tax,
+    total: state.total.trim() || chrome.total,
+    paidVia: chrome.paidVia,
+    finePrint: chrome.finePrint,
+    returnPolicy: chrome.returnPolicy,
+    scanLine: chrome.scanLine,
+    footer: chrome.footer,
+    // the stamp follows the chrome shuffle until the user edits it (stampDirty),
+    // after which their value — including a cleared null — is kept verbatim.
+    memeStamp: state.stampDirty ? state.memeStamp : chrome.stamp,
   };
 }
 
@@ -238,6 +340,9 @@ export function LoveReceiptSender() {
   const [editingTotal, setEditingTotal] = useState(false);
 
   const payload = useMemo(() => buildPayload(state), [state]);
+  // The same chrome the payload uses — drives the fine-print panel defaults so
+  // each FineInput shows the current (shuffled or name-filled) value until edited.
+  const chrome = useMemo(() => effectiveChrome(state), [state]);
 
   const goto = (step: State['step']) => {
     playClick();
@@ -312,6 +417,17 @@ export function LoveReceiptSender() {
         spice,
       });
       dispatch({ type: 'applyLines', lines: receipt.lines });
+      dispatch({ type: 'setTotal', value: pickTotal(receipt.lines).price });
+      // reshuffle the frame too, but keep any slots the user has edited
+      dispatch({
+        type: 'setChrome',
+        chrome: pickChrome({
+          recipientName: state.recipientName,
+          senderName: state.senderName,
+          prev: effectiveChrome(state),
+          lock: lockedChromeSlots(state),
+        }),
+      });
       setGenSource(source);
       setHasGenerated(true);
     } catch {
@@ -326,6 +442,17 @@ export function LoveReceiptSender() {
     playClick();
     const draw = sampleBalanced(shownIds, toneCursor);
     dispatch({ type: 'applyLines', lines: draw.lines });
+    dispatch({ type: 'setTotal', value: pickTotal(draw.lines).price });
+    // reshuffle the frame too, but keep any slots the user has edited
+    dispatch({
+      type: 'setChrome',
+      chrome: pickChrome({
+        recipientName: state.recipientName,
+        senderName: state.senderName,
+        prev: mergedChrome(state),
+        lock: lockedChromeSlots(state),
+      }),
+    });
     setShownIds(draw.shownIds);
     setToneCursor(draw.toneCursor);
     setGenSource(null); // pool is the intended default, not an error fallback
@@ -600,36 +727,43 @@ export function LoveReceiptSender() {
             {fineOpen ? (
               <div style={{ marginBottom: 14 }}>
                 <FineInput
-                  label="Subtitle"
-                  value={state.fine.subtitle ?? FRAME.subtitle}
+                  label="Subtitle (est. line)"
+                  value={state.fine.subtitle ?? chrome.subtitle}
                   onChange={(v) =>
                     dispatch({ type: 'setFine', field: 'subtitle', value: v })
                   }
                 />
                 <FineInput
                   label="Cashier"
-                  value={state.fine.cashier ?? FRAME.cashier}
+                  value={state.fine.cashier ?? chrome.cashier}
                   onChange={(v) =>
                     dispatch({ type: 'setFine', field: 'cashier', value: v })
                   }
                 />
                 <FineInput
+                  label="Billed to"
+                  value={state.fine.billedTo ?? chrome.billedTo}
+                  onChange={(v) =>
+                    dispatch({ type: 'setFine', field: 'billedTo', value: v })
+                  }
+                />
+                <FineInput
                   label="Bill #"
-                  value={state.fine.billNumber ?? FRAME.billNumber}
+                  value={state.fine.billNumber ?? chrome.billNumber}
                   onChange={(v) =>
                     dispatch({ type: 'setFine', field: 'billNumber', value: v })
                   }
                 />
                 <FineInput
                   label="GSTIN"
-                  value={state.fine.gstin ?? FRAME.gstin}
+                  value={state.fine.gstin ?? chrome.gstin}
                   onChange={(v) =>
                     dispatch({ type: 'setFine', field: 'gstin', value: v })
                   }
                 />
                 <FineInput
                   label="Subtotal value"
-                  value={state.fine.subtotalPrice ?? FRAME.subtotal.price}
+                  value={state.fine.subtotalPrice ?? chrome.subtotal.price}
                   onChange={(v) =>
                     dispatch({
                       type: 'setFine',
@@ -640,7 +774,7 @@ export function LoveReceiptSender() {
                 />
                 <FineInput
                   label="Discount note"
-                  value={state.fine.discountLabel ?? FRAME.discount.label}
+                  value={state.fine.discountLabel ?? chrome.discount.label}
                   onChange={(v) =>
                     dispatch({
                       type: 'setFine',
@@ -651,21 +785,21 @@ export function LoveReceiptSender() {
                 />
                 <FineInput
                   label="Tax note"
-                  value={state.fine.taxLabel ?? FRAME.tax.label}
+                  value={state.fine.taxLabel ?? chrome.tax.label}
                   onChange={(v) =>
                     dispatch({ type: 'setFine', field: 'taxLabel', value: v })
                   }
                 />
                 <FineInput
                   label="Paid via"
-                  value={state.fine.paidVia ?? FRAME.paidVia}
+                  value={state.fine.paidVia ?? chrome.paidVia}
                   onChange={(v) =>
                     dispatch({ type: 'setFine', field: 'paidVia', value: v })
                   }
                 />
                 <FineInput
                   label="Fine print"
-                  value={state.fine.finePrint ?? FRAME.finePrint}
+                  value={state.fine.finePrint ?? chrome.finePrint}
                   onChange={(v) =>
                     dispatch({ type: 'setFine', field: 'finePrint', value: v })
                   }
@@ -673,7 +807,7 @@ export function LoveReceiptSender() {
                 />
                 <FineInput
                   label="Return policy"
-                  value={state.fine.returnPolicy ?? FRAME.returnPolicy}
+                  value={state.fine.returnPolicy ?? chrome.returnPolicy}
                   onChange={(v) =>
                     dispatch({
                       type: 'setFine',
@@ -685,14 +819,16 @@ export function LoveReceiptSender() {
                 />
                 <FineInput
                   label="Footer"
-                  value={state.fine.footer ?? FRAME.footer}
+                  value={state.fine.footer ?? chrome.footer}
                   onChange={(v) =>
                     dispatch({ type: 'setFine', field: 'footer', value: v })
                   }
                 />
                 <FineInput
                   label="Stamp"
-                  value={state.memeStamp ?? ''}
+                  value={
+                    state.stampDirty ? (state.memeStamp ?? '') : chrome.stamp
+                  }
                   placeholder="(leave blank for no stamp)"
                   onChange={(v) =>
                     dispatch({

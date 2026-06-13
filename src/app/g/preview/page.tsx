@@ -3,7 +3,7 @@ import { GiftFrame } from '@/components/gift-frame/gift-frame';
 import { getGiftDefinition } from '@/gifts/registry';
 import type { GiftData } from '@/components/gift-frame/gift-frame';
 import {
-  buildScaffold,
+  buildFrame,
   formatReceiptDate,
   type ReceiptPayload,
 } from '@/gifts/love-receipt/lines';
@@ -42,7 +42,7 @@ const TIFFIN_MOCK: GiftData = {
 };
 
 function loveReceiptMock(): GiftData {
-  const frame = buildScaffold();
+  const frame = buildFrame({ recipientName: 'Anaya', senderName: 'Rohan' });
   const payload: ReceiptPayload = {
     version: 1,
     language: 'en',
@@ -54,6 +54,7 @@ function loveReceiptMock(): GiftData {
     receiptLabel: frame.receiptLabel,
     dateLabel: formatReceiptDate(),
     cashier: frame.cashier,
+    billedTo: frame.billedTo,
     billNumber: frame.billNumber,
     gstin: frame.gstin,
     lines: [

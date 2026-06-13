@@ -13,14 +13,18 @@
 
 import {
   LOVE_RECEIPT_POOL,
+  LOVE_RECEIPT_TOTALS,
   COLLISION_PAIRS,
   DEFAULT_STARTING_IDS,
+  DEFAULT_TOTAL_ID,
   type PoolLine,
+  type ReceiptTotal,
   type Tone,
 } from './love-receipt-pool';
 
 // Re-exported so consumers have a single import surface (`./lines`).
 export { DEFAULT_STARTING_IDS } from './love-receipt-pool';
+export type { ReceiptTotal } from './love-receipt-pool';
 
 /**
  * Only 'en' carries data today. Kept as a union (not a literal) so a Hinglish
@@ -59,8 +63,10 @@ export interface ReceiptPayload {
   /** "Receipt" sub-header — kept in payload so it can be localized later. */
   receiptLabel: string;
   dateLabel: string;
-  /** meta block under the header — "Cashier: …", "Bill #…", "GSTIN: …". */
+  /** meta block under the header — "Cashier: …", "Billed to: …", "Bill #…", "GSTIN: …". */
   cashier: string;
+  /** who the receipt is made out to — "Billed to: [recipientName]". */
+  billedTo: string;
   billNumber: string;
   gstin: string;
   lines: ReceiptLine[];
@@ -82,7 +88,7 @@ export interface ReceiptPayload {
 }
 
 /** Default price applied when a line's price is left blank. */
-export const DEFAULT_PRICE = 'priceless';
+export const DEFAULT_PRICE = 'on the house';
 
 /** The barcode at the foot of every receipt always spells this. */
 export const BARCODE_TEXT = 'ILOVEYOU';
@@ -97,6 +103,7 @@ export const PRICE_MAX = 24;
 export interface ReceiptScaffold {
   storeName: string;
   subtitle: string;
+  billedTo: string;
   receiptLabel: string;
   cashier: string;
   billNumber: string;
@@ -113,33 +120,46 @@ export interface ReceiptScaffold {
   stamp: string;
 }
 
-const FRAME: ReceiptScaffold = {
-  storeName: 'DELULU MART',
-  subtitle: 'est. the day i met u',
-  receiptLabel: 'Receipt',
-  cashier: 'my last 2 braincells',
-  billNumber: '4EVER-001',
-  gstin: 'NOCHILL69420',
-  subtotal: { label: 'SUBTOTAL', price: 'too much' },
-  tax: { label: 'delusion tax (200%)', price: 'generous' },
-  discount: { label: '"you’re cute" discount', price: '-100%' },
-  total: 'my whole ❤',
-  paidVia: 'emotional damage',
-  finePrint: 'all sales final. no refunds on feelings.',
-  returnPolicy: "return policy: you can't — you're stuck with me <3",
-  scanLine: 'scan = how down bad i am',
-  footer: 'come again (tonight?)',
-  stamp: 'CERTIFIED DELULU',
-};
+/** Inputs that personalize the otherwise-locked DELULU MART frame. Both names
+ *  are optional — graceful fallbacks fill the no-name (sender-preview) state. */
+export interface FrameNames {
+  recipientName?: string;
+  senderName?: string;
+}
 
-/** A fresh copy of the locked frame (summary rows cloned so callers can't
- *  mutate the shared default). */
-export function buildScaffold(): ReceiptScaffold {
+/**
+ * Build the locked DELULU MART frame, with name tokens filled from the gift's
+ * metadata. Everything except the two name-bearing fields (est. line +
+ * "Billed to") and the cashier is constant; the store name is ALWAYS DELULU MART.
+ *
+ * Fallbacks keep the no-name state graceful:
+ *   • est. line  → "est. the day i met you"     (recipientName missing)
+ *   • Billed to  → "my favourite person"        (recipientName missing)
+ *   • Cashier    → "my last 2 braincells"        (senderName missing)
+ *
+ * Summary rows are fresh objects so callers can't mutate a shared default.
+ */
+export function buildFrame(names: FrameNames = {}): ReceiptScaffold {
+  const recipient = names.recipientName?.trim();
+  const sender = names.senderName?.trim();
   return {
-    ...FRAME,
-    subtotal: { ...FRAME.subtotal },
-    discount: { ...FRAME.discount },
-    tax: { ...FRAME.tax },
+    storeName: 'DELULU MART',
+    subtitle: `est. the day i met ${recipient || 'you'}`,
+    billedTo: recipient || 'my favourite person',
+    receiptLabel: 'Receipt',
+    cashier: sender ? `${sender}'s last 2 braincells` : 'my last 2 braincells',
+    billNumber: '4EVER-001',
+    gstin: 'NOCHILL69420',
+    subtotal: { label: 'SUBTOTAL', price: 'too much' },
+    tax: { label: 'delusion tax (200%)', price: 'generous' },
+    discount: { label: '"you’re cute" discount', price: '-100%' },
+    total: 'my whole ❤',
+    paidVia: 'emotional damage',
+    finePrint: 'all sales final. no refunds on feelings.',
+    returnPolicy: "return policy: you can't — you're stuck with me <3",
+    scanLine: 'scan = how down bad i am',
+    footer: 'come again (tonight?)',
+    stamp: 'CERTIFIED DELULU',
   };
 }
 
@@ -153,10 +173,12 @@ export function formatReceiptDate(date = new Date()): string {
 }
 
 // ── balanced tone-shuffle over the single pool ──────────────────────────
-// Draw 4 lines at a time, one per tone, rotating across all 6 tones so every
-// tone cycles over consecutive regenerates. Dedupe prices within a draw, respect
-// collision pairs, and track shownIds so regenerate stays fresh until the pool's
-// exhausted (then it resets rather than dead-ending). Offline-safe: no AI.
+// Draw 4 lines at a time with the receipt's whole appeal — tonal whiplash —
+// GUARANTEED: every draw reserves one joke anchor (side 'funny') and one
+// gut-punch anchor (side 'tender'), then fills the rest by rotating across the
+// tones. Dedupe prices within a draw, respect collision pairs, and track
+// shownIds so regenerate stays fresh until the pool's exhausted (then it resets
+// rather than dead-ending). Offline-safe: no AI.
 
 export const STARTING_LINE_COUNT = 4;
 
@@ -168,6 +190,9 @@ const TONE_ORDER: Tone[] = [
   'almost-moment',
   'tender',
 ];
+
+/** The three funny tones — the joke anchor rotates across these via toneCursor. */
+const FUNNY_TONES: Tone[] = ['giggle', 'petty', 'delulu'];
 
 const POOL_BY_ID = new Map(LOVE_RECEIPT_POOL.map((l) => [l.id, l]));
 
@@ -203,10 +228,14 @@ export interface BalancedDraw {
 }
 
 /**
- * Pull a balanced set of {@link STARTING_LINE_COUNT} lines: one per tone across
- * 4 distinct tones (rotating via `toneCursor`), all prices distinct, no collision
- * pair together, none in `shownIds`. If too few fresh lines remain, `shownIds`
- * resets so a draw always succeeds.
+ * Pull a balanced set of {@link STARTING_LINE_COUNT} lines with the whiplash
+ * GUARANTEED: ≥1 joke (side 'funny') AND ≥1 gut-punch (side 'tender'). Two anchor
+ * slots are reserved up front — slot A a funny line (rotating which funny tone via
+ * `toneCursor` for variety), slot B a tender line — and the remaining slots fill
+ * by rotating the cursor across the tones. All prices distinct, no collision pair
+ * together, fresh (not in `shownIds`) where possible. If too few fresh lines
+ * remain, `shownIds` resets so a draw always succeeds; the anchors additionally
+ * relax freshness as a last resort so the funny+tender minimum can never fail.
  */
 export function sampleBalanced(
   shownIdsIn: ReadonlySet<string>,
@@ -222,16 +251,23 @@ export function sampleBalanced(
   const pickedPrices = new Set<string>();
   const picks: PoolLine[] = [];
 
-  const isEligible = (l: PoolLine) => {
-    if (shown.has(l.id) || pickedIds.has(l.id)) return false;
+  // `ignoreShown` only ever flips for the anchor slots, and only when no FRESH
+  // line of a required side remains — so the funny+tender guarantee holds even at
+  // the bottom of the pool, while the bulk of the draw stays fresh.
+  const isEligible = (l: PoolLine, ignoreShown = false) => {
+    if (pickedIds.has(l.id)) return false;
+    if (!ignoreShown && shown.has(l.id)) return false;
     if (pickedPrices.has(l.price)) return false; // dedupe prices within a draw
     const foes = COLLISION_MAP.get(l.id);
     if (foes && Array.from(foes).some((f) => pickedIds.has(f))) return false;
     return true;
   };
 
-  const take = (candidates: PoolLine[]) => {
-    const eligible = candidates.filter(isEligible);
+  const take = (candidates: PoolLine[], relaxFreshness = false) => {
+    let eligible = candidates.filter((l) => isEligible(l));
+    if (!eligible.length && relaxFreshness) {
+      eligible = candidates.filter((l) => isEligible(l, true));
+    }
     if (!eligible.length) return false;
     const choice = eligible[Math.floor(Math.random() * eligible.length)];
     picks.push(choice);
@@ -240,7 +276,31 @@ export function sampleBalanced(
     return true;
   };
 
-  for (let i = 0; i < count; i++) {
+  // ── anchor slots — make the whiplash unmissable ──
+  // Slot A: one joke. Rotate WHICH funny tone via the cursor so consecutive draws
+  // vary; fall back to any funny line if that tone is blocked/exhausted.
+  const funnyTone = FUNNY_TONES[toneCursor % FUNNY_TONES.length];
+  if (
+    !take(
+      LOVE_RECEIPT_POOL.filter(
+        (l) => l.side === 'funny' && l.tone === funnyTone,
+      ),
+      true,
+    )
+  ) {
+    take(
+      LOVE_RECEIPT_POOL.filter((l) => l.side === 'funny'),
+      true,
+    );
+  }
+  // Slot B: one genuine gut-punch.
+  take(
+    LOVE_RECEIPT_POOL.filter((l) => l.side === 'tender'),
+    true,
+  );
+
+  // ── remaining slots — existing cursor rotation across the tones ──
+  for (let i = 0; picks.length < count && i < TONE_ORDER.length; i++) {
     const tone = TONE_ORDER[(toneCursor + i) % TONE_ORDER.length];
     // one line of this tone; if its tone is exhausted/blocked, take any eligible
     if (!take(LOVE_RECEIPT_POOL.filter((l) => l.tone === tone))) {
@@ -258,6 +318,37 @@ export function sampleBalanced(
     shownIds: shown,
     toneCursor: (toneCursor + count) % TONE_ORDER.length,
   };
+}
+
+// ── total selection (the receipt's final gut-punch) ─────────────────────
+const normPrice = (p: string): string => p.trim().toLowerCase();
+
+/**
+ * The deterministic first-paint total ({@link DEFAULT_TOTAL_ID}). Used to seed
+ * the builder before any regenerate so the opener is stable.
+ */
+export function getDefaultTotal(): ReceiptTotal {
+  return (
+    LOVE_RECEIPT_TOTALS.find((t) => t.id === DEFAULT_TOTAL_ID) ??
+    LOVE_RECEIPT_TOTALS[0]
+  );
+}
+
+/**
+ * Pick a random TOTAL whose normalized price doesn't echo any drawn line's price
+ * (so the total stamp never duplicates a line stamp). Falls back to the full set
+ * only in the impossible case that every total collides, so the slot stays filled.
+ */
+export function pickTotal(
+  drawnLines: ReadonlyArray<{ price: string }>,
+  rng: () => number = Math.random,
+): ReceiptTotal {
+  const used = new Set(drawnLines.map((l) => normPrice(l.price)));
+  const eligible = LOVE_RECEIPT_TOTALS.filter(
+    (t) => !used.has(normPrice(t.price)),
+  );
+  const pool = eligible.length ? eligible : LOVE_RECEIPT_TOTALS;
+  return pool[Math.floor(rng() * pool.length)];
 }
 
 // ── "make it personal" optional questions ──────────────────────────────
@@ -338,7 +429,7 @@ export interface GenerateInput {
  * the frame fields for {@link coerce}.
  */
 export function buildFallbackReceipt(): GeneratedReceipt {
-  const frame = buildScaffold();
+  const frame = buildFrame();
   const { lines } = sampleBalanced(new Set(), 0);
   return {
     storeName: frame.storeName,
@@ -350,7 +441,9 @@ export function buildFallbackReceipt(): GeneratedReceipt {
     subtotal: { ...frame.subtotal },
     discount: { ...frame.discount },
     tax: { ...frame.tax },
-    total: frame.total,
+    // the total slot is the receipt's gut-punch — pick one that doesn't echo a
+    // line's price (its stamp) rather than the constant frame placeholder.
+    total: pickTotal(lines).price,
     paidVia: frame.paidVia,
     finePrint: frame.finePrint,
     returnPolicy: frame.returnPolicy,
