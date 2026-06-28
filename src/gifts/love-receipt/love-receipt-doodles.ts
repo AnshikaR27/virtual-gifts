@@ -387,15 +387,17 @@ const SCATTER: Record<ScatterZone, ScatterPlacement[]> = {
     // vertically centered on the 46px bar block, clear of the bars and caption.
     {
       doodleId: 'doodle-dashes-lavender',
-      pos: { top: -4, left: 'calc(50% - 118px)' },
-      size: 54,
+      pos: { top: 4, left: 'calc(50% - 118px)' },
+      size: 39,
       rotation: -78,
+      opacity: 0.8,
     },
     {
       doodleId: 'doodle-dashes-lavender-right',
-      pos: { top: -4, right: 'calc(50% - 118px)' },
-      size: 54,
+      pos: { top: 4, right: 'calc(50% - 118px)' },
+      size: 39,
       rotation: 78,
+      opacity: 0.8,
     },
   ],
   footer: [],
