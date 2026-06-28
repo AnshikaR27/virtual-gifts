@@ -48,6 +48,11 @@ export const DOODLES: Doodle[] = [
     id: 'doodle-dashes-lavender',
     src: `${DOODLE_DIR}/doodle-dashes-lavender.png`,
   },
+  // horizontally-mirrored dash-fan for the right barcode gutter (ImageOps.mirror).
+  {
+    id: 'doodle-dashes-lavender-right',
+    src: `${DOODLE_DIR}/doodle-dashes-lavender-right.png`,
+  },
   // hollow frames — wrap a number (number-wrap) or a word (word-circle/inside)
   { id: 'doodle-ring', src: `${DOODLE_DIR}/doodle-ring.png` },
   { id: 'doodle-oval-lavender', src: `${DOODLE_DIR}/doodle-oval-lavender.png` },
@@ -375,18 +380,22 @@ export interface ScatterPlacement {
 const SCATTER: Record<ScatterZone, ScatterPlacement[]> = {
   header: [],
   barcode: [
-    // two mirrored lavender dashes, vertically centered, flanking the barcode.
+    // two dash-fans bracket the barcode, splaying OUTWARD away from it: on the
+    // LEFT sits the original (fans out to the left, toward the receipt edge); on
+    // the RIGHT sits the mirrored copy (fans out to the right). Tucked right
+    // beside the bars via a calc() from center (barcode half-width ≈ 56px),
+    // vertically centered on the 46px bar block, clear of the bars and caption.
     {
       doodleId: 'doodle-dashes-lavender',
-      pos: { top: '40%', left: -8 },
-      size: 22,
-      rotation: -8,
+      pos: { top: -4, left: 'calc(50% - 118px)' },
+      size: 54,
+      rotation: -78,
     },
     {
-      doodleId: 'doodle-dashes-lavender',
-      pos: { top: '40%', right: -8 },
-      size: 22,
-      rotation: 8,
+      doodleId: 'doodle-dashes-lavender-right',
+      pos: { top: -4, right: 'calc(50% - 118px)' },
+      size: 54,
+      rotation: 78,
     },
   ],
   footer: [],
