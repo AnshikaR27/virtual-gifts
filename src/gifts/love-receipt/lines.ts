@@ -43,6 +43,12 @@ export interface ReceiptLine {
   id: string;
   text: string;
   price: string;
+  /**
+   * The source pool line's id (e.g. "lr-001"), carried through so the
+   * line-bound doodle layer can resolve a doodle for this line. Absent on
+   * custom/user-added lines (and on AI-generated lines) — those get no doodle.
+   */
+  poolId?: string;
 }
 
 /** A label/value summary row (subtotal / discount / tax). */
@@ -209,7 +215,9 @@ const COLLISION_MAP = (() => {
 })();
 
 function toLine(p: PoolLine): ReceiptLine {
-  return { id: p.id, text: p.text, price: p.price };
+  // Carry the pool id through as poolId so the doodle layer can bind to it; the
+  // tone stays derivable from poolId and is NOT separately persisted.
+  return { id: p.id, text: p.text, price: p.price, poolId: p.id };
 }
 
 /** The hand-picked opening four — loaded before any interaction (no empty state). */

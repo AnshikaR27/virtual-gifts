@@ -1,13 +1,33 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import type { CSSProperties } from 'react';
+import Image from 'next/image';
+import { useEffect, useState, type CSSProperties } from 'react';
 import {
   BARCODE_TEXT,
   NEW_LINE_MAX,
   PRICE_MAX,
   type ReceiptPayload,
 } from './lines';
+import {
+  DOODLE_BASE_PX,
+  doodleSrc,
+  hollowCalibration,
+  isRenderableLineDoodle,
+  numberFrameCalibration,
+  numberWrapForReceipt,
+  resolveLineDoodle,
+  resolveScatter,
+  wordDoodle,
+  type ResolvedDoodle,
+  type ScatterZone,
+} from './love-receipt-doodles';
+import {
+  applyMarkers,
+  extractMarkedPhrases,
+  parseMarkedText,
+  stripMarkers,
+} from './markers';
 
 /**
  * <ReceiptPaper> — the crumpled thermal-slip receipt, shared by the sender's
@@ -17,8 +37,11 @@ import {
  * heavy uppercase grotesque header (DELULU MART), an all-monospace body, dashed
  * section rules, a numbered item table (01 / ITEM / PRICE) with right-aligned
  * prices, a bold TOTAL, a left-aligned card block (PAID VIA + fine print), a
- * centered THANK YOU footer and the ILOVEYOU barcode. The slanted rubber meme
- * stamp sits on top, re-tuned to read on white.
+ * centered THANK YOU footer and the ILOVEYOU barcode.
+ *
+ * Doodles attach to content only ON/AROUND it: a hollow frame wraps the QTY
+ * digits (number-wrap) or a `*marked*` word (word-circle), and solid motifs
+ * scatter through empty structural dead-zones — see ./love-receipt-doodles.
  *
  * The recipient feeds the paper out one row at a time via `printedCount`; the
  * sender passes the full count with `animate={false}`.
@@ -39,6 +62,9 @@ const PAPER = '#fbfbf9';
 const EDIT_ACCENT = '#b6303a';
 const EDIT_BG = 'rgba(182, 48, 58, 0.07)';
 const EDIT_HINT = 'rgba(26, 26, 26, 0.26)';
+// Soft periwinkle header band (the Receiptify reference strip behind the store
+// name). Light enough that the near-black ink title stays high-contrast on it.
+const HEADER_BAND = '#c3c8ee';
 
 // Very heavy uppercase grotesque for the store header ("RECEIPTIFY" treatment).
 const HEADER_FONT =
@@ -47,24 +73,34 @@ const HEADER_FONT =
 const MONO_FONT =
   "var(--font-space-mono), ui-monospace, 'IBM Plex Mono', 'Courier New', Courier, monospace";
 
+// The BARREN SCATTER still uses gentle pastel assets, which read as a faint
+// watermark on the crumpled paper. This filter pushes their rendered ink toward
+// bold-marker punch — saturated + higher-contrast + a touch darker — without
+// changing size or count. Tuned to the DIMMER device: Android/Chrome renders CSS
+// filters + color mgmt a notch fainter than iOS Safari, so we push hard enough to
+// clear the bar there (iOS comes out a bit punchier, which is fine).
+const DOODLE_INK_FILTER = 'saturate(2.0) contrast(1.6) brightness(0.82)';
+
+// The hollow FRAMES (number-wrap + word-circle) now use bold-colored in-asset
+// extractions, so the strong scatter filter above would over-cook them — they get
+// no boost by default (the asset already carries the colour). The one exception is
+// the PERIWINKLE SATURN: it's a naturally lighter, less-saturated colour than the
+// coral star or candy heart, so at 'none' it reads fainter on the pale paper. Its
+// boost is TUNED (not the obvious saturate/contrast — contrast alone pushes a light
+// stroke even lighter): saturate lifts chroma to the others' ~95, and brightness
+// 0.82 darkens the periwinkle so its luminance lands between the teal star and
+// candy heart. Measured to MATCHED boldness, not neon. Per-doodle, saturn only.
+const DEFAULT_DOODLE_FRAME_FILTER = 'none';
+const DOODLE_FRAME_FILTER_BY_ID: Record<string, string> = {
+  'doodle-saturn-ring': 'saturate(2.2) contrast(1.1) brightness(0.82)',
+};
+function doodleFrameFilter(doodleId: string): string {
+  return DOODLE_FRAME_FILTER_BY_ID[doodleId] ?? DEFAULT_DOODLE_FRAME_FILTER;
+}
+
 // Faint paper grain (low-opacity fractal noise) under the ink.
 const GRAIN =
   "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 240 240' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E\")";
-
-// Procedural crumpled-paper: a fractal-noise height map lit from the upper-left
-// (feDiffuseLighting) so multi-directional wrinkles cast soft shadows in their
-// creases. Multiply-blended at low opacity over white paper so the creases read
-// as soft gray shadows. Tune `baseFrequency` for wrinkle size (lower = bigger
-// folds) and `surfaceScale` for crease depth.
-// NOTE: if iOS Safari renders this filter poorly/janky, swap for a crumpled-
-// paper PNG + multiply (same overlay div, just backgroundImage: url(png)).
-const CRUMPLE =
-  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='620'%3E%3Cfilter id='c'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.014' numOctaves='5' seed='8' result='noise'/%3E%3CfeDiffuseLighting in='noise' lighting-color='%23ffffff' surfaceScale='2' diffuseConstant='1' result='light'%3E%3CfeDistantLight azimuth='235' elevation='58'/%3E%3C/feDiffuseLighting%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23c)'/%3E%3C/svg%3E\")";
-
-// Distress/grunge alpha-mask so the rubber stamp prints patchy & bled, never a
-// clean solid shape. feTurbulence → alpha; discrete A punches transparent holes.
-const GRUNGE_MASK =
-  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='140'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.05 0.08' numOctaves='4' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.5 0.5 0.5 0 0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='discrete' tableValues='0 0 0 1 1 1 1 1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E\")";
 
 // ── shared item-table columns (qty / item / price) ─────────────────────
 // One geometry for the column header, plain item rows, and the editable rows so
@@ -121,6 +157,12 @@ interface SeqRow {
   lineIndex?: number;
   /** which summary row for summary kind */
   summary?: 'subtotal' | 'discount' | 'tax';
+  /**
+   * Leading rows that sit inside the periwinkle header band. Must stay a
+   * contiguous run from the top of the sequence — ReceiptPaper wraps them in a
+   * single full-bleed banded container.
+   */
+  band?: boolean;
 }
 
 export function buildSequence(
@@ -139,7 +181,9 @@ export function buildSequence(
         : [];
 
   return [
-    { kind: 'header' },
+    // only the header (store name + subtitle) sits in the periwinkle band; the
+    // band ends just below the subtitle (see SeqRow.band)
+    { kind: 'header', band: true },
     { kind: 'rule' },
     { kind: 'meta' },
     { kind: 'rule' },
@@ -193,6 +237,15 @@ export function ReceiptPaper({
 }: ReceiptPaperProps) {
   const seq = buildSequence(payload, { showEmptyHint: !!editable });
   const shown = printedCount ?? seq.length;
+  // Number-wrap doodles are decided PER RECEIPT (heart is a rare per-receipt
+  // surprise), so resolve the whole column once and index by lineIndex below.
+  const numberWraps = numberWrapForReceipt(payload.lines);
+
+  // Leading contiguous run of band rows (just the header). It gets wrapped in a
+  // full-bleed periwinkle container so the band ends right below the subtitle.
+  let bandCount = 0;
+  while (bandCount < seq.length && seq[bandCount].band) bandCount++;
+  const bandShown = Math.min(shown, bandCount);
 
   return (
     <div
@@ -216,34 +269,84 @@ export function ReceiptPaper({
           boxShadow: 'inset 0 0 36px rgba(0, 0, 0, 0.05)',
         }}
       >
-        {/* Crumple overlay (multiply): currently a procedural lit fractal-noise
-            SVG filter. To match the Receiptify reference, swap `backgroundImage`
-            for a real crumpled-paper PNG: drop it at
-            public/textures/crumpled-paper.png and set
-            backgroundImage: "url('/textures/crumpled-paper.png')" here. */}
+        {/* Crumple overlay (multiply): a real crumpled-paper texture so the
+            creases match the Receiptify reference. Opacity is the tuning knob —
+            nudged down (0.9 → 0.82) so the texture mutes the doodles less and
+            their ink reads bolder, especially on dimmer Android rendering. */}
         <div
           aria-hidden
           style={{
             position: 'absolute',
             inset: 0,
             pointerEvents: 'none',
-            backgroundImage: CRUMPLE,
+            backgroundImage: "url('/textures/crumpled-paper.jpg')",
             backgroundSize: 'cover',
             backgroundRepeat: 'no-repeat',
             mixBlendMode: 'multiply',
-            opacity: 0.5,
+            opacity: 0.82,
           }}
         />
 
-        <div style={{ position: 'relative' }}>
-          {seq.slice(0, shown).map((row, i) => (
-            <Row key={i} animate={animate}>
-              {renderRow(row, payload, editable)}
-            </Row>
-          ))}
+        <div style={{ position: 'relative', zIndex: 2 }}>
+          {bandShown > 0 ? (
+            <div
+              style={{
+                position: 'relative',
+                overflow: 'hidden',
+                background: HEADER_BAND,
+                // Full-bleed: negative margins cancel the paper's 28px top / 22px
+                // side padding so the band runs flush to the paper edges (a
+                // printed strip, not a floating rectangle). Inner padding gives
+                // the content breathing room; the band ends here, just above the
+                // dashed rule before the items.
+                marginTop: -28,
+                marginLeft: -22,
+                marginRight: -22,
+                padding: '20px 22px 12px',
+              }}
+            >
+              {/* crease on top of the band color. The texture is near-white, so
+                  plain multiply is invisible on a coloured base and hard-light
+                  washes it out. Instead we RE-CENTER the texture to mid-grey
+                  (brightness ~0.5) so its flat areas are neutral and leave the
+                  purple untouched, then hard-light embosses only the actual fold
+                  lines — darker valleys + brighter ridges — for real relief that
+                  keeps the colour. Cropped to the texture's creased centre. */}
+              <div
+                aria-hidden
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  pointerEvents: 'none',
+                  backgroundImage: "url('/textures/crumpled-paper.jpg')",
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  backgroundRepeat: 'no-repeat',
+                  mixBlendMode: 'hard-light',
+                  filter: 'brightness(0.58) contrast(2.2)',
+                  opacity: 0.9,
+                }}
+              />
+              <div style={{ position: 'relative', zIndex: 1 }}>
+                {seq.slice(0, bandShown).map((row, i) => (
+                  <Row key={i} animate={animate}>
+                    {renderRow(row, payload, editable, numberWraps)}
+                  </Row>
+                ))}
+              </div>
+            </div>
+          ) : null}
+          {shown > bandCount
+            ? seq.slice(bandCount, shown).map((row, i) => (
+                <Row key={bandCount + i} animate={animate}>
+                  {renderRow(row, payload, editable, numberWraps)}
+                </Row>
+              ))
+            : null}
         </div>
-
-        {/* slanted rubber meme-stamp */}
+        {/* slanted rubber meme-stamp — restored to HEAD behavior so the committed
+            receipt renders its stamp exactly as before; the doodle layer renders
+            alongside it. */}
         {payload.memeStamp ? (
           <Stamp text={payload.memeStamp} show={showStamp} />
         ) : null}
@@ -275,13 +378,18 @@ function Row({
 function renderRow(
   row: SeqRow,
   payload: ReceiptPayload,
-  editable?: ReceiptEditable,
+  editable: ReceiptEditable | undefined,
+  numberWraps: (string | null)[],
 ): React.ReactNode {
   switch (row.kind) {
     case 'header':
-      return <Header payload={payload} editable={editable} />;
+      return (
+        <ScatterWrap zone="header">
+          <Header payload={payload} editable={editable} />
+        </ScatterWrap>
+      );
     case 'rule':
-      return <Rule />;
+      return <Rule banded={row.band} />;
     case 'meta':
       return <MetaBlock payload={payload} />;
     case 'emptyhint':
@@ -295,15 +403,29 @@ function renderRow(
       // The QTY/ITEM/PRICE column header (with its lower dashed rule) prints atop
       // the first item — its upper rule is the sequence rule just before items.
       const header = row.lineIndex === 0 ? <ItemsHeader /> : null;
+      // Resolve the author-bound UNDERLINE (per-line, else per-tone). null when
+      // the line has no poolId (custom lines) or nothing is bound. word-circle is
+      // handled inside ItemRow/EditableItem; the number-wrap was resolved for the
+      // whole receipt and is indexed here.
+      const doodle = resolveLineDoodle(line.poolId);
+      const wrapDoodleId = numberWraps[row.lineIndex!] ?? null;
       const body = editable ? (
         <EditableItem
           line={line}
           index={row.lineIndex!}
           count={payload.lines.length}
           editable={editable}
+          doodle={doodle}
+          wrapDoodleId={wrapDoodleId}
         />
       ) : (
-        <ItemRow text={line.text} price={line.price} index={row.lineIndex!} />
+        <ItemRow
+          text={line.text}
+          price={line.price}
+          index={row.lineIndex!}
+          doodle={doodle}
+          wrapDoodleId={wrapDoodleId}
+        />
       );
       return (
         <>
@@ -327,6 +449,8 @@ function renderRow(
       );
     }
     case 'total':
+      // TOTAL sits adjacent to the variable center body — no scatter here (a
+      // motif could collide with the last item line on a long draw).
       return (
         <TotalRow
           total={payload.total}
@@ -337,12 +461,274 @@ function renderRow(
     case 'fineprint':
       return <FinePrint payload={payload} />;
     case 'footer':
-      return <Footer payload={payload} />;
+      // Scatter needs the footer's box to anchor to; skip it on an empty footer.
+      return payload.footer ? (
+        <ScatterWrap zone="footer">
+          <Footer payload={payload} />
+        </ScatterWrap>
+      ) : (
+        <Footer payload={payload} />
+      );
     case 'barcode':
-      return <Barcode scanLine={payload.scanLine} />;
+      return (
+        <ScatterWrap zone="barcode">
+          <Barcode scanLine={payload.scanLine} />
+        </ScatterWrap>
+      );
     default:
       return null;
   }
+}
+
+// ── underline (the surviving line-bound anchor) ─────────────────────────
+/**
+ * Renders an author-bound UNDERLINE as an absolutely-positioned child of its
+ * `position: relative` row: a thin centered mark at the row baseline that accents
+ * the line without obscuring it. No getBoundingClientRect — the browser positions
+ * it against the row's own box, so it tracks height and rides the print fade.
+ *
+ * gutter / punctuate anchors were removed; a binding that isn't a valid line-mark
+ * underline is safely ignored (isRenderableLineDoodle).
+ */
+function DoodleMark({ doodle }: { doodle: ResolvedDoodle }) {
+  const src = doodleSrc(doodle.doodleId);
+  if (!src || !isRenderableLineDoodle(doodle)) return null;
+
+  const px = Math.round(DOODLE_BASE_PX * doodle.scale);
+  const h = Math.max(8, Math.round(16 * doodle.scale));
+  return (
+    <span
+      aria-hidden
+      style={{
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        bottom: -1,
+        height: h,
+        pointerEvents: 'none',
+        zIndex: 0,
+      }}
+    >
+      <Image
+        src={src}
+        alt=""
+        width={px}
+        height={px}
+        draggable={false}
+        style={{
+          width: '100%',
+          height: '100%',
+          objectFit: 'contain',
+          transform: doodle.rotation
+            ? `rotate(${doodle.rotation}deg)`
+            : undefined,
+        }}
+      />
+    </span>
+  );
+}
+
+// ── hollow frame — wraps a number (number-wrap) or a word (word-circle) ──
+/**
+ * An outline-only doodle mounted as an absolutely-positioned child of a
+ * `position: relative` host (the QTY-digits span or a marked word's span). It
+ * overlays the host's box exactly (inset:0), then a PER-DOODLE transform centers
+ * and sizes the frame ON the content: `objectFit: fill` stretches the art to the
+ * content box so the frame tracks the digits'/word's width, and the calibration's
+ * scaleX/scaleY/nudge (see HOLLOW_CALIBRATION) grow it past the content for
+ * breathing room and correct each PNG's off-center hollow.
+ *
+ * Because it overlays the host box, a framed word moves and re-wraps with the
+ * surrounding line for free, and the same config wraps a number or a word.
+ */
+function HollowFrame({ doodleId }: { doodleId: string }) {
+  const src = doodleSrc(doodleId);
+  if (!src) return null;
+  const c = hollowCalibration(doodleId);
+  return (
+    <span
+      aria-hidden
+      style={{
+        position: 'absolute',
+        inset: 0,
+        transform: `translate(${c.nudgeX}%, ${c.nudgeY}%) scale(${c.scaleX}, ${c.scaleY})`,
+        transformOrigin: 'center',
+        pointerEvents: 'none',
+        zIndex: 0,
+      }}
+    >
+      <Image
+        src={src}
+        alt=""
+        fill
+        sizes="80px"
+        draggable={false}
+        style={{ objectFit: 'fill', filter: doodleFrameFilter(doodleId) }}
+      />
+    </span>
+  );
+}
+
+/**
+ * The number-wrap frame around the 2-digit QTY. Unlike the word-circle, it keeps
+ * the doodle's NATURAL aspect ratio (a saturn ring stays round, a star stays a
+ * star) and centers on the digits' visual center — it does NOT inherit the
+ * wide-short QTY text box. Implementation:
+ *   - a SQUARE box, sized in em from NUMBER_FRAME_CALIBRATION.scale (so it tracks
+ *     the digit font size and is correct on any screen),
+ *   - pinned at left/top 50% then translate(-50%, -50%) so its center sits on the
+ *     host box center (the digits), plus a small per-doodle em nudge,
+ *   - object-fit: contain → the art scales UNIFORMLY inside the square and never
+ *     stretches (the saturn just letterboxes vertically, keeping its round shape).
+ */
+function NumberFrame({ doodleId }: { doodleId: string }) {
+  const src = doodleSrc(doodleId);
+  if (!src) return null;
+  const c = numberFrameCalibration(doodleId);
+  return (
+    <span
+      aria-hidden
+      style={{
+        position: 'absolute',
+        left: '50%',
+        top: '50%',
+        width: `${c.scale}em`,
+        height: `${c.scale}em`,
+        transform: `translate(-50%, -50%) translate(${c.nudgeX}em, ${c.nudgeY}em)`,
+        pointerEvents: 'none',
+        zIndex: 0,
+      }}
+    >
+      <Image
+        src={src}
+        alt=""
+        fill
+        sizes="80px"
+        draggable={false}
+        style={{ objectFit: 'contain', filter: doodleFrameFilter(doodleId) }}
+      />
+    </span>
+  );
+}
+
+/**
+ * The QTY cell: the zero-padded line number, with the receipt's resolved number
+ * frame (or none) wrapping the digits. The digits sit in a relative, z-indexed
+ * span so the frame rides behind them and they stay legible.
+ */
+function QtyCell({
+  index,
+  doodleId,
+}: {
+  index: number;
+  doodleId: string | null;
+}) {
+  const label = String(index + 1).padStart(2, '0');
+  return (
+    <span style={QTY_COL}>
+      <span style={{ position: 'relative', display: 'inline-block' }}>
+        <span style={{ position: 'relative', zIndex: 1 }}>{label}</span>
+        {doodleId ? <NumberFrame doodleId={doodleId} /> : null}
+      </span>
+    </span>
+  );
+}
+
+// word-circle render disabled pending asset confirmation — re-enable by flipping
+// this to true to re-mount the hollow circle around each *marked* word in
+// MarkedText below. KEPT INTACT meanwhile: the *markers* in the pool text, the
+// markers.ts parser, the wordDoodle() lookup, and HOLLOW_WRAP_PALETTE — so
+// circling resumes the moment this flag goes back on, with no other changes.
+const WORD_CIRCLE_ENABLED = false;
+
+/**
+ * Renders a line's text with any inline `*marked*` word framed by a hollow doodle
+ * (word-circle / inside-a-shape). The frame is chosen by phrase content so it's
+ * stable across preview/print and varies (circle vs heart vs star) by word. Each
+ * marked word is an inline-block relative span so the doodle wraps just that word
+ * and travels with it as the line re-wraps; the word rides above the frame.
+ *
+ * NOTE: word-circle is currently DISABLED ({@link WORD_CIRCLE_ENABLED} === false)
+ * — a marked word renders as plain text (asterisks already stripped by the
+ * parser) and NO hollow PNG is requested. Flip the flag to restore the circle.
+ */
+function MarkedText({ text }: { text: string }) {
+  const segments = parseMarkedText(text);
+  return (
+    <>
+      {segments.map((seg, i) =>
+        seg.marked ? (
+          <span
+            key={i}
+            style={{ position: 'relative', display: 'inline-block' }}
+          >
+            <span style={{ position: 'relative', zIndex: 1 }}>{seg.text}</span>
+            {/* re-enable the circle by setting WORD_CIRCLE_ENABLED = true above */}
+            {WORD_CIRCLE_ENABLED ? (
+              <HollowFrame doodleId={wordDoodle(seg.text)} />
+            ) : null}
+          </span>
+        ) : (
+          <span key={i}>{seg.text}</span>
+        ),
+      )}
+    </>
+  );
+}
+
+/**
+ * Wraps a structural row (header / barcode / footer) with always-on barren
+ * scatter: solid motifs + light accents pinned to the row's dead-zone corners,
+ * BEHIND the row's text (which rides zIndex 1). Content-blind and identical on
+ * every receipt — never in the variable center body or a row's side gutter.
+ */
+function ScatterWrap({
+  zone,
+  children,
+}: {
+  zone: ScatterZone;
+  children: React.ReactNode;
+}) {
+  const placements = resolveScatter(zone);
+  return (
+    <div style={{ position: 'relative' }}>
+      <div style={{ position: 'relative', zIndex: 1 }}>{children}</div>
+      {placements.map((p, i) => {
+        const src = doodleSrc(p.doodleId);
+        if (!src) return null;
+        return (
+          <span
+            key={i}
+            aria-hidden
+            style={{
+              position: 'absolute',
+              ...p.pos,
+              width: p.size,
+              height: p.size,
+              opacity: p.opacity ?? 0.9,
+              transform: p.rotation ? `rotate(${p.rotation}deg)` : undefined,
+              pointerEvents: 'none',
+              zIndex: 0,
+            }}
+          >
+            <Image
+              src={src}
+              alt=""
+              width={p.size}
+              height={p.size}
+              draggable={false}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain',
+                filter: DOODLE_INK_FILTER,
+              }}
+            />
+          </span>
+        );
+      })}
+    </div>
+  );
 }
 
 // ── pieces ─────────────────────────────────────────────────────────────
@@ -365,8 +751,11 @@ function Header({
     color: INK,
   };
 
+  // The periwinkle band is painted by ReceiptPaper's banded wrapper (it spans
+  // just the header); the Header itself is the centered title + plain subtitle
+  // that sit on top of it.
   return (
-    <div style={{ textAlign: 'center', marginBottom: 6 }}>
+    <div style={{ textAlign: 'center', marginBottom: 8 }}>
       {editable ? (
         editable.editingStore ? (
           <input
@@ -449,7 +838,11 @@ function MetaBlock({ payload }: { payload: ReceiptPayload }) {
   );
 }
 
-function Rule() {
+function Rule({ banded }: { banded?: boolean }) {
+  // Inside the header band we want one continuous block of color with no dashed
+  // line splitting the title from the meta — render a thin transparent spacer so
+  // the print-reveal step is preserved but nothing is drawn.
+  if (banded) return <div style={{ height: 2 }} />;
   return <div style={{ borderTop: `1px dashed ${RULE}`, margin: '8px 0' }} />;
 }
 
@@ -502,14 +895,19 @@ function ItemRow({
   text,
   price,
   index,
+  wrapDoodleId,
+  doodle,
 }: {
   text: string;
   price: string;
   index: number;
+  wrapDoodleId: string | null;
+  doodle?: ResolvedDoodle | null;
 }) {
   return (
     <div
       style={{
+        position: 'relative',
         display: 'flex',
         alignItems: 'flex-start',
         gap: '0.7em',
@@ -521,9 +919,12 @@ function ItemRow({
         padding: '2px 0',
       }}
     >
-      <span style={QTY_COL}>{String(index + 1).padStart(2, '0')}</span>
-      <span style={ITEM_COL}>{text}</span>
+      <QtyCell index={index} doodleId={wrapDoodleId} />
+      <span style={ITEM_COL}>
+        <MarkedText text={text} />
+      </span>
       <span style={PRICE_COL}>{price}</span>
+      {doodle ? <DoodleMark doodle={doodle} /> : null}
     </div>
   );
 }
@@ -534,13 +935,34 @@ function EditableItem({
   index,
   count,
   editable,
+  doodle,
+  wrapDoodleId,
 }: {
-  line: { id: string; text: string; price: string };
+  line: { id: string; text: string; price: string; poolId?: string };
   index: number;
   count: number;
   editable: ReceiptEditable;
+  doodle?: ResolvedDoodle | null;
+  wrapDoodleId: string | null;
 }) {
   const active = editable.activeLineId === line.id;
+
+  // The on-paper editor shows an ASTERISK-FREE draft; the marked phrases are
+  // remembered so they can be re-applied by content on every keystroke (the
+  // stored line.text keeps its `*markers*`, the input never shows them).
+  const [draft, setDraft] = useState(() => stripMarkers(line.text));
+  const [markedPhrases, setMarkedPhrases] = useState<string[]>(() =>
+    extractMarkedPhrases(line.text),
+  );
+  // Seed only when this row becomes the active editor (or the row id changes) —
+  // NOT on line.text, so re-applying markers mid-edit doesn't reset the draft.
+  useEffect(() => {
+    if (active) {
+      setDraft(stripMarkers(line.text));
+      setMarkedPhrases(extractMarkedPhrases(line.text));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, line.id]);
 
   if (!active) {
     return (
@@ -548,6 +970,7 @@ function EditableItem({
         type="button"
         onClick={() => editable.onActivateLine(line.id)}
         style={{
+          position: 'relative',
           display: 'flex',
           alignItems: 'flex-start',
           gap: '0.7em',
@@ -565,9 +988,12 @@ function EditableItem({
           padding: '7px 0',
         }}
       >
-        <span style={QTY_COL}>{String(index + 1).padStart(2, '0')}</span>
-        <span style={ITEM_COL}>{line.text}</span>
+        <QtyCell index={index} doodleId={wrapDoodleId} />
+        <span style={ITEM_COL}>
+          <MarkedText text={line.text} />
+        </span>
         <span style={PRICE_COL}>{line.price}</span>
+        {doodle ? <DoodleMark doodle={doodle} /> : null}
       </button>
     );
   }
@@ -587,9 +1013,18 @@ function EditableItem({
     <div style={{ padding: '7px 0', borderBottom: `1px dashed ${EDIT_HINT}` }}>
       <input
         autoFocus
-        value={line.text}
+        value={draft}
         maxLength={NEW_LINE_MAX}
-        onChange={(e) => editable.onChangeLine(line.id, 'text', e.target.value)}
+        onChange={(e) => {
+          const next = e.target.value;
+          setDraft(next);
+          // re-apply remembered markers by content; edited-away phrases drop out.
+          editable.onChangeLine(
+            line.id,
+            'text',
+            applyMarkers(next, markedPhrases),
+          );
+        }}
         placeholder="what you adore…"
         style={{ ...editInput, width: '100%' }}
       />
@@ -918,15 +1353,12 @@ function Barcode({ scanLine }: { scanLine: string }) {
   );
 }
 
-// ── rubber meme-stamp ──────────────────────────────────────────────────
-// Authentic stamped look: faded red ink, double-ruled rounded seal, rotated,
-// and a grunge alpha-mask so the ink is patchy/bled — stamped, not printed.
-// Slammed top-right over the meta block (Cashier / Billed-to / Bill# / GSTIN)
-// as a classic angled corner stamp, kept low-opacity so the meta lines stay
-// readable. Anchored from the top so it covers the same fixed band no matter
-// how many item rows print — its bottom edge clears the QTY/ITEM/PRICE header
-// so it never lands on a line-item confession.
-// Re-tuned to a punchier red so it reads on the white paper.
+// ── meme rubber stamp (restored from HEAD; render + API unchanged) ───────────
+// Distress/grunge alpha-mask so the rubber stamp prints patchy & bled, never a
+// clean solid shape. feTurbulence → alpha; discrete A punches transparent holes.
+const GRUNGE_MASK =
+  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='140'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.05 0.08' numOctaves='4' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.5 0.5 0.5 0 0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='discrete' tableValues='0 0 0 1 1 1 1 1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E\")";
+
 const STAMP_INK = '#c1121f';
 
 function Stamp({ text, show }: { text: string; show: boolean }) {
@@ -941,9 +1373,8 @@ function Stamp({ text, show }: { text: string; show: boolean }) {
       }
       transition={{ type: 'spring', stiffness: 280, damping: 15 }}
       style={{
-        // Top-right corner stamp over the meta block. top ~126 sits over the
-        // Cashier/Billed-to/Bill#/GSTIN lines; its rotated bottom edge stays
-        // above the QTY/ITEM/PRICE header, so it never touches an item row.
+        // Top-right corner stamp over the meta block; rotated bottom edge stays
+        // above the QTY/ITEM/PRICE header so it never lands on an item row.
         position: 'absolute',
         top: 126,
         right: 16,

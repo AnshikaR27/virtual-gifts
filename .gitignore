@@ -3,6 +3,11 @@
 /.pnp
 .pnp.js
 
+# sticker asset pipeline (one-off, local only)
+/raw-stickers/
+/.venv/
+/.venv-stickers/
+
 # testing
 /coverage
 
@@ -33,3 +38,20 @@ yarn-error.log*
 next-env.d.ts
 
 .vercel
+
+# python / tooling caches
+__pycache__/
+# supabase local temp
+/supabase/.temp/
+# local screenshots & debug renders
+/screenshots/
+/receipt-preview.png
+/receipt-all-six.png
+# large raw sticker source art (local-only; feeds scripts/extract-doodles.py)
+/assets/stickers/
+# commit ONLY the active doodle PNGs; ignore the rest of the catalog
+/public/stickers/doodles/*
+!/public/stickers/doodles/doodle-saturn-bold.png
+!/public/stickers/doodles/doodle-star-teal-bold.png
+!/public/stickers/doodles/doodle-heart-rosepink-bold.png
+!/public/stickers/doodles/doodle-dashes-lavender.png

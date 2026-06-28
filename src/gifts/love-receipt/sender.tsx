@@ -97,7 +97,12 @@ type Action =
   | { type: 'setStamp'; value: string | null }
   | { type: 'setChrome'; chrome: ReceiptChrome }
   | { type: 'setFine'; field: keyof FineOverrides; value: string }
-  | { type: 'applyLines'; lines: { text: string; price: string }[] }
+  // poolId rides along when the source is a pool draw (so the doodle layer can
+  // bind to it); it's absent for AI-generated lines.
+  | {
+      type: 'applyLines';
+      lines: { text: string; price: string; poolId?: string }[];
+    }
   | { type: 'addLine'; text: string; price: string }
   | { type: 'updateLine'; id: string; field: 'text' | 'price'; value: string }
   | { type: 'removeLine'; id: string }
@@ -114,6 +119,7 @@ const initialState: State = {
   answers: {},
   lines: getStartingLines().map((l) => ({
     id: newId(),
+    poolId: l.poolId,
     text: l.text,
     price: l.price,
   })),
@@ -157,6 +163,9 @@ function reducer(state: State, action: Action): State {
         ...state,
         lines: action.lines.map((l) => ({
           id: newId(),
+          // preserve the pool id when present (pool draws) so doodles can bind;
+          // AI-generated lines arrive without one and stay doodle-less.
+          poolId: l.poolId,
           text: l.text,
           price: l.price.trim() || DEFAULT_PRICE,
         })),
@@ -562,7 +571,17 @@ export function LoveReceiptSender() {
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'center' }}>
-                <ReceiptPaper payload={payload} editable={editable} showStamp />
+                {/* the receipt is its own editor; line-bound doodles render
+                    inside <ReceiptPaper> at fixed positions per line. */}
+                <div
+                  style={{ position: 'relative', width: 'min(300px, 86vw)' }}
+                >
+                  <ReceiptPaper
+                    payload={payload}
+                    editable={editable}
+                    style={{ width: '100%' }}
+                  />
+                </div>
               </div>
             </div>
 
