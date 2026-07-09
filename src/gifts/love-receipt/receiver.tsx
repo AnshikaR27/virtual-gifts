@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Window } from '@/components/ui/window';
+import { TitlebarButtons } from '@/components/win98-chrome';
+import { Clothespin } from '@/components/ui/clothespin';
 import { useGiftContext } from '@/components/gift-frame/gift-frame';
 import type { GiftData } from '@/components/gift-frame/gift-frame';
 import { playClick } from '@/components/retro-sounds';
@@ -15,6 +16,13 @@ const FIRST_DELAY = 350;
 const ROW_DELAY = 300;
 const PRE_TOTAL_DELAY = 1150; // comic slow-down right before the TOTAL
 const STAMP_DELAY = 480;
+
+// The window body reads as the same OS as ROMANCE.exe / MEMORIES.exe: a light
+// near-white interior with very faint horizontal ruled lines (the HoneyHearts
+// lined-paper tone), so the crumpled receipt sits on real paper, not a panel.
+const PAPER_STAGE_BG = '#fffdf7';
+const PAPER_STAGE_LINES =
+  'repeating-linear-gradient(180deg, transparent 0, transparent 27px, rgba(26,10,46,0.05) 27px, rgba(26,10,46,0.05) 28px)';
 
 /** Coerce stored JSON into a renderable payload, healing older/partial rows. */
 function normalize(
@@ -63,7 +71,6 @@ export function LoveReceiptReceiver({ gift }: { gift: GiftData }) {
   const { count, totalIndex } = getSequenceMeta(payload);
 
   const [printedCount, setPrintedCount] = useState(0);
-  const [showStamp, setShowStamp] = useState(false);
   const [done, setDone] = useState(false);
   const [replayNonce, setReplayNonce] = useState(0);
   const [copied, setCopied] = useState(false);
@@ -79,7 +86,6 @@ export function LoveReceiptReceiver({ gift }: { gift: GiftData }) {
       setPrintedCount(shown);
       if (shown >= count) {
         timer = setTimeout(() => {
-          if (payload.memeStamp) setShowStamp(true);
           setDone(true);
           if (!climaxFired.current) {
             climaxFired.current = true;
@@ -104,7 +110,6 @@ export function LoveReceiptReceiver({ gift }: { gift: GiftData }) {
 
   const replay = useCallback(() => {
     playClick();
-    setShowStamp(false);
     setDone(false);
     setPrintedCount(0);
     setReplayNonce((n) => n + 1);
@@ -137,94 +142,116 @@ export function LoveReceiptReceiver({ gift }: { gift: GiftData }) {
 
   return (
     <div className="mx-auto w-full max-w-[360px]">
-      <Window title={<span className="font-pixel">🧾 RECEIPT.exe</span>}>
-        {/* printing stage */}
+      {/* Same OS chrome as ROMANCE.exe / MEMORIES.exe: gradient titlebar +
+          beveled min/max/close + light lined-paper body. One window only. */}
+      <div className="win98-window">
+        <div className="win98-titlebar">
+          <span>🧾 RECEIPT.exe</span>
+          <TitlebarButtons />
+        </div>
         <div
+          className="win98-body"
           style={{
-            display: 'flex',
-            justifyContent: 'center',
-            padding: '20px 10px',
-            background:
-              'repeating-linear-gradient(45deg, #b8b0c4, #b8b0c4 10px, #b0a8bd 10px, #b0a8bd 20px)',
-            border: '2px solid var(--win-chrome-dark)',
-            borderRightColor: 'var(--win-chrome-light)',
-            borderBottomColor: 'var(--win-chrome-light)',
-            minHeight: 220,
+            background: PAPER_STAGE_BG,
+            backgroundImage: PAPER_STAGE_LINES,
+            padding: '26px 18px 18px',
           }}
         >
-          <ReceiptPaper
-            payload={payload}
-            printedCount={printedCount}
-            animate
-            showStamp={showStamp}
-          />
-        </div>
+          {/* printing stage — the crumpled receipt sits on the lined paper with
+              generous margin, clipped to the top by a wooden clothespin. */}
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            {/* relative box for the clothespin; line-bound doodles render
+                inside <ReceiptPaper> per row (no overlay layer). */}
+            <div style={{ position: 'relative', width: 'min(300px, 86vw)' }}>
+              {/* clothespin pinching the receipt to the top of the paper —
+                  matches the polaroid-wall clothespins. */}
+              <Clothespin
+                style={{
+                  position: 'absolute',
+                  top: -20,
+                  left: '50%',
+                  width: 30,
+                  height: 42,
+                  marginLeft: -15,
+                  zIndex: 6,
+                  filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.22))',
+                }}
+              />
+              <ReceiptPaper
+                payload={payload}
+                printedCount={printedCount}
+                animate
+                style={{ width: '100%' }}
+              />
+            </div>
+          </div>
 
-        {/* post-print footer: screenshot hint + actions */}
-        <motion.div
-          initial={false}
-          animate={{ opacity: done ? 1 : 0, y: done ? 0 : 8 }}
-          transition={{ duration: 0.4 }}
-          style={{ pointerEvents: done ? 'auto' : 'none', marginTop: 12 }}
-        >
-          <p
-            className="font-pixel"
-            style={{
-              textAlign: 'center',
-              fontSize: 13,
-              color: 'var(--win-magenta)',
-              letterSpacing: '0.5px',
-              marginBottom: 10,
-            }}
+          {/* post-print footer: screenshot hint + actions */}
+          <motion.div
+            initial={false}
+            animate={{ opacity: done ? 1 : 0, y: done ? 0 : 8 }}
+            transition={{ duration: 0.4 }}
+            style={{ pointerEvents: done ? 'auto' : 'none', marginTop: 12 }}
           >
-            📸 screenshot me 💕
-          </p>
-          <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-            <button
-              type="button"
-              onClick={share}
-              className="font-pixel"
-              style={actionBtn(
-                'linear-gradient(180deg,#34e379,var(--whatsapp-green,#25d366))',
-                ['#6cf2a4', '#128a44'],
-              )}
-            >
-              {copied ? 'LINK COPIED ✓' : 'SHARE 💌'}
-            </button>
-            <Link
-              href="/create/love-receipt"
-              onClick={() => playClick()}
+            <p
               className="font-pixel"
               style={{
-                ...actionBtn(
-                  'linear-gradient(180deg,var(--win-hot-pink),var(--win-magenta))',
-                  ['#ffb1d6', '#a01060'],
-                ),
-                textDecoration: 'none',
-                display: 'block',
                 textAlign: 'center',
+                fontSize: 13,
+                color: 'var(--win-magenta)',
+                letterSpacing: '0.5px',
+                marginBottom: 10,
               }}
             >
-              MAKE YOUR OWN 🧾
-            </Link>
-          </div>
-          <button
-            type="button"
-            onClick={replay}
-            className="font-pixel"
-            style={{
-              ...actionBtn('var(--win-chrome)', [
-                'var(--win-chrome-light)',
-                'var(--win-chrome-dark)',
-              ]),
-              color: 'var(--ink, #1a0a2e)',
-              width: '100%',
-            }}
-          >
-            ↻ PRINT AGAIN
-          </button>
-        </motion.div>
-      </Window>
+              📸 screenshot me 💕
+            </p>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+              <button
+                type="button"
+                onClick={share}
+                className="font-pixel"
+                style={actionBtn(
+                  'linear-gradient(180deg,#34e379,var(--whatsapp-green,#25d366))',
+                  ['#6cf2a4', '#128a44'],
+                )}
+              >
+                {copied ? 'LINK COPIED ✓' : 'SHARE 💌'}
+              </button>
+              <Link
+                href="/create/love-receipt"
+                onClick={() => playClick()}
+                className="font-pixel"
+                style={{
+                  ...actionBtn(
+                    'linear-gradient(180deg,var(--win-hot-pink),var(--win-magenta))',
+                    ['#ffb1d6', '#a01060'],
+                  ),
+                  textDecoration: 'none',
+                  display: 'block',
+                  textAlign: 'center',
+                }}
+              >
+                MAKE YOUR OWN 🧾
+              </Link>
+            </div>
+            <button
+              type="button"
+              onClick={replay}
+              className="font-pixel"
+              style={{
+                ...actionBtn('var(--win-chrome)', [
+                  'var(--win-chrome-light)',
+                  'var(--win-chrome-dark)',
+                ]),
+                color: 'var(--ink, #1a0a2e)',
+                width: '100%',
+              }}
+            >
+              ↻ PRINT AGAIN
+            </button>
+          </motion.div>
+        </div>
+      </div>
     </div>
   );
 }

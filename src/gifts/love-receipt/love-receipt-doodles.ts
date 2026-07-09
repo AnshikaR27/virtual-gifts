@@ -28,6 +28,64 @@ import { LOVE_RECEIPT_POOL, type Tone } from './love-receipt-pool';
 /** Base on-paper doodle size at scale 1, in px (mirrors the old STICKER_BASE_PX). */
 export const DOODLE_BASE_PX = 56;
 
+// ── TASTE LISTS — the editable heart of the auto-doodle rule engine ──────────
+// These drive rule-based decoration (see resolveReceiptDoodles). Add words here
+// as the pool grows; matching is whole-word, case-insensitive. Order matters only
+// where noted. Hand-authored LINE_BINDINGS always override the rules.
+
+/** circle-word targets for GIGGLE lines: concrete, funny nouns worth circling. */
+export const FUNNY_NOUNS: readonly string[] = [
+  'dimples',
+  'pookie',
+  'curtains',
+  'nonsense',
+  'dupatta',
+  'hoodie',
+  'launched',
+  'busted',
+  'overtime',
+  'haircut',
+  'loan',
+  'jealous',
+  'feelings',
+  'projection',
+  'overthinking',
+  'nonchalant',
+];
+
+/** underline targets for TENDER lines: emotional keywords worth underlining. */
+export const TENDER_KEYWORDS: readonly string[] = [
+  'you',
+  'forever',
+  'home',
+  'ordinary',
+  'miss',
+  'first',
+  'plan',
+  'sleep',
+  'calm',
+  'favourite',
+  'always',
+  'stay',
+  'safe',
+  'mine',
+];
+
+/** single-word price tags strong enough to circle in the PRICE lane instead of a
+ *  word in the item text (see rule C). Lowercased for matching. */
+export const STRONG_PRICES: readonly string[] = [
+  'kept',
+  'mine',
+  'emi',
+  'busted',
+  'launched',
+  'petty',
+  'champ',
+  'generous',
+  'viral',
+  'tragic',
+];
+
 // ── doodle registry — the 23 real files in /public/stickers/doodles/ ─────────
 export interface Doodle {
   id: string;
@@ -44,6 +102,11 @@ export const DOODLES: Doodle[] = [
     src: `${DOODLE_DIR}/doodle-underline-teal.png`,
   },
   { id: 'doodle-zigzag-blue', src: `${DOODLE_DIR}/doodle-zigzag-blue.png` },
+  // soft periwinkle sine-wave underline (curvy, not the pointed zigzag)
+  {
+    id: 'doodle-wavy-underline',
+    src: `${DOODLE_DIR}/doodle-wavy-underline.png`,
+  },
   {
     id: 'doodle-dashes-lavender',
     src: `${DOODLE_DIR}/doodle-dashes-lavender.png`,
@@ -104,6 +167,17 @@ export const DOODLES: Doodle[] = [
     src: `${DOODLE_DIR}/doodle-single-exclaim.png`,
   },
   { id: 'doodle-multi-exclaim', src: `${DOODLE_DIR}/doodle-multi-exclaim.png` },
+  // hand-painted mustard rays burst — an end-mark (punctuate-after).
+  {
+    id: 'doodle-rays-mustard',
+    src: `${DOODLE_DIR}/doodle-rays-mustard.png`,
+  },
+  // combined "?!" punch as a single hand-drawn asset (an alternative to the
+  // question-mark + single-exclaim pair drawn via `pairWith`). End-mark motif.
+  {
+    id: 'doodle-exclaim-question',
+    src: `${DOODLE_DIR}/doodle-exclaim-question.png`,
+  },
   // solid motifs — barren scatter (filled, no empty core to wrap with)
   { id: 'doodle-pink-heart', src: `${DOODLE_DIR}/doodle-pink-heart.png` },
   { id: 'doodle-heart-card', src: `${DOODLE_DIR}/doodle-heart-card.png` },
@@ -252,12 +326,15 @@ const DEFAULT_HOLLOW: HollowCalibration = {
   nudgeY: 0,
 };
 
-// Word-circle scales pulled in for a restrained hug — the frame should grip the
-// word with a small margin, matching the tucked feel of the number frames, not
-// balloon into a big loud loop. (Trimmed ~15% from the previous values.)
+// Circle-word / circle-price scales: a SNUG hug — the hollow grips the word (or
+// price tag) with only small padding, sized to the wrapped box (objectFit:fill),
+// never a fixed large loop. scaleY runs a touch larger than scaleX so the oval's
+// top/bottom arcs clear the ascenders/descenders instead of cutting the letters.
 /** Hand-tuned centering per hollow doodle. See {@link HollowCalibration}. */
 export const HOLLOW_CALIBRATION: Record<string, HollowCalibration> = {
-  'doodle-oval-lavender': { scaleX: 1.7, scaleY: 1.8, nudgeX: 0, nudgeY: 14 },
+  // the two current circle-word/price assets — snug (was 1.7/1.8, too big).
+  'doodle-oval-lavender': { scaleX: 1.26, scaleY: 1.6, nudgeX: 0, nudgeY: 0 },
+  'doodle-peanut-pink': { scaleX: 1.34, scaleY: 1.72, nudgeX: 0, nudgeY: 0 },
   'doodle-ring': { scaleX: 1.7, scaleY: 1.7, nudgeX: 0, nudgeY: 16 },
   'doodle-star-yellow': { scaleX: 1.95, scaleY: 1.95, nudgeX: -3, nudgeY: 18 },
   'doodle-half-oval': { scaleX: 2.2, scaleY: 1.4, nudgeX: 4, nudgeY: 26 },
@@ -349,6 +426,20 @@ export function wordDoodle(phrase: string): string {
   return HOLLOW_WRAP_PALETTE[hashString(phrase) % HOLLOW_WRAP_PALETTE.length];
 }
 
+// ── (D) end-of-line render shape — used by the punctuate-after anchor ─────────
+/**
+ * A punctuate-after mark resolved to concrete render values. The anchor now lives
+ * in LINE_BINDINGS (one mark per line — see {@link DoodleAnchor} 'punctuate-after'
+ * and {@link PUNCTUATE_AFTER_DOODLES}); this is just the shape the renderer needs
+ * to draw a small motif after the item text. The old standalone END_LINE_BINDINGS
+ * table + resolveEndLineDoodle were folded into LINE_BINDINGS / resolveLineDoodle.
+ */
+export interface ResolvedEndLineDoodle {
+  doodleId: string;
+  scale: number;
+  rotation: number;
+}
+
 // ── (C) barren scatter — solid motifs in structural dead-zones ───────────────
 /** Structural dead-zones a scatter motif may float in (never the center body). */
 export type ScatterZone = 'header' | 'barcode' | 'footer';
@@ -410,57 +501,377 @@ export function resolveScatter(zone: ScatterZone): ScatterPlacement[] {
 
 // ── underline anchor — the surviving author-bound line mark ──────────────────
 /**
- * The only line-bound anchor left: UNDERLINE, a hand-drawn mark under a row.
- * (gutter-left / gutter-right / punctuate-after were removed — doodles never sit
- * beside or after content.)
+ * Line-bound anchors — ONE mark per line (see LINE_BINDINGS → resolveLineDoodle):
+ *   underline       — a hand-drawn mark under ONE target word in the item text,
+ *                     sized to that word (not the whole line/column).
+ *   circle-word     — a hollow oval/shape wrapping ONE target word in the item text.
+ *   circle-price    — a hollow oval/shape wrapping the price tag (a word in the
+ *                     price column).
+ *   punctuate-after — a small motif tucked in AFTER the item text (no target word):
+ *                     the ?! / <3 / !!! of the receipt. Never in the price column.
+ * underline / circle-word / circle-price target a word via {@link LineBinding.target};
+ * punctuate-after ignores target. (gutter-left / gutter-right were removed.)
  */
-export type DoodleAnchor = 'underline';
+export type DoodleAnchor =
+  | 'underline'
+  | 'circle-word'
+  | 'circle-price'
+  | 'punctuate-after';
 
 /** Line-mark doodles valid for the underline anchor (reject mismatches). */
 const LINE_MARK_DOODLES: ReadonlySet<string> = new Set([
   'doodle-underline-teal',
   'doodle-zigzag-blue',
+  'doodle-wavy-underline',
   'doodle-dashes-lavender',
 ]);
 
-/** True for a renderable underline binding (a line-mark doodle on `underline`). */
+/** Hollow doodles valid for the circle-word / circle-price anchors — an empty
+ *  core so the wrapped word/price reads through them (reject solid motifs). */
+const CIRCLE_DOODLES: ReadonlySet<string> = new Set([
+  'doodle-oval-lavender',
+  'doodle-peanut-pink',
+  'doodle-ring',
+  'doodle-star-yellow',
+  'doodle-half-oval',
+  'doodle-red-heart',
+  'doodle-saturn-ring',
+]);
+
+/** Small motifs valid AFTER the item text (punctuate-after) — hearts + the end
+ *  marks the upcoming ?! / !!! pass will use. A binding to anything else is ignored. */
+const PUNCTUATE_AFTER_DOODLES: ReadonlySet<string> = new Set([
+  'doodle-pink-heart',
+  'doodle-math-heart',
+  'doodle-question-mark',
+  'doodle-single-exclaim',
+  'doodle-multi-exclaim',
+  'doodle-exclaim-question',
+  'doodle-rays-mustard',
+  'doodle-sparkle',
+]);
+
+/** True for a renderable line binding — the doodle must match its anchor's set:
+ *  a line-mark under `underline`, a hollow shape under `circle-word`/`circle-price`,
+ *  a small motif under `punctuate-after`. */
 export function isRenderableLineDoodle(d: ResolvedDoodle): boolean {
-  return d.anchor === 'underline' && LINE_MARK_DOODLES.has(d.doodleId);
+  if (d.anchor === 'underline') return LINE_MARK_DOODLES.has(d.doodleId);
+  if (d.anchor === 'circle-word' || d.anchor === 'circle-price') {
+    return CIRCLE_DOODLES.has(d.doodleId);
+  }
+  if (d.anchor === 'punctuate-after') {
+    return (
+      PUNCTUATE_AFTER_DOODLES.has(d.doodleId) &&
+      (!d.pairWith || PUNCTUATE_AFTER_DOODLES.has(d.pairWith))
+    );
+  }
+  return false;
 }
 
 // ── binding tables (underline only) ──────────────────────────────────────────
-/** Per-line "hero" underline — keyed by pool id; overrides any tone binding. */
+/** Per-line "hero" mark — keyed by pool id; overrides any tone binding. */
 export interface LineBinding {
   poolId: string;
   doodleId: string;
   anchor: DoodleAnchor;
-  /** size multiplier (default 1). */
+  /** for circle-word / circle-price: the word to wrap (first case-insensitive
+   *  occurrence in the item text / price). Ignored by the underline anchor. */
+  target?: string;
+  /** punctuate-after only: a SECOND mark drawn tight after `doodleId`, e.g. the
+   *  exclaim of a "?!" pair (there's no single combined ?! asset). */
+  pairWith?: string;
+  /** extra size multiplier on top of the per-doodle calibration (default 1). */
   scale?: number;
   /** rotation in degrees (default 0). */
   rotation?: number;
 }
 
-/** Per-tone baseline underline — applies to any drawn line of this tone. */
-export interface ToneBinding {
-  tone: Tone;
-  doodleId: string;
-  anchor: DoodleAnchor;
-  scale?: number;
-  rotation?: number;
+/**
+ * Per-tone RULE — how a line of this tone is auto-decorated when no hand binding
+ * exists (see TONE_BINDINGS + resolveReceiptDoodles). The mark kinds:
+ *   circle-word        — oval/peanut around a matched FUNNY_NOUN (or quoted word)
+ *   underline-word     — underline under a matched TENDER_KEYWORD (or quoted word)
+ *   end-mark           — a punctuate-after motif (doodleId, optional pairWith)
+ *   end-mark-sometimes — end-mark only when hash(poolId) % oneIn === 0, else bare
+ *   bare               — never marked by rules
+ */
+export interface ToneRule {
+  mark:
+    | 'circle-word'
+    | 'underline-word'
+    | 'end-mark'
+    | 'end-mark-sometimes'
+    | 'bare';
+  doodleId?: string;
+  pairWith?: string;
+  oneIn?: number;
 }
 
-// Underline bindings are intentionally EMPTY: the mechanism is wired and the
-// number-wrap / word-circle / scatter systems carry the doodle density today.
-// Author an underline like:
-//   { poolId: 'lr-081', doodleId: 'doodle-underline-teal', anchor: 'underline' }
-export const LINE_BINDINGS: LineBinding[] = [];
+// The oval + underline pass — one hand-authored mark per line, these 10 lines
+// only; every other line stays bare. Each doodle sizes to its target (the word
+// box or the item-text column), not a fixed size — see the renderer + the snug
+// HOLLOW_CALIBRATION values. Add more lines here to extend the pass.
+export const LINE_BINDINGS: LineBinding[] = [
+  // circle-word — a hollow oval/peanut hugs ONE word in the item text.
+  {
+    poolId: 'lr-056',
+    doodleId: 'doodle-oval-lavender',
+    anchor: 'circle-word',
+    target: 'dimples',
+  },
+  {
+    poolId: 'lr-096',
+    doodleId: 'doodle-peanut-pink',
+    anchor: 'circle-word',
+    target: 'pookie',
+  },
+  {
+    poolId: 'lr-065',
+    doodleId: 'doodle-oval-lavender',
+    anchor: 'circle-word',
+    target: 'curtains',
+  },
+  {
+    poolId: 'lr-039',
+    doodleId: 'doodle-oval-lavender',
+    anchor: 'circle-word',
+    target: 'win', // the word inside the quotes: you let me "win" the argument
+  },
+  {
+    poolId: 'lr-050',
+    doodleId: 'doodle-oval-lavender',
+    anchor: 'circle-word',
+    target: 'nonsense',
+  },
+  // circle-price — the same hug, but around the price tag in the PRICE column.
+  {
+    poolId: 'lr-005',
+    doodleId: 'doodle-oval-lavender',
+    anchor: 'circle-price',
+    target: 'mine',
+  },
+  {
+    poolId: 'lr-002',
+    doodleId: 'doodle-peanut-pink',
+    anchor: 'circle-price',
+    target: 'EMI',
+  },
+  {
+    poolId: 'lr-008',
+    doodleId: 'doodle-oval-lavender',
+    anchor: 'circle-price',
+    target: 'busted',
+  },
+  {
+    poolId: 'lr-060',
+    doodleId: 'doodle-oval-lavender',
+    anchor: 'circle-price',
+    target: 'launched',
+  },
+  // underline — a teal mark under a SINGLE target word (same target-word
+  // mechanism as circle-word), sized to that word, not the whole line.
 
-/** Per-tone underline baselines — intentionally empty for now. */
-export const TONE_BINDINGS: ToneBinding[] = [];
+  // ── TENDER pass ──────────────────────────────────────────────────────────
+  // word-level underline (same mechanism as lr-035 'correct'), one word each.
+  {
+    poolId: 'lr-018',
+    doodleId: 'doodle-underline-teal',
+    anchor: 'underline',
+    target: 'you',
+  },
+  {
+    poolId: 'lr-032',
+    doodleId: 'doodle-underline-teal',
+    anchor: 'underline',
+    target: 'forever',
+  },
+  {
+    poolId: 'lr-164',
+    doodleId: 'doodle-underline-teal',
+    anchor: 'underline',
+    target: 'home',
+  },
+  {
+    poolId: 'lr-083',
+    doodleId: 'doodle-underline-teal',
+    anchor: 'underline',
+    target: 'ordinary',
+  },
+  {
+    poolId: 'lr-067',
+    doodleId: 'doodle-underline-teal',
+    anchor: 'underline',
+    target: 'miss',
+  },
 
-// ── resolution (static map reads, no RNG) ───────────────────────────────────
+  // ── END-MARK pass (punctuate-after — a small motif after the item text) ────
+  // !? (cheeky / disbelief) — the combined single exclaim-question asset.
+  {
+    poolId: 'lr-003',
+    doodleId: 'doodle-exclaim-question',
+    anchor: 'punctuate-after',
+  },
+  {
+    poolId: 'lr-069',
+    doodleId: 'doodle-exclaim-question',
+    anchor: 'punctuate-after',
+  },
+  {
+    poolId: 'lr-155',
+    doodleId: 'doodle-exclaim-question',
+    anchor: 'punctuate-after',
+  },
+  {
+    poolId: 'lr-068',
+    doodleId: 'doodle-exclaim-question',
+    anchor: 'punctuate-after',
+  },
+  {
+    poolId: 'lr-062',
+    doodleId: 'doodle-exclaim-question',
+    anchor: 'punctuate-after',
+  },
+  // <3 (tender-love beat) — the math-heart.
+  {
+    poolId: 'lr-035',
+    doodleId: 'doodle-math-heart',
+    anchor: 'punctuate-after',
+  },
+  {
+    poolId: 'lr-151',
+    doodleId: 'doodle-math-heart',
+    anchor: 'punctuate-after',
+  },
+  {
+    poolId: 'lr-152',
+    doodleId: 'doodle-math-heart',
+    anchor: 'punctuate-after',
+  },
+  {
+    poolId: 'lr-019',
+    doodleId: 'doodle-math-heart',
+    anchor: 'punctuate-after',
+  },
+  {
+    poolId: 'lr-049',
+    doodleId: 'doodle-math-heart',
+    anchor: 'punctuate-after',
+  },
+  // rays (emphasis / ta-da flourish) — the mustard rays burst.
+  {
+    poolId: 'lr-045',
+    doodleId: 'doodle-rays-mustard',
+    anchor: 'punctuate-after',
+  },
+  {
+    poolId: 'lr-100',
+    doodleId: 'doodle-rays-mustard',
+    anchor: 'punctuate-after',
+  },
+  {
+    poolId: 'lr-073',
+    doodleId: 'doodle-rays-mustard',
+    anchor: 'punctuate-after',
+  },
+
+  // ── REVIEW BATCH — hand marks for previously-bare lines ───────────────────
+  // circle-word — hollow oval hugs one word in the item text.
+  {
+    poolId: 'lr-162',
+    doodleId: 'doodle-oval-lavender',
+    anchor: 'circle-word',
+    target: 'wallpaper',
+  },
+  // circle-price — hollow oval/peanut hugs the price tag (a "stamped" punchline).
+  {
+    poolId: 'lr-023',
+    doodleId: 'doodle-oval-lavender',
+    anchor: 'circle-price',
+    target: 'VIP',
+  },
+  {
+    poolId: 'lr-150',
+    doodleId: 'doodle-peanut-pink',
+    anchor: 'circle-price',
+    target: 'unpaid',
+  },
+  {
+    poolId: 'lr-154',
+    doodleId: 'doodle-oval-lavender',
+    anchor: 'circle-price',
+    target: 'unanimous',
+  },
+  {
+    poolId: 'lr-158',
+    doodleId: 'doodle-peanut-pink',
+    anchor: 'circle-price',
+    target: 'approval', // price is "approval fee" — hug the first word
+  },
+  // underline — the new soft wavy stroke under one word (curvy, playful).
+  {
+    poolId: 'lr-156',
+    doodleId: 'doodle-wavy-underline',
+    anchor: 'underline',
+    target: 'more', // ...who loves who "more" — the comparative is the punch
+  },
+  // end-marks — a small motif after the item text.
+  {
+    poolId: 'lr-074',
+    doodleId: 'doodle-math-heart',
+    anchor: 'punctuate-after',
+  },
+  {
+    poolId: 'lr-144',
+    doodleId: 'doodle-math-heart',
+    anchor: 'punctuate-after',
+  },
+  {
+    poolId: 'lr-153',
+    doodleId: 'doodle-math-heart',
+    anchor: 'punctuate-after',
+  },
+  {
+    poolId: 'lr-101',
+    doodleId: 'doodle-sparkle',
+    anchor: 'punctuate-after',
+  },
+  // lr-044 — the combined "!?" mark (exclaim first): incredulous.
+  {
+    poolId: 'lr-044',
+    doodleId: 'doodle-exclaim-question',
+    anchor: 'punctuate-after',
+  },
+  // lr-048 (tender) — "!?" matching the excited "guess what happened today".
+  {
+    poolId: 'lr-048',
+    doodleId: 'doodle-exclaim-question',
+    anchor: 'punctuate-after',
+  },
+
+  // NOTE: lr-002 (→ math-heart) and lr-060 (→ rays) from the brief are intentionally
+  // NOT bound here — they already carry circle-price ovals (EMI / launched) from the
+  // oval pass, and the author chose to KEEP those ovals (one mark per line).
+];
+
+/**
+ * The tone → auto-mark table (rule A). This is the rule layer that fills lines
+ * LINE_BINDINGS doesn't hand-pick. Edit freely; LINE_BINDINGS still wins.
+ */
+export const TONE_BINDINGS: Record<Tone, ToneRule> = {
+  giggle: { mark: 'circle-word' },
+  petty: { mark: 'end-mark', doodleId: 'doodle-rays-mustard' },
+  delulu: { mark: 'end-mark', doodleId: 'doodle-exclaim-question' },
+  tender: { mark: 'underline-word' },
+  'real-life': {
+    mark: 'end-mark-sometimes',
+    doodleId: 'doodle-math-heart',
+    oneIn: 4,
+  },
+  'almost-moment': { mark: 'bare' },
+};
+
+// ── resolution (static reads, deterministic — no RNG, so preview == print) ───
 const LINE_BINDING_BY_POOL = new Map(LINE_BINDINGS.map((b) => [b.poolId, b]));
-const TONE_BINDING_BY_TONE = new Map(TONE_BINDINGS.map((b) => [b.tone, b]));
 /** pool id → tone, the equivalent of POOL_BY_ID.get(poolId).tone. */
 const TONE_BY_POOL_ID = new Map(LOVE_RECEIPT_POOL.map((l) => [l.id, l.tone]));
 
@@ -468,6 +879,10 @@ const TONE_BY_POOL_ID = new Map(LOVE_RECEIPT_POOL.map((l) => [l.id, l.tone]));
 export interface ResolvedDoodle {
   doodleId: string;
   anchor: DoodleAnchor;
+  /** circle-word / circle-price: the word to wrap (undefined for underline). */
+  target?: string;
+  /** punctuate-after: a second mark drawn tight after doodleId (?! pair). */
+  pairWith?: string;
   scale: number;
   rotation: number;
 }
@@ -475,30 +890,276 @@ export interface ResolvedDoodle {
 function resolve(b: {
   doodleId: string;
   anchor: DoodleAnchor;
+  target?: string;
+  pairWith?: string;
   scale?: number;
   rotation?: number;
 }): ResolvedDoodle {
   return {
     doodleId: b.doodleId,
     anchor: b.anchor,
+    target: b.target,
+    pairWith: b.pairWith,
     scale: b.scale ?? 1,
     rotation: b.rotation ?? 0,
   };
 }
 
-/**
- * Resolve the underline for an item row: per-line binding first (by poolId), else
- * the per-tone baseline (by the tone derived from poolId). Returns null when the
- * line has no poolId (custom/user-added lines) or nothing is bound.
- */
+/** The hand-authored mark for a line (LINE_BINDINGS only), or null. The rule layer
+ *  lives in {@link resolveReceiptDoodles}; hand bindings always win over it. */
 export function resolveLineDoodle(poolId?: string): ResolvedDoodle | null {
   if (!poolId) return null;
-  const line = LINE_BINDING_BY_POOL.get(poolId);
-  if (line) return resolve(line);
-  const tone = TONE_BY_POOL_ID.get(poolId);
-  if (tone) {
-    const toneBinding = TONE_BINDING_BY_TONE.get(tone);
-    if (toneBinding) return resolve(toneBinding);
+  const b = LINE_BINDING_BY_POOL.get(poolId);
+  return b ? resolve(b) : null;
+}
+
+// ── rule engine (auto-doodle) ────────────────────────────────────────────────
+// Deterministic per receipt (no RNG) so the sender preview and recipient print
+// render identically. Resolution order per line: (1) LINE_BINDINGS, (2) the tone
+// rule below, (3) global governors across the whole draw.
+
+/** The two circle shapes alternate across a draw so two circles never repeat. */
+const CIRCLE_ALT: readonly string[] = [
+  'doodle-oval-lavender',
+  'doodle-peanut-pink',
+];
+const UNDERLINE_DOODLE = 'doodle-underline-teal';
+
+/** Drop-priority for the coverage cap (higher = kept longer). */
+const PRIORITY = {
+  hand: 5,
+  price: 4,
+  circle: 3,
+  underline: 2,
+  end: 1,
+} as const;
+
+const FUNNY_NOUN_SET = new Set(FUNNY_NOUNS);
+const TENDER_KEYWORD_SET = new Set(TENDER_KEYWORDS);
+const STRONG_PRICE_SET = new Set(STRONG_PRICES);
+
+/** lowercase whole-words of a line (letters + apostrophes). */
+function wordsOf(text: string): string[] {
+  return text.toLowerCase().match(/[a-z']+/g) ?? [];
+}
+
+/**
+ * The word to mark (circle/underline), or null — checked in order (rule B):
+ *   1. a single-word DOUBLE-quoted word,
+ *   2. the last meaningful word (≥4 letters) inside a trailing (parenthetical),
+ *   3. the first word present in `keywords`.
+ * Never returns a random word: no match → null (line falls through to bare).
+ */
+function wordTarget(
+  text: string,
+  keywords: ReadonlySet<string>,
+): string | null {
+  const quoted = text.match(/["“”]([A-Za-z]+)["“”]/);
+  if (quoted) return quoted[1];
+  const paren = text.match(/\(([^)]*)\)\s*$/);
+  if (paren) {
+    const inside = paren[1].toLowerCase().match(/[a-z']{4,}/g);
+    if (inside && inside.length) return inside[inside.length - 1];
   }
+  for (const w of wordsOf(text)) if (keywords.has(w)) return w;
   return null;
+}
+
+/** The price tag if it's a single word in STRONG_PRICES (rule C), else null. */
+function strongPriceTarget(price: string): string | null {
+  const p = price.trim();
+  if (!p || /\s/.test(p)) return null; // never circle a multi-word price
+  return STRONG_PRICE_SET.has(p.toLowerCase()) ? p : null;
+}
+
+interface MarkCandidate {
+  doodle: ResolvedDoodle;
+  priority: number;
+  /** 'item' (left column word), 'price' (right column word), or 'end' (after text). */
+  side: 'item' | 'price' | 'end';
+  /** circle-word/circle-price whose shape is assigned by alternation (rule-only). */
+  circleAlt: boolean;
+  fromHand: boolean;
+}
+
+function anchorSide(anchor: DoodleAnchor): 'item' | 'price' | 'end' {
+  if (anchor === 'circle-price') return 'price';
+  if (anchor === 'punctuate-after') return 'end';
+  return 'item';
+}
+
+/** The rule-layer candidate for a line (no hand binding), or null (bare). */
+function ruleCandidate(
+  poolId: string,
+  text: string,
+  price: string,
+): MarkCandidate | null {
+  const tone = TONE_BY_POOL_ID.get(poolId);
+  if (!tone) return null;
+  const rule = TONE_BINDINGS[tone];
+  if (rule.mark === 'bare') return null; // almost-moment: always bare, even w/ price
+
+  // (C) price-circle wins over the tone's word/end mark when the price qualifies.
+  const priceWord = strongPriceTarget(price);
+  if (priceWord) {
+    return {
+      doodle: {
+        doodleId: '',
+        anchor: 'circle-price',
+        target: priceWord,
+        scale: 1,
+        rotation: 0,
+      },
+      priority: PRIORITY.price,
+      side: 'price',
+      circleAlt: true,
+      fromHand: false,
+    };
+  }
+
+  switch (rule.mark) {
+    case 'circle-word': {
+      const t = wordTarget(text, FUNNY_NOUN_SET);
+      if (!t) return null;
+      return {
+        doodle: {
+          doodleId: '',
+          anchor: 'circle-word',
+          target: t,
+          scale: 1,
+          rotation: 0,
+        },
+        priority: PRIORITY.circle,
+        side: 'item',
+        circleAlt: true,
+        fromHand: false,
+      };
+    }
+    case 'underline-word': {
+      const t = wordTarget(text, TENDER_KEYWORD_SET);
+      if (!t) return null;
+      return {
+        doodle: {
+          doodleId: UNDERLINE_DOODLE,
+          anchor: 'underline',
+          target: t,
+          scale: 1,
+          rotation: 0,
+        },
+        priority: PRIORITY.underline,
+        side: 'item',
+        circleAlt: false,
+        fromHand: false,
+      };
+    }
+    case 'end-mark':
+    case 'end-mark-sometimes': {
+      if (
+        rule.mark === 'end-mark-sometimes' &&
+        hashString(poolId) % (rule.oneIn ?? 4) !== 0
+      ) {
+        return null;
+      }
+      return {
+        doodle: {
+          doodleId: rule.doodleId ?? 'doodle-math-heart',
+          pairWith: rule.pairWith,
+          anchor: 'punctuate-after',
+          scale: 1,
+          rotation: 0,
+        },
+        priority: PRIORITY.end,
+        side: 'end',
+        circleAlt: false,
+        fromHand: false,
+      };
+    }
+  }
+}
+
+/**
+ * Resolve EVERY item line's doodle for one receipt, applying the full pipeline:
+ *   1. LINE_BINDINGS (hand) — wins; 2. tone rule; 3. global governors across the
+ *   draw: coverage cap (~40%), no adjacent double-marks, no repeated doodle
+ *   (number-wraps exempt — they're a separate layer), one mark per line, circle
+ *   shapes alternated. Returns an array aligned to `lines` (null = bare line).
+ */
+export function resolveReceiptDoodles(
+  lines: ReadonlyArray<{ poolId?: string; text: string; price: string }>,
+): (ResolvedDoodle | null)[] {
+  const n = lines.length;
+
+  // (1)+(2) per-line candidate: hand binding, else tone rule (deterministic).
+  const cands: (MarkCandidate | null)[] = lines.map((line) => {
+    const poolId = line.poolId;
+    if (!poolId) return null; // custom/user line → no doodle
+    const hand = LINE_BINDING_BY_POOL.get(poolId);
+    if (hand) {
+      return {
+        doodle: resolve(hand),
+        priority: PRIORITY.hand,
+        side: anchorSide(hand.anchor),
+        circleAlt: false, // hand shapes are explicit; never reassigned
+        fromHand: true,
+      };
+    }
+    return ruleCandidate(poolId, line.text, line.price);
+  });
+
+  // (3) governors — TWO PASSES so hand bindings are IMMUNE.
+  const chosen = new Set<number>();
+  const usedDoodles = new Set<string>();
+  let altIdx = 0;
+
+  // PASS 1 — hand bindings ALWAYS render. They're curated author picks, so they
+  // bypass the cap / adjacency / no-repeat governors entirely; the governors may
+  // only ever trim RULE-generated marks, never a hand binding. (Two hand marks
+  // may therefore land adjacent — that's the author's call, by design.)
+  cands.forEach((c, i) => {
+    if (!c || !c.fromHand) return;
+    chosen.add(i);
+    usedDoodles.add(c.doodle.doodleId); // hand shapes are explicit (circleAlt=false)
+  });
+
+  // PASS 2 — rule marks fill the remaining gaps, governed. The coverage cap counts
+  // the hand marks already placed (and never drops below them, so hand picks never
+  // "use up" the budget at the rules' expense); no adjacency to ANY chosen row
+  // (hand or rule); no repeated doodle in the draw.
+  const cap = Math.max(chosen.size, Math.floor(n * 0.4)); // ≤40% of lines, or more if hand-heavy
+  const ruleOrder = cands
+    .map((c, i) => ({ c, i }))
+    .filter(
+      (x): x is { c: MarkCandidate; i: number } => x.c != null && !x.c.fromHand,
+    )
+    .sort((a, b) => b.c.priority - a.c.priority || a.i - b.i);
+
+  for (const { c, i } of ruleOrder) {
+    if (chosen.has(i)) continue;
+    if (chosen.size >= cap) break; // coverage cap reached
+    if (chosen.has(i - 1) || chosen.has(i + 1)) continue; // no adjacent doubles
+
+    // effective doodle id: alternate circle shapes so two circles never repeat.
+    const doodleId = c.circleAlt
+      ? CIRCLE_ALT[altIdx % CIRCLE_ALT.length]
+      : c.doodle.doodleId;
+    if (usedDoodles.has(doodleId)) continue; // no repeated doodle in a draw
+
+    if (c.circleAlt) {
+      c.doodle.doodleId = doodleId;
+      altIdx++;
+    }
+    chosen.add(i);
+    usedDoodles.add(doodleId);
+  }
+  // NOTE: "prefer alternating sides" is best-effort — it emerges from the tone→side
+  // mapping (giggle=item / petty+delulu=end / strong-price=price) plus the
+  // no-adjacent rule; it isn't separately enforced. The hard governors above
+  // (cap, adjacency, no-repeat, one-per-line) are enforced on RULE marks only —
+  // hand bindings are immune (PASS 1).
+
+  const result: (ResolvedDoodle | null)[] = lines.map(() => null);
+  chosen.forEach((i) => {
+    result[i] = cands[i]!.doodle;
+  });
+  return result;
 }

@@ -117,7 +117,7 @@ export const LOVE_RECEIPT_POOL: PoolLine[] = [
   },
   {
     id: 'lr-035',
-    text: `you finish my sentences (annoying, correct)`,
+    text: `you finish my sentences`,
     price: `same brain`,
     tone: 'giggle',
     side: 'funny',
@@ -427,7 +427,7 @@ export const LOVE_RECEIPT_POOL: PoolLine[] = [
   {
     id: 'lr-158',
     text: `you touched mummy's feet and she texted me "ladka achha hai"`,
-    price: `endorsed`,
+    price: `approval fee`,
     tone: 'giggle',
     side: 'funny',
     lang: 'en',

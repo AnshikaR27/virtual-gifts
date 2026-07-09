@@ -10,16 +10,16 @@ import {
   type ReceiptPayload,
 } from './lines';
 import {
-  DOODLE_BASE_PX,
   doodleSrc,
   hollowCalibration,
   isRenderableLineDoodle,
   numberFrameCalibration,
   numberWrapForReceipt,
-  resolveLineDoodle,
+  resolveReceiptDoodles,
   resolveScatter,
   wordDoodle,
   type ResolvedDoodle,
+  type ResolvedEndLineDoodle,
   type ScatterZone,
 } from './love-receipt-doodles';
 import {
@@ -240,6 +240,9 @@ export function ReceiptPaper({
   // Number-wrap doodles are decided PER RECEIPT (heart is a rare per-receipt
   // surprise), so resolve the whole column once and index by lineIndex below.
   const numberWraps = numberWrapForReceipt(payload.lines);
+  // Line marks (hand bindings + rule engine + governors) are ALSO whole-receipt
+  // decisions (coverage cap, adjacency, no-repeat), so resolve once and index below.
+  const lineDoodles = resolveReceiptDoodles(payload.lines);
 
   // Leading contiguous run of band rows (just the header). It gets wrapped in a
   // full-bleed periwinkle container so the band ends right below the subtitle.
@@ -330,7 +333,13 @@ export function ReceiptPaper({
               <div style={{ position: 'relative', zIndex: 1 }}>
                 {seq.slice(0, bandShown).map((row, i) => (
                   <Row key={i} animate={animate}>
-                    {renderRow(row, payload, editable, numberWraps)}
+                    {renderRow(
+                      row,
+                      payload,
+                      editable,
+                      numberWraps,
+                      lineDoodles,
+                    )}
                   </Row>
                 ))}
               </div>
@@ -339,7 +348,7 @@ export function ReceiptPaper({
           {shown > bandCount
             ? seq.slice(bandCount, shown).map((row, i) => (
                 <Row key={bandCount + i} animate={animate}>
-                  {renderRow(row, payload, editable, numberWraps)}
+                  {renderRow(row, payload, editable, numberWraps, lineDoodles)}
                 </Row>
               ))
             : null}
@@ -380,6 +389,7 @@ function renderRow(
   payload: ReceiptPayload,
   editable: ReceiptEditable | undefined,
   numberWraps: (string | null)[],
+  lineDoodles: (ResolvedDoodle | null)[],
 ): React.ReactNode {
   switch (row.kind) {
     case 'header':
@@ -403,11 +413,10 @@ function renderRow(
       // The QTY/ITEM/PRICE column header (with its lower dashed rule) prints atop
       // the first item — its upper rule is the sequence rule just before items.
       const header = row.lineIndex === 0 ? <ItemsHeader /> : null;
-      // Resolve the author-bound UNDERLINE (per-line, else per-tone). null when
-      // the line has no poolId (custom lines) or nothing is bound. word-circle is
-      // handled inside ItemRow/EditableItem; the number-wrap was resolved for the
-      // whole receipt and is indexed here.
-      const doodle = resolveLineDoodle(line.poolId);
+      // The line's ONE mark (hand binding → rule engine → governors), resolved for
+      // the whole receipt and indexed here. null when the line is bare. Same for
+      // the number-wrap (a separate qty-digit layer).
+      const doodle = lineDoodles[row.lineIndex!] ?? null;
       const wrapDoodleId = numberWraps[row.lineIndex!] ?? null;
       const body = editable ? (
         <EditableItem
@@ -480,49 +489,93 @@ function renderRow(
   }
 }
 
-// ── underline (the surviving line-bound anchor) ─────────────────────────
-/**
- * Renders an author-bound UNDERLINE as an absolutely-positioned child of its
- * `position: relative` row: a thin centered mark at the row baseline that accents
- * the line without obscuring it. No getBoundingClientRect — the browser positions
- * it against the row's own box, so it tracks height and rides the print fade.
- *
- * gutter / punctuate anchors were removed; a binding that isn't a valid line-mark
- * underline is safely ignored (isRenderableLineDoodle).
- */
-function DoodleMark({ doodle }: { doodle: ResolvedDoodle }) {
-  const src = doodleSrc(doodle.doodleId);
-  if (!src || !isRenderableLineDoodle(doodle)) return null;
+// (The old column-level underline `DoodleMark` was removed — underline is now a
+// WORD-level mark drawn by WordMark/WordUnderline, exactly like circle-word.)
 
-  const px = Math.round(DOODLE_BASE_PX * doodle.scale);
-  const h = Math.max(8, Math.round(16 * doodle.scale));
+// ── end-of-line doodle — a small motif after the line text ──────────────
+/**
+ * A small hand-authored doodle tucked in just after the line's text, before the
+ * price column — the ?! / <3 of a cute paper receipt. Rendered INLINE at the end
+ * of the text flow, so it rides at the tail of the last wrapped row and sits in
+ * the line's empty space; sized in em so it tracks the row's font size. Solid
+ * motif art, so it takes the same ink boost as the barren scatter.
+ */
+// Per-doodle width/height ratio (w/h) so an end-mark box HUGS its glyph instead of
+// padding a narrow "?" or "!" inside a square (which is what pushed them apart).
+// Unlisted marks default to square.
+const END_MARK_ASPECT: Record<string, number> = {
+  'doodle-question-mark': 0.62,
+  'doodle-single-exclaim': 0.3,
+  'doodle-math-heart': 1.34,
+  'doodle-rays-mustard': 0.84,
+  'doodle-exclaim-question': 0.84, // combined "?!" — extracted 671×800
+};
+
+function EndLineDoodle({
+  doodle,
+  tight = false,
+}: {
+  doodle: ResolvedEndLineDoodle;
+  /** the second mark of a pair (?!): tuck it right up against the first. */
+  tight?: boolean;
+}) {
+  const src = doodleSrc(doodle.doodleId);
+  if (!src) return null;
+  // Height ~ the line's cap height so it reads inline with the text; width follows
+  // the glyph's aspect so the box isn't padded.
+  const h = 1.05 * doodle.scale; // em
+  const w = h * (END_MARK_ASPECT[doodle.doodleId] ?? 1);
   return (
     <span
       aria-hidden
       style={{
-        position: 'absolute',
-        left: 0,
-        right: 0,
-        bottom: -1,
-        height: h,
+        display: 'inline-block',
+        position: 'relative',
+        width: `${w}em`,
+        height: `${h}em`,
+        // snug right after the last word; the pair's 2nd glyph pulls IN (negative)
+        // to offset each PNG's transparent margin so "?!" reads as one tight unit.
+        marginLeft: tight ? '-0.08em' : '0.15em',
+        verticalAlign: '-0.1em',
         pointerEvents: 'none',
-        zIndex: 0,
       }}
     >
       <Image
         src={src}
         alt=""
-        width={px}
-        height={px}
+        fill
+        sizes="40px"
         draggable={false}
         style={{
-          width: '100%',
-          height: '100%',
           objectFit: 'contain',
+          filter: DOODLE_INK_FILTER,
           transform: doodle.rotation
             ? `rotate(${doodle.rotation}deg)`
             : undefined,
         }}
+      />
+    </span>
+  );
+}
+
+/**
+ * A punctuate-after mark: the doodle tucked after the item text, plus its optional
+ * pair drawn tight against it (the exclaim of a "?!"). One logical mark per line.
+ */
+function EndMark({ doodle }: { doodle: ResolvedDoodle }) {
+  if (!doodle.pairWith) return <EndLineDoodle doodle={doodle} />;
+  // nowrap so the two glyphs of a "?!" never split across a line wrap — the pair
+  // still moves to the next line together when it doesn't fit after the text.
+  return (
+    <span style={{ whiteSpace: 'nowrap' }}>
+      <EndLineDoodle doodle={doodle} />
+      <EndLineDoodle
+        doodle={{
+          doodleId: doodle.pairWith,
+          scale: doodle.scale,
+          rotation: doodle.rotation,
+        }}
+        tight
       />
     </span>
   );
@@ -541,7 +594,14 @@ function DoodleMark({ doodle }: { doodle: ResolvedDoodle }) {
  * Because it overlays the host box, a framed word moves and re-wraps with the
  * surrounding line for free, and the same config wraps a number or a word.
  */
-function HollowFrame({ doodleId }: { doodleId: string }) {
+function HollowFrame({
+  doodleId,
+  scale = 1,
+}: {
+  doodleId: string;
+  /** extra multiplier on the calibrated snug fit (binding.scale; default 1). */
+  scale?: number;
+}) {
   const src = doodleSrc(doodleId);
   if (!src) return null;
   const c = hollowCalibration(doodleId);
@@ -551,7 +611,7 @@ function HollowFrame({ doodleId }: { doodleId: string }) {
       style={{
         position: 'absolute',
         inset: 0,
-        transform: `translate(${c.nudgeX}%, ${c.nudgeY}%) scale(${c.scaleX}, ${c.scaleY})`,
+        transform: `translate(${c.nudgeX}%, ${c.nudgeY}%) scale(${c.scaleX * scale}, ${c.scaleY * scale})`,
         transformOrigin: 'center',
         pointerEvents: 'none',
         zIndex: 0,
@@ -663,7 +723,8 @@ function MarkedText({ text }: { text: string }) {
             style={{ position: 'relative', display: 'inline-block' }}
           >
             <span style={{ position: 'relative', zIndex: 1 }}>{seg.text}</span>
-            {/* re-enable the circle by setting WORD_CIRCLE_ENABLED = true above */}
+            {/* re-enable the marker-driven circle by setting WORD_CIRCLE_ENABLED
+                = true above; the author-bound word marks are WordMark below */}
             {WORD_CIRCLE_ENABLED ? (
               <HollowFrame doodleId={wordDoodle(seg.text)} />
             ) : null}
@@ -674,6 +735,114 @@ function MarkedText({ text }: { text: string }) {
       )}
     </>
   );
+}
+
+/**
+ * Word-level line mark: splits `text` at the first case-insensitive occurrence of
+ * `binding.target` and marks JUST that word (or price tag), sized to the word's own
+ * box. The word rides above the mark (zIndex 1), fully readable. By anchor:
+ *   circle-word / circle-price → a hollow frame around the word ({@link HollowFrame})
+ *   underline                  → an underline stroke under the word ({@link WordUnderline})
+ * A binding whose doodle doesn't match its anchor, or whose target is missing/not
+ * found, is ignored and the text renders plain.
+ */
+function WordMark({
+  text,
+  binding,
+}: {
+  text: string;
+  binding: ResolvedDoodle;
+}) {
+  const renderable = isRenderableLineDoodle(binding);
+  const isUnderline = binding.anchor === 'underline';
+  const segs = splitAtWord(text, binding.target);
+  return (
+    <>
+      {segs.map((seg, i) =>
+        seg.marked && renderable ? (
+          <span
+            key={i}
+            style={{ position: 'relative', display: 'inline-block' }}
+          >
+            <span style={{ position: 'relative', zIndex: 1 }}>{seg.text}</span>
+            {isUnderline ? (
+              <WordUnderline
+                doodleId={binding.doodleId}
+                scale={binding.scale}
+              />
+            ) : (
+              <HollowFrame doodleId={binding.doodleId} scale={binding.scale} />
+            )}
+          </span>
+        ) : (
+          <span key={i}>{seg.text}</span>
+        ),
+      )}
+    </>
+  );
+}
+
+/**
+ * The underline stroke under a single wrapped word: an absolutely-positioned child
+ * of the word's relative inline-block span, spanning the word's width (with a hair
+ * of overhang) and sitting just below its baseline. objectFit:fill stretches the
+ * brush PNG to the word width; offsets are in em so it tracks the font size.
+ */
+function WordUnderline({
+  doodleId,
+  scale = 1,
+}: {
+  doodleId: string;
+  scale?: number;
+}) {
+  const src = doodleSrc(doodleId);
+  if (!src) return null;
+  return (
+    <span
+      aria-hidden
+      style={{
+        position: 'absolute',
+        // small horizontal overhang so the stroke reads hand-drawn past the word
+        left: '-8%',
+        right: '-8%',
+        // sit just under the baseline: the stroke's TOP lands a hair below the
+        // letters (not through them = too high, not floating below = too low).
+        // Thin-ish height so a thick stroke doesn't ride up into the word.
+        bottom: `${0.02 * scale}em`,
+        height: `${0.22 * scale}em`,
+        pointerEvents: 'none',
+        zIndex: 0,
+      }}
+    >
+      <Image
+        src={src}
+        alt=""
+        fill
+        sizes="80px"
+        draggable={false}
+        style={{ objectFit: 'fill', filter: doodleFrameFilter(doodleId) }}
+      />
+    </span>
+  );
+}
+
+/** Split text into [before, target, after], flagging the target run. Matches the
+ *  FIRST case-insensitive occurrence and preserves the source casing. Falls back
+ *  to a single unmarked segment when the target is missing/empty. */
+function splitAtWord(
+  text: string,
+  target?: string,
+): { text: string; marked: boolean }[] {
+  if (!target) return [{ text, marked: false }];
+  const idx = text.toLowerCase().indexOf(target.toLowerCase());
+  if (idx === -1) return [{ text, marked: false }];
+  const out: { text: string; marked: boolean }[] = [];
+  if (idx > 0) out.push({ text: text.slice(0, idx), marked: false });
+  out.push({ text: text.slice(idx, idx + target.length), marked: true });
+  if (idx + target.length < text.length) {
+    out.push({ text: text.slice(idx + target.length), marked: false });
+  }
+  return out;
 }
 
 /**
@@ -902,8 +1071,11 @@ function ItemRow({
   price: string;
   index: number;
   wrapDoodleId: string | null;
+  /** the line's one resolved mark: underline | circle-word | circle-price |
+   *  punctuate-after (or none). */
   doodle?: ResolvedDoodle | null;
 }) {
+  const { itemMark, priceMark, endMark } = routeLineMark(doodle);
   return (
     <div
       style={{
@@ -920,13 +1092,39 @@ function ItemRow({
       }}
     >
       <QtyCell index={index} doodleId={wrapDoodleId} />
-      <span style={ITEM_COL}>
-        <MarkedText text={text} />
+      <span style={{ ...ITEM_COL, position: 'relative' }}>
+        {itemMark ? (
+          <WordMark text={text} binding={itemMark} />
+        ) : (
+          <MarkedText text={text} />
+        )}
+        {endMark ? <EndMark doodle={endMark} /> : null}
       </span>
-      <span style={PRICE_COL}>{price}</span>
-      {doodle ? <DoodleMark doodle={doodle} /> : null}
+      <span style={{ ...PRICE_COL, position: 'relative' }}>
+        {priceMark ? <WordMark text={price} binding={priceMark} /> : price}
+      </span>
     </div>
   );
+}
+
+/**
+ * Route a line's single resolved mark to the right slot by anchor:
+ *   itemMark  — circle-word / underline → a word in the ITEM text (WordMark)
+ *   priceMark — circle-price            → a word in the PRICE column (WordMark)
+ *   endMark   — punctuate-after         → a small motif AFTER the item text
+ */
+function routeLineMark(doodle?: ResolvedDoodle | null): {
+  itemMark: ResolvedDoodle | null;
+  priceMark: ResolvedDoodle | null;
+  endMark: ResolvedDoodle | null;
+} {
+  const itemMark =
+    doodle && (doodle.anchor === 'circle-word' || doodle.anchor === 'underline')
+      ? doodle
+      : null;
+  const priceMark = doodle?.anchor === 'circle-price' ? doodle : null;
+  const endMark = doodle?.anchor === 'punctuate-after' ? doodle : null;
+  return { itemMark, priceMark, endMark };
 }
 
 // ── editable line: tap to expand into an inline editor on the paper ─────
@@ -965,6 +1163,8 @@ function EditableItem({
   }, [active, line.id]);
 
   if (!active) {
+    // Same anchor routing as ItemRow so the editor preview matches the print.
+    const { itemMark, priceMark, endMark } = routeLineMark(doodle);
     return (
       <button
         type="button"
@@ -989,11 +1189,21 @@ function EditableItem({
         }}
       >
         <QtyCell index={index} doodleId={wrapDoodleId} />
-        <span style={ITEM_COL}>
-          <MarkedText text={line.text} />
+        <span style={{ ...ITEM_COL, position: 'relative' }}>
+          {itemMark ? (
+            <WordMark text={line.text} binding={itemMark} />
+          ) : (
+            <MarkedText text={line.text} />
+          )}
+          {endMark ? <EndMark doodle={endMark} /> : null}
         </span>
-        <span style={PRICE_COL}>{line.price}</span>
-        {doodle ? <DoodleMark doodle={doodle} /> : null}
+        <span style={{ ...PRICE_COL, position: 'relative' }}>
+          {priceMark ? (
+            <WordMark text={line.price} binding={priceMark} />
+          ) : (
+            line.price
+          )}
+        </span>
       </button>
     );
   }
