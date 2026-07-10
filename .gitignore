@@ -49,14 +49,45 @@ __pycache__/
 /receipt-all-six.png
 # large raw sticker source art (local-only; feeds scripts/extract-doodles.py)
 /assets/stickers/
-# commit ONLY the active doodle PNGs; ignore the rest of the catalog
+# Commit every PNG the DOODLES registry references (src/gifts/love-receipt/
+# love-receipt-doodles.ts); ignore the rest of the extracted catalog. A doodle
+# missing here 404s on Vercel even though it renders locally, so keep this list
+# in sync when adding a registry entry.
 /public/stickers/doodles/*
-!/public/stickers/doodles/doodle-saturn-bold.png
-!/public/stickers/doodles/doodle-star-teal-bold.png
-!/public/stickers/doodles/doodle-heart-rosepink-bold.png
 !/public/stickers/doodles/doodle-dashes-lavender.png
 !/public/stickers/doodles/doodle-dashes-lavender-right.png
+!/public/stickers/doodles/doodle-exclaim-question.png
+!/public/stickers/doodles/doodle-half-oval.png
+!/public/stickers/doodles/doodle-heart-candy.png
+!/public/stickers/doodles/doodle-heart-card.png
+!/public/stickers/doodles/doodle-heart-magenta-bold.png
+!/public/stickers/doodles/doodle-heart-red-bold.png
+!/public/stickers/doodles/doodle-heart-rose-bold.png
+!/public/stickers/doodles/doodle-heart-rosepink-bold.png
+!/public/stickers/doodles/doodle-heart-skyblue-bold.png
+!/public/stickers/doodles/doodle-kiss.png
+!/public/stickers/doodles/doodle-lock.png
+!/public/stickers/doodles/doodle-love-letter.png
+!/public/stickers/doodles/doodle-math-heart.png
+!/public/stickers/doodles/doodle-multi-exclaim.png
+!/public/stickers/doodles/doodle-oval-lavender.png
+!/public/stickers/doodles/doodle-peanut-pink.png
+!/public/stickers/doodles/doodle-pink-heart.png
+!/public/stickers/doodles/doodle-question-mark.png
+!/public/stickers/doodles/doodle-rays-mustard.png
+!/public/stickers/doodles/doodle-red-heart.png
+!/public/stickers/doodles/doodle-ring.png
+!/public/stickers/doodles/doodle-saturn-bold.png
+!/public/stickers/doodles/doodle-saturn-ring.png
+!/public/stickers/doodles/doodle-single-exclaim.png
+!/public/stickers/doodles/doodle-sparkle.png
+!/public/stickers/doodles/doodle-star-coral.png
+!/public/stickers/doodles/doodle-star-coral-bold.png
+!/public/stickers/doodles/doodle-star-teal-bold.png
+!/public/stickers/doodles/doodle-star-yellow.png
+!/public/stickers/doodles/doodle-toffee.png
 !/public/stickers/doodles/doodle-underline-teal.png
 !/public/stickers/doodles/doodle-wavy-underline.png
-!/public/stickers/doodles/doodle-rays-mustard.png
-!/public/stickers/doodles/doodle-exclaim-question.png
+!/public/stickers/doodles/doodle-wine-glass.png
+!/public/stickers/doodles/doodle-zigzag-blue.png
+!/public/stickers/doodles/sticker-bouquet.png
