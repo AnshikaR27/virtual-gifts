@@ -62,6 +62,9 @@ const PAPER = '#fbfbf9';
 const EDIT_ACCENT = '#b6303a';
 const EDIT_BG = 'rgba(182, 48, 58, 0.07)';
 const EDIT_HINT = 'rgba(26, 26, 26, 0.26)';
+// Item-line font size, shared by the printed ItemRow and the builder's editable
+// row so the two can't drift. (Briefly previewed at 11; kept at 12.5.)
+const ITEM_LINE_FONT_SIZE = 12.5;
 // Soft periwinkle header band (the Receiptify reference strip behind the store
 // name). Light enough that the near-black ink title stays high-contrast on it.
 const HEADER_BAND = '#c3c8ee';
@@ -107,17 +110,27 @@ const GRAIN =
 // the numbers, titles and prices line up. Item text wraps inside its own column
 // (already inset past the qty column); the price stays top-aligned on the right.
 const QTY_COL: CSSProperties = { flex: '0 0 auto', width: '2.2em' };
+// ITEM gets all the slack left after QTY + PRICE and wraps WHOLE WORDS only:
+// `break-word` + `word-break: normal` keep its min-content = the longest word
+// (never 1ch). min-width stays `auto` (NOT 0) so flexbox HONOURS that min-content
+// floor — a wide price can no longer squeeze the lane below its longest word and
+// force a mid-letter break (HAIRC/UT). No word is ever split mid-letter. (#2's
+// one-word-per-line price keeps the price column narrow so this can't overflow.)
 const ITEM_COL: CSSProperties = {
   flex: '1 1 auto',
-  minWidth: 0,
-  overflowWrap: 'anywhere',
+  overflowWrap: 'break-word',
+  wordBreak: 'normal',
 };
+// PRICE is its OWN right-aligned lane, taking only as much as its content needs
+// (flex 0 0 auto, no shrink). Because ITEM flex-grows, every price pins to the
+// same right edge. No maxWidth grab (that starved ITEM into a tower before);
+// whole-word wrap keeps PROCESSING / BOOKMARKED from splitting mid-letter.
 const PRICE_COL: CSSProperties = {
   flex: '0 0 auto',
-  maxWidth: '40%',
   paddingLeft: '0.6em',
   textAlign: 'right',
-  overflowWrap: 'anywhere',
+  overflowWrap: 'break-word',
+  wordBreak: 'normal',
 };
 
 // ── edit-on-receipt contract ───────────────────────────────────────────
@@ -506,9 +519,29 @@ function renderRow(
 const END_MARK_ASPECT: Record<string, number> = {
   'doodle-question-mark': 0.62,
   'doodle-single-exclaim': 0.3,
-  'doodle-math-heart': 1.34,
-  'doodle-rays-mustard': 0.84,
+  'doodle-math-heart': 1.45, // extracted-asset aspect (800×553 via extract-doodles.py)
+  'doodle-rays-mustard': 1.05, // corrected to the real PNG aspect (800×761) — was 0.84, which letterboxed it
   'doodle-exclaim-question': 0.84, // combined "?!" — extracted 671×800
+};
+
+// Per-doodle inline height in em. Most end-marks read at ~cap height so they sit
+// like punctuation. The math-heart asset is WIDE (aspect ~1.79), so width =
+// height × 1.79 — height is the lever that controls how much it dominates the row.
+// 0.8em reproduces the original small "<3 as punctuation" render (the old asset
+// looked ~0.77em tall via a narrow letterboxed box; we get the same size directly
+// now that the aspect is correct). Unlisted marks fall back to DEFAULT.
+const DEFAULT_END_MARK_HEIGHT_EM = 1.05;
+const END_MARK_HEIGHT_EM: Record<string, number> = {
+  'doodle-math-heart': 1.0,
+  'doodle-rays-mustard': 1.3,
+};
+
+// End-mark ink. The small faint punctuation marks (?! / rays / sparkle) get the
+// bold-marker boost so they don't read as a watermark; the big math-heart shows
+// its OWN PNG colour (no boost), matching the QTY number-wrap hearts. Unlisted
+// marks fall back to the shared DOODLE_INK_FILTER.
+const END_MARK_INK: Record<string, string> = {
+  'doodle-math-heart': 'none',
 };
 
 function EndLineDoodle({
@@ -521,10 +554,14 @@ function EndLineDoodle({
 }) {
   const src = doodleSrc(doodle.doodleId);
   if (!src) return null;
-  // Height ~ the line's cap height so it reads inline with the text; width follows
-  // the glyph's aspect so the box isn't padded.
-  const h = 1.05 * doodle.scale; // em
+  // Height per-doodle (see END_MARK_HEIGHT_EM); width follows the glyph's aspect so
+  // the box isn't padded. A tall mark (the big math-heart) is vertically CENTERED
+  // on the text instead of baseline-tucked so it doesn't crash into the row above.
+  const h =
+    (END_MARK_HEIGHT_EM[doodle.doodleId] ?? DEFAULT_END_MARK_HEIGHT_EM) *
+    doodle.scale; // em
   const w = h * (END_MARK_ASPECT[doodle.doodleId] ?? 1);
+  const tall = h > 1.6;
   return (
     <span
       aria-hidden
@@ -536,7 +573,7 @@ function EndLineDoodle({
         // snug right after the last word; the pair's 2nd glyph pulls IN (negative)
         // to offset each PNG's transparent margin so "?!" reads as one tight unit.
         marginLeft: tight ? '-0.08em' : '0.15em',
-        verticalAlign: '-0.1em',
+        verticalAlign: tall ? 'middle' : '-0.1em',
         pointerEvents: 'none',
       }}
     >
@@ -548,7 +585,7 @@ function EndLineDoodle({
         draggable={false}
         style={{
           objectFit: 'contain',
-          filter: DOODLE_INK_FILTER,
+          filter: END_MARK_INK[doodle.doodleId] ?? DOODLE_INK_FILTER,
           transform: doodle.rotation
             ? `rotate(${doodle.rotation}deg)`
             : undefined,
@@ -578,6 +615,50 @@ function EndMark({ doodle }: { doodle: ResolvedDoodle }) {
         tight
       />
     </span>
+  );
+}
+
+/**
+ * Item text with its end-mark GLUED to the final word. The last whitespace-
+ * delimited token and the mark are wrapped in a `white-space: nowrap` span, so
+ * line-breaking can never orphan the mark on a row of its own — the pair either
+ * sits after the last word or wraps down TOGETHER with it. Everything before the
+ * last word still wraps normally (only the final word+mark unit is non-breaking).
+ *
+ * With no end-mark this is just {@link MarkedText}. When a mark is present the
+ * text is plain (end-mark and circle-word are mutually exclusive anchors, and
+ * word-circle is disabled), so we strip markers and split the plain string —
+ * avoiding any chance of slicing through a `*marked*` phrase.
+ */
+function ItemTextWithEndMark({
+  text,
+  endMark,
+}: {
+  text: string;
+  endMark: ResolvedDoodle | null;
+}) {
+  if (!endMark) return <MarkedText text={text} />;
+  const plain = stripMarkers(text);
+  // head = everything up to (and including) the last space; lastWord = final token.
+  const m = plain.match(/^([\s\S]*?)(\S+)\s*$/);
+  if (!m) {
+    // no splittable word (empty / all-space) — keep text + mark together inline.
+    return (
+      <span style={{ whiteSpace: 'nowrap' }}>
+        {plain}
+        <EndMark doodle={endMark} />
+      </span>
+    );
+  }
+  const [, head, lastWord] = m;
+  return (
+    <>
+      {head}
+      <span style={{ whiteSpace: 'nowrap' }}>
+        {lastWord}
+        <EndMark doodle={endMark} />
+      </span>
+    </>
   );
 }
 
@@ -807,9 +888,11 @@ function WordUnderline({
         right: '-8%',
         // sit just under the baseline: the stroke's TOP lands a hair below the
         // letters (not through them = too high, not floating below = too low).
-        // Thin-ish height so a thick stroke doesn't ride up into the word.
-        bottom: `${0.02 * scale}em`,
-        height: `${0.22 * scale}em`,
+        // objectFit:fill squishes the ~800×103 brush into this box, so too short a
+        // box renders the stroke hairline-thin. Taller box = bolder stroke; bottom
+        // drops negative to keep the stroke's visual CENTER put as it grows.
+        bottom: `${-0.07 * scale}em`,
+        height: `${0.58 * scale}em`,
         pointerEvents: 'none',
         zIndex: 0,
       }}
@@ -1059,6 +1142,85 @@ function EmptyHint({ text }: { text: string }) {
   );
 }
 
+/**
+ * QTY | ITEM | PRICE body shared by the printed ItemRow and the builder's
+ * EditableItem (non-active branch), so the two render identically and can't drift.
+ * Three real flex columns: a fixed-width QTY cell (carrying the number-wrap
+ * doodle), the ITEM lane (flex-grows, whole-word wrap), and the PRICE lane — its
+ * own right-aligned column, NOT floated, so item text never wraps beneath a price.
+ *
+ * Doodle seating stays per-column: number-wrap rides the QTY digits (QtyCell),
+ * circle-word / underline sit on the ITEM text (WordMark / MarkedText), the
+ * end-mark (!? / <3) trails the item text inside the ITEM lane, and circle-price
+ * hugs the price inside the PRICE lane. Each column span is `position: relative`
+ * so those overlay doodles anchor to their own column, not the whole row.
+ */
+function ItemRowBody({
+  text,
+  price,
+  index,
+  wrapDoodleId,
+  doodle,
+}: {
+  text: string;
+  price: string;
+  index: number;
+  wrapDoodleId: string | null;
+  doodle?: ResolvedDoodle | null;
+}) {
+  const { itemMark, priceMark, endMark } = routeLineMark(doodle);
+  return (
+    <>
+      <QtyCell index={index} doodleId={wrapDoodleId} />
+      <span style={{ ...ITEM_COL, position: 'relative' }}>
+        {itemMark ? (
+          <WordMark text={text} binding={itemMark} />
+        ) : (
+          // end-mark glued to the last word so it can't orphan onto its own line
+          <ItemTextWithEndMark text={text} endMark={endMark} />
+        )}
+      </span>
+      <span style={{ ...PRICE_COL, position: 'relative' }}>
+        <PriceCell price={price} priceMark={priceMark} />
+      </span>
+    </>
+  );
+}
+
+/**
+ * Price-cell content. A single-word price renders inline as before (with its
+ * optional circle-price mark). A MULTI-word price stacks ONE WORD PER LINE,
+ * right-aligned and top-aligned with the item's first line, so a two-word price
+ * ("SANTOOR TAX") stops taking a wide single line and starving the item column.
+ * Each word still passes through WordMark, so the circle-price doodle frames only
+ * the word matching the binding target and the rest render plain.
+ */
+function PriceCell({
+  price,
+  priceMark,
+}: {
+  price: string;
+  priceMark: ResolvedDoodle | null;
+}) {
+  const words = price.split(/\s+/).filter(Boolean);
+  if (words.length <= 1) {
+    return priceMark ? (
+      <WordMark text={price} binding={priceMark} />
+    ) : (
+      <>{price}</>
+    );
+  }
+  return (
+    <>
+      {words.map((w, i) => (
+        <span key={i} style={{ display: 'block' }}>
+          {priceMark ? <WordMark text={w} binding={priceMark} /> : w}
+        </span>
+      ))}
+    </>
+  );
+}
+
 // ── numbered item row: 01  ITEM (wraps under itself)  PRICE (right) ────
 function ItemRow({
   text,
@@ -1075,7 +1237,6 @@ function ItemRow({
    *  punctuate-after (or none). */
   doodle?: ResolvedDoodle | null;
 }) {
-  const { itemMark, priceMark, endMark } = routeLineMark(doodle);
   return (
     <div
       style={{
@@ -1084,25 +1245,20 @@ function ItemRow({
         alignItems: 'flex-start',
         gap: '0.7em',
         fontFamily: MONO_FONT,
-        fontSize: 12.5,
+        fontSize: ITEM_LINE_FONT_SIZE,
         lineHeight: 1.5,
         color: INK,
         textTransform: 'uppercase',
         padding: '2px 0',
       }}
     >
-      <QtyCell index={index} doodleId={wrapDoodleId} />
-      <span style={{ ...ITEM_COL, position: 'relative' }}>
-        {itemMark ? (
-          <WordMark text={text} binding={itemMark} />
-        ) : (
-          <MarkedText text={text} />
-        )}
-        {endMark ? <EndMark doodle={endMark} /> : null}
-      </span>
-      <span style={{ ...PRICE_COL, position: 'relative' }}>
-        {priceMark ? <WordMark text={price} binding={priceMark} /> : price}
-      </span>
+      <ItemRowBody
+        text={text}
+        price={price}
+        index={index}
+        wrapDoodleId={wrapDoodleId}
+        doodle={doodle}
+      />
     </div>
   );
 }
@@ -1163,8 +1319,8 @@ function EditableItem({
   }, [active, line.id]);
 
   if (!active) {
-    // Same anchor routing as ItemRow so the editor preview matches the print.
-    const { itemMark, priceMark, endMark } = routeLineMark(doodle);
+    // Shares ItemRowBody with the printed ItemRow so the editor preview matches
+    // the print exactly (three-column QTY | ITEM | PRICE, whole-word wrapping).
     return (
       <button
         type="button"
@@ -1176,7 +1332,7 @@ function EditableItem({
           gap: '0.7em',
           width: '100%',
           fontFamily: MONO_FONT,
-          fontSize: 12.5,
+          fontSize: ITEM_LINE_FONT_SIZE,
           lineHeight: 1.5,
           color: INK,
           textTransform: 'uppercase',
@@ -1188,22 +1344,13 @@ function EditableItem({
           padding: '7px 0',
         }}
       >
-        <QtyCell index={index} doodleId={wrapDoodleId} />
-        <span style={{ ...ITEM_COL, position: 'relative' }}>
-          {itemMark ? (
-            <WordMark text={line.text} binding={itemMark} />
-          ) : (
-            <MarkedText text={line.text} />
-          )}
-          {endMark ? <EndMark doodle={endMark} /> : null}
-        </span>
-        <span style={{ ...PRICE_COL, position: 'relative' }}>
-          {priceMark ? (
-            <WordMark text={line.price} binding={priceMark} />
-          ) : (
-            line.price
-          )}
-        </span>
+        <ItemRowBody
+          text={line.text}
+          price={line.price}
+          index={index}
+          wrapDoodleId={wrapDoodleId}
+          doodle={doodle}
+        />
       </button>
     );
   }
