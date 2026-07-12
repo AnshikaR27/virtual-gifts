@@ -5,6 +5,8 @@ import type { GiftData } from '@/components/gift-frame/gift-frame';
 import {
   buildFrame,
   formatReceiptDate,
+  pickTotal,
+  sampleBalanced,
   type ReceiptPayload,
 } from '@/gifts/love-receipt/lines';
 import { LOVE_RECEIPT_POOL } from '@/gifts/love-receipt/love-receipt-pool';
@@ -31,25 +33,25 @@ const TIFFIN_MOCK: GiftData = {
   id: '00000000-0000-0000-0000-000000000000',
   shortId: 'preview',
   slug: 'tiffin-note',
-  senderName: 'Rohan',
-  recipientName: 'Anaya',
+  senderName: 'Bhumin',
+  recipientName: 'Anshika',
   contentJsonb: {
     top_dabba: 'Gulab Jamun',
     middle_dabba: 'Mathri',
     note_text: 'khaana time pe khaa lena.\nmiss u 💌',
-    sender_name: 'Rohan',
-    recipient_name: 'Anaya',
+    sender_name: 'Bhumin',
+    recipient_name: 'Anshika',
   },
   paid: false,
 };
 
 function loveReceiptMock(): GiftData {
-  const frame = buildFrame({ recipientName: 'Anaya', senderName: 'Rohan' });
+  const frame = buildFrame({ recipientName: 'Anshika', senderName: 'Bhumin' });
   const payload: ReceiptPayload = {
     version: 1,
     language: 'en',
-    recipientName: 'Anaya',
-    senderName: 'Rohan',
+    recipientName: 'Anshika',
+    senderName: 'Bhumin',
     relationship: 'girlfriend',
     storeName: frame.storeName,
     subtitle: frame.subtitle,
@@ -100,8 +102,8 @@ function loveReceiptMock(): GiftData {
     id: '00000000-0000-0000-0000-000000000001',
     shortId: 'preview',
     slug: 'love-receipt',
-    senderName: 'Rohan',
-    recipientName: 'Anaya',
+    senderName: 'Bhumin',
+    recipientName: 'Anshika',
     contentJsonb: payload as unknown as Record<string, unknown>,
     paid: false,
   };
@@ -126,7 +128,7 @@ function galleryPayload(
   poolIds: string[],
   marks: Record<string, string> = {},
 ): ReceiptPayload {
-  const frame = buildFrame({ recipientName: 'Anaya', senderName: 'Rohan' });
+  const frame = buildFrame({ recipientName: 'Anshika', senderName: 'Bhumin' });
   const lines = poolIds.map((poolId, i) => {
     const src = POOL_BY_ID.get(poolId);
     const text = marks[poolId] ?? src?.text ?? `line ${i + 1}`;
@@ -135,8 +137,8 @@ function galleryPayload(
   return {
     version: 1,
     language: 'en',
-    recipientName: 'Anaya',
-    senderName: 'Rohan',
+    recipientName: 'Anshika',
+    senderName: 'Bhumin',
     relationship: 'girlfriend',
     storeName: frame.storeName,
     subtitle: frame.subtitle,
@@ -183,7 +185,444 @@ const GALLERY: { label: string; payload: ReceiptPayload }[] = [
       'lr-006': '*' + (POOL_BY_ID.get('lr-006')?.text ?? 'you') + '*',
     }),
   },
+  {
+    // Word-level underlines (tender pass): lr-018 "you" + lr-032 "forever".
+    label: 'word-underline · lr-018 you + lr-032 forever',
+    payload: galleryPayload(['lr-018', 'lr-032', 'lr-067', 'lr-085']),
+  },
 ];
+
+// ── LINE_BINDINGS demo — the oval + underline pass on one receipt ────────────
+// Renders a draw that includes several of the 10 bound lines so the real
+// LINE_BINDINGS (circle-word, circle-price, underline) can be eyeballed together.
+// These are the ACTUAL bindings (from love-receipt-doodles.ts), not an override —
+// each doodle sizes snugly to its target. Reached with
+// /g/preview?slug=love-receipt&view=bindings
+//   circle-word (item text): lr-056 dimples · lr-039 win · lr-050 nonsense
+//                            · lr-065 curtains · lr-096 pookie
+//   circle-price:            lr-005 mine · lr-002 EMI · lr-008 busted · lr-060 launched
+//   underline:               lr-035 (whole item text)
+const BINDINGS_DEMO_IDS = [
+  'lr-056',
+  'lr-039',
+  'lr-050',
+  'lr-096',
+  'lr-035',
+  'lr-005',
+  'lr-002',
+  'lr-008',
+  'lr-060',
+  'lr-065',
+];
+
+function BindingsDemo() {
+  const payload = galleryPayload(BINDINGS_DEMO_IDS);
+  return (
+    <div
+      style={{
+        minHeight: '100vh',
+        background: '#e7e2d8',
+        padding: '24px 14px 80px',
+        fontFamily: 'ui-monospace, monospace',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+      }}
+    >
+      <h1 style={{ fontSize: 16, margin: '0 0 4px', color: '#1a1a1a' }}>
+        Love Receipt — LINE_BINDINGS (oval + underline pass)
+      </h1>
+      <p
+        style={{
+          fontSize: 12,
+          color: '#555',
+          margin: '0 0 22px',
+          maxWidth: 460,
+          textAlign: 'center',
+          lineHeight: 1.5,
+        }}
+      >
+        Real per-line bindings, each sized to its target: circle-word hugs a
+        word in the item text (dimples / win / nonsense / pookie / curtains),
+        circle-price hugs the price tag (mine / EMI / busted / launched), and
+        lr-035 gets an underline under just its text. Number-wraps + barcode
+        fans ride along as before.
+      </p>
+      <ReceiptPaper payload={payload} />
+    </div>
+  );
+}
+
+// ── TENDER pass demo — word-level underlines on one receipt ──────────────────
+// The real tender LINE_BINDINGS: 5 word-level underlines (end-marks are deferred
+// to a later dedicated pass). Reached with /g/preview?slug=love-receipt&view=tender
+//   underline: lr-018 you · lr-032 forever · lr-164 home · lr-083 ordinary · lr-067 miss
+//   lr-160 / lr-014 are included to show they now render BARE.
+const TENDER_DEMO_IDS = [
+  'lr-018',
+  'lr-032',
+  'lr-164',
+  'lr-083',
+  'lr-067',
+  'lr-160',
+  'lr-014',
+];
+
+function TenderDemo() {
+  const payload = galleryPayload(TENDER_DEMO_IDS);
+  return (
+    <div
+      style={{
+        minHeight: '100vh',
+        background: '#e7e2d8',
+        padding: '24px 14px 80px',
+        fontFamily: 'ui-monospace, monospace',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+      }}
+    >
+      <h1 style={{ fontSize: 16, margin: '0 0 4px', color: '#1a1a1a' }}>
+        Love Receipt — LINE_BINDINGS (tender pass)
+      </h1>
+      <p
+        style={{
+          fontSize: 12,
+          color: '#555',
+          margin: '0 0 22px',
+          maxWidth: 460,
+          textAlign: 'center',
+          lineHeight: 1.5,
+        }}
+      >
+        Word-level underlines hugging just under the target word (you / forever
+        / home / ordinary / miss), one per line. End-marks (hearts / &lt;3 / ?!
+        / !!!) are deferred to a later pass, so every other tender line stays
+        bare. Number-wraps + barcode fans ride along.
+      </p>
+      <ReceiptPaper payload={payload} />
+    </div>
+  );
+}
+
+// ── END-MARK pass demo — punctuate-after (?! / <3 / rays) on one receipt ─────
+// Real end-mark LINE_BINDINGS: ?! (question+exclaim pair), <3 (math-heart), rays
+// (mustard). Mixes short + long lines so the mark wraps under the last text line
+// on long draws instead of pushing into the price column. Reached with
+// /g/preview?slug=love-receipt&view=endmarks
+const ENDMARK_DEMO_IDS = [
+  'lr-003', // ?!  medium
+  'lr-062', // ?!  short-ish
+  'lr-069', // ?!  long (mark trails the wrap)
+  'lr-151', // <3  long
+  'lr-019', // <3  medium
+  'lr-049', // <3  long
+  'lr-100', // rays medium
+  'lr-073', // rays medium
+  'lr-045', // rays very long
+];
+
+function EndMarkDemo() {
+  const payload = galleryPayload(ENDMARK_DEMO_IDS);
+  return (
+    <div
+      style={{
+        minHeight: '100vh',
+        background: '#e7e2d8',
+        padding: '24px 14px 80px',
+        fontFamily: 'ui-monospace, monospace',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+      }}
+    >
+      <h1 style={{ fontSize: 16, margin: '0 0 4px', color: '#1a1a1a' }}>
+        Love Receipt — LINE_BINDINGS (end-mark pass)
+      </h1>
+      <p
+        style={{
+          fontSize: 12,
+          color: '#555',
+          margin: '0 0 22px',
+          maxWidth: 460,
+          textAlign: 'center',
+          lineHeight: 1.5,
+        }}
+      >
+        punctuate-after marks tucked after the item text — ?! (question+exclaim
+        pair), &lt;3 (math-heart), and the mustard rays flourish. One per line;
+        on long lines the mark rides under the last wrapped line, clear of the
+        price column. Number-wraps + barcode fans ride along.
+      </p>
+      <ReceiptPaper payload={payload} />
+    </div>
+  );
+}
+
+// ── SHOWCASE — every in-context doodle on ONE receipt ────────────────────────
+// A single curated draw whose 10 lines each carry a DISTINCT hand binding, so
+// every doodle the engine actually places on a receipt shows up together on one
+// slip. Hand bindings are immune to the coverage/adjacency governors (PASS 1 of
+// resolveReceiptDoodles), so all 10 render. Riding along automatically:
+//   • number-wrap frames on the QTY digits — saturn + teal star + rose-pink heart
+//   • the two mirrored lavender dash-fans bracketing the barcode
+// (The solid scatter motifs — lock / love-letter / wine-glass / kiss / toffee /
+// bouquet / hearts — live in the registry but aren't wired to any placement yet,
+// so they only appear in the raw grid at /doodles.) Reached with
+// /g/preview?slug=love-receipt&view=showcase
+const SHOWCASE_IDS = [
+  'lr-056', // circle-word · oval-lavender (dimples)
+  'lr-096', // circle-word · peanut-pink (pookie)
+  'lr-005', // circle-price · oval-lavender (mine)
+  'lr-002', // circle-price · peanut-pink (EMI)
+  'lr-018', // underline · teal (you)
+  'lr-156', // underline · wavy (more)
+  'lr-003', // end-mark · ?! (exclaim-question)
+  'lr-035', // end-mark · <3 (math-heart)
+  'lr-045', // end-mark · rays (mustard)
+  'lr-101', // end-mark · sparkle
+];
+
+// ── HEART — every line ends in the math-heart <3 ─────────────────────────────
+// A focused slip whose lines are ALL math-heart end-mark bindings, so the <3
+// sits at the tail of each sentence — the clearest look at the mark's placement
+// and size after the alpha-trim + aspect fix. Short lines first so the heart
+// lands right at the sentence end (no long wrap). Reached with
+// /g/preview?slug=love-receipt&view=hearts
+const HEART_IDS = [
+  'lr-035', // "you finish my sentences"            (short — <3 flush at end)
+  'lr-019', // "i want all your boring Tuesdays…"   (medium)
+  'lr-151', // "you stole my heart, …a crime"       (medium)
+  'lr-049', // (tender) long — <3 trails the wrap
+];
+
+// ── STANDARD — the real 4-line receipt length, with the math-heart present ──
+// The product opens at STARTING_LINE_COUNT (4) lines. This is the default opener
+// (DEFAULT_STARTING_IDS) with its last funny line swapped for the math-heart line,
+// so you can review the <3 on a normal-length slip rather than a dense demo.
+// Reached with /g/preview?slug=love-receipt&view=standard
+const STANDARD_IDS = [
+  'lr-061', // funny  — processing (default opener)
+  'lr-053', // flavor — guard duty (default opener)
+  'lr-081', // tender — bookmarked (default opener)
+  'lr-035', // end-mark · <3 (math-heart) — "you finish my sentences"
+];
+
+function StandardDemo() {
+  const payload = galleryPayload(STANDARD_IDS);
+  return (
+    <div
+      style={{
+        minHeight: '100vh',
+        background: '#e7e2d8',
+        padding: '24px 14px 80px',
+        fontFamily: 'ui-monospace, monospace',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+      }}
+    >
+      <h1 style={{ fontSize: 16, margin: '0 0 4px', color: '#1a1a1a' }}>
+        Love Receipt — standard 4-line receipt (with math-heart)
+      </h1>
+      <p
+        style={{
+          fontSize: 12,
+          color: '#555',
+          margin: '0 0 22px',
+          maxWidth: 460,
+          textAlign: 'center',
+          lineHeight: 1.5,
+        }}
+      >
+        The real product length (4 lines). Line 04 carries the{' '}
+        <code>&lt;3</code> end-mark so you can see it on a normal receipt rather
+        than a dense demo.
+      </p>
+      <ReceiptPaper payload={payload} />
+    </div>
+  );
+}
+
+function HeartDemo() {
+  const payload = galleryPayload(HEART_IDS);
+  return (
+    <div
+      style={{
+        minHeight: '100vh',
+        background: '#e7e2d8',
+        padding: '24px 14px 80px',
+        fontFamily: 'ui-monospace, monospace',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+      }}
+    >
+      <h1 style={{ fontSize: 16, margin: '0 0 4px', color: '#1a1a1a' }}>
+        Love Receipt — math-heart at the end of each line
+      </h1>
+      <p
+        style={{
+          fontSize: 12,
+          color: '#555',
+          margin: '0 0 22px',
+          maxWidth: 460,
+          textAlign: 'center',
+          lineHeight: 1.5,
+        }}
+      >
+        Every item line here carries the <code>&lt;3</code> end-mark
+        (doodle-math-heart), so you can see it land at the tail of the sentence
+        after the alpha-trim + aspect fix. On the short first line it sits
+        flush; on a long line it rides under the last wrapped row, clear of the
+        price.
+      </p>
+      <ReceiptPaper payload={payload} />
+    </div>
+  );
+}
+
+function ShowcaseDemo() {
+  const payload = galleryPayload(SHOWCASE_IDS);
+  return (
+    <div
+      style={{
+        minHeight: '100vh',
+        background: '#e7e2d8',
+        padding: '24px 14px 80px',
+        fontFamily: 'ui-monospace, monospace',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+      }}
+    >
+      <h1 style={{ fontSize: 16, margin: '0 0 4px', color: '#1a1a1a' }}>
+        Love Receipt — every doodle on one receipt
+      </h1>
+      <p
+        style={{
+          fontSize: 12,
+          color: '#555',
+          margin: '0 0 22px',
+          maxWidth: 470,
+          textAlign: 'center',
+          lineHeight: 1.5,
+        }}
+      >
+        One slip with all the doodles the engine places in context: circle-word
+        (oval + peanut), circle-price (oval + peanut), teal + wavy underlines,
+        and the end-marks — ?! · &lt;3 · rays · sparkle. The QTY digits carry
+        the number-wrap frames (saturn / teal star / rose-pink heart) and the
+        barcode gets its lavender dash-fans. For the raw grid of every PNG, see{' '}
+        <code>/doodles</code>.
+      </p>
+      <ReceiptPaper payload={payload} />
+    </div>
+  );
+}
+
+// ── REAL draw — the actual sampleBalanced engine, all bindings mixed ─────────
+// No hand-picked ids: a normal shuffled draw (whatever comes up), with every
+// authored binding rendering naturally — circle-word / circle-price / underline /
+// end-marks (?! / <3 / rays), plus number-wraps + barcode fans. This is the real
+// output a sender/recipient sees. Reached with /g/preview?slug=love-receipt&view=real
+// (force-dynamic → a fresh shuffle every refresh).
+function realDrawPayload(cursor: number): ReceiptPayload {
+  const frame = buildFrame({ recipientName: 'Anshika', senderName: 'Bhumin' });
+  // Real receipt line count = STARTING_LINE_COUNT (4) — the actual sampleBalanced
+  // default the product uses (buildFallbackReceipt / getStartingLines). No inflation.
+  const { lines } = sampleBalanced(new Set(), cursor);
+  return {
+    version: 1,
+    language: 'en',
+    recipientName: 'Anshika',
+    senderName: 'Bhumin',
+    relationship: 'girlfriend',
+    storeName: frame.storeName,
+    subtitle: frame.subtitle,
+    receiptLabel: frame.receiptLabel,
+    dateLabel: formatReceiptDate(),
+    cashier: frame.cashier,
+    billedTo: frame.billedTo,
+    billNumber: frame.billNumber,
+    gstin: frame.gstin,
+    lines,
+    subtotal: frame.subtotal,
+    discount: frame.discount,
+    tax: frame.tax,
+    total: pickTotal(lines).price,
+    paidVia: frame.paidVia,
+    finePrint: frame.finePrint,
+    returnPolicy: frame.returnPolicy,
+    scanLine: frame.scanLine,
+    footer: frame.footer,
+    memeStamp: frame.stamp,
+  };
+}
+
+function RealDraws() {
+  // three independent shuffled draws at the REAL 4-line count. Marks come from the
+  // hand bindings + tone rule engine + global governors (see resolveReceiptDoodles).
+  const draws = [0, 1, 2].map((cursor) => realDrawPayload(cursor));
+  return (
+    <div
+      style={{
+        minHeight: '100vh',
+        background: '#e7e2d8',
+        padding: '24px 14px 80px',
+        fontFamily: 'ui-monospace, monospace',
+      }}
+    >
+      <h1
+        style={{
+          fontSize: 16,
+          margin: '0 0 4px',
+          color: '#1a1a1a',
+          textAlign: 'center',
+        }}
+      >
+        Love Receipt — real shuffled draws (sampleBalanced)
+      </h1>
+      <p
+        style={{
+          fontSize: 12,
+          color: '#555',
+          margin: '0 auto 22px',
+          maxWidth: 520,
+          textAlign: 'center',
+          lineHeight: 1.5,
+        }}
+      >
+        Three natural draws at the real 4-line count (STARTING_LINE_COUNT) — no
+        hand-picked lines. Marks come from the rule engine (tone → mark,
+        word/price targets) with hand bindings winning and global governors
+        (≤40% coverage, no adjacent doubles, no repeated doodle). Number-wraps +
+        barcode fans ride along. Refresh for a new shuffle.
+      </p>
+      <div
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: 28,
+          alignItems: 'flex-start',
+          justifyContent: 'center',
+        }}
+      >
+        {draws.map((payload, i) => (
+          <div
+            key={i}
+            style={{ display: 'flex', flexDirection: 'column', gap: 10 }}
+          >
+            <div style={{ fontSize: 11.5, color: '#333', textAlign: 'center' }}>
+              draw {i + 1} · {payload.lines.length} lines
+            </div>
+            <ReceiptPaper payload={payload} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function DoodleGallery({ only }: { only?: number }) {
   const items = only != null && GALLERY[only] ? [GALLERY[only]] : GALLERY;
@@ -231,6 +670,103 @@ function DoodleGallery({ only }: { only?: number }) {
   );
 }
 
+// ── UNDERLINE demo — teal + wavy underlines on a real 4-line receipt ─────────
+// A clean product-length slip (4 lines) featuring the underline art: the teal
+// straight stroke (lr-018 "you", lr-032 "forever"), the freshly extracted wavy
+// stroke (lr-156 "more"), plus a math-heart end-mark line for contrast. Reached
+// with /g/preview?slug=love-receipt&view=underlines
+const UNDERLINE_DEMO_IDS = [
+  'lr-018', // teal underline · "you"
+  'lr-156', // wavy underline · "more"
+  'lr-032', // teal underline · "forever"
+  'lr-035', // math-heart end-mark · "you finish my sentences"
+];
+
+function UnderlineDemo() {
+  const payload = galleryPayload(UNDERLINE_DEMO_IDS);
+  return (
+    <div
+      style={{
+        minHeight: '100vh',
+        background: '#e7e2d8',
+        padding: '24px 14px 80px',
+        fontFamily: 'ui-monospace, monospace',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+      }}
+    >
+      <h1 style={{ fontSize: 16, margin: '0 0 4px', color: '#1a1a1a' }}>
+        Love Receipt — underline doodles (4-line)
+      </h1>
+      <p
+        style={{
+          fontSize: 12,
+          color: '#555',
+          margin: '0 0 22px',
+          maxWidth: 460,
+          textAlign: 'center',
+          lineHeight: 1.5,
+        }}
+      >
+        Real product length (4 lines): teal straight underline under
+        &quot;you&quot; and &quot;forever&quot;, the new wavy stroke under
+        &quot;more&quot;, and a math-heart end-mark line for contrast.
+        Number-wraps + barcode fans ride along.
+      </p>
+      <ReceiptPaper payload={payload} />
+    </div>
+  );
+}
+
+// ── PRICEWRAP demo — one-word-per-line prices + no mid-word item breaks ──────
+// Verifies the price-stacking + minWidth:0 removal on one slip:
+//   lr-069 — long "haircut" item + two-word price "impossible request" + ?! end-mark
+//            (the mid-letter break regression: HAIRC/UT must render whole now)
+//   lr-158 — long item + two-word price "approval fee" with a circle-price ring on
+//            APPROVAL (line 1) and FEE plain beneath — ring must not shift
+//   lr-005 — single-word circle-price (MINE) sanity: unchanged inline render
+//   lr-062 — plain two-word price "trap card" (no mark) stacked
+// Reached with /g/preview?slug=love-receipt&view=pricewrap
+const PRICEWRAP_IDS = ['lr-069', 'lr-158', 'lr-005', 'lr-062'];
+
+function PriceWrapDemo() {
+  const payload = galleryPayload(PRICEWRAP_IDS);
+  return (
+    <div
+      style={{
+        minHeight: '100vh',
+        background: '#e7e2d8',
+        padding: '24px 14px 80px',
+        fontFamily: 'ui-monospace, monospace',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+      }}
+    >
+      <h1 style={{ fontSize: 16, margin: '0 0 4px', color: '#1a1a1a' }}>
+        Love Receipt — price stacking + whole-word wrap
+      </h1>
+      <p
+        style={{
+          fontSize: 12,
+          color: '#555',
+          margin: '0 0 22px',
+          maxWidth: 470,
+          textAlign: 'center',
+          lineHeight: 1.5,
+        }}
+      >
+        Multi-word prices stack one word per line (right-aligned), so the price
+        column narrows and the item text keeps whole words — no more HAIRC/UT.
+        Line 02 (approval fee) keeps its circle-price ring on APPROVAL with FEE
+        plain beneath.
+      </p>
+      <ReceiptPaper payload={payload} />
+    </div>
+  );
+}
+
 export default function GiftPreviewPage({
   searchParams,
 }: {
@@ -250,6 +786,60 @@ export default function GiftPreviewPage({
     const only =
       searchParams.only != null ? Number(searchParams.only) : undefined;
     return <DoodleGallery only={Number.isNaN(only) ? undefined : only} />;
+  }
+
+  // LINE_BINDINGS demo — the oval + underline pass on one receipt:
+  // /g/preview?slug=love-receipt&view=bindings
+  if (slug === 'love-receipt' && searchParams.view === 'bindings') {
+    return <BindingsDemo />;
+  }
+
+  // Tender pass demo — word-level underline + end-heart:
+  // /g/preview?slug=love-receipt&view=tender
+  if (slug === 'love-receipt' && searchParams.view === 'tender') {
+    return <TenderDemo />;
+  }
+
+  // Underline demo — teal + wavy underlines on a real 4-line receipt:
+  // /g/preview?slug=love-receipt&view=underlines
+  if (slug === 'love-receipt' && searchParams.view === 'underlines') {
+    return <UnderlineDemo />;
+  }
+
+  // End-mark pass demo — punctuate-after (?! / <3 / rays):
+  // /g/preview?slug=love-receipt&view=endmarks
+  if (slug === 'love-receipt' && searchParams.view === 'endmarks') {
+    return <EndMarkDemo />;
+  }
+
+  // Price-stacking + whole-word wrap demo:
+  // /g/preview?slug=love-receipt&view=pricewrap
+  if (slug === 'love-receipt' && searchParams.view === 'pricewrap') {
+    return <PriceWrapDemo />;
+  }
+
+  // REAL shuffled draws — the actual engine, all bindings mixed naturally:
+  // /g/preview?slug=love-receipt&view=real
+  if (slug === 'love-receipt' && searchParams.view === 'real') {
+    return <RealDraws />;
+  }
+
+  // SHOWCASE — every in-context doodle on one receipt:
+  // /g/preview?slug=love-receipt&view=showcase
+  if (slug === 'love-receipt' && searchParams.view === 'showcase') {
+    return <ShowcaseDemo />;
+  }
+
+  // HEARTS — a receipt where every line ends in the math-heart <3:
+  // /g/preview?slug=love-receipt&view=hearts
+  if (slug === 'love-receipt' && searchParams.view === 'hearts') {
+    return <HeartDemo />;
+  }
+
+  // STANDARD — the real 4-line receipt length, with the math-heart present:
+  // /g/preview?slug=love-receipt&view=standard
+  if (slug === 'love-receipt' && searchParams.view === 'standard') {
+    return <StandardDemo />;
   }
   const makeMock = MOCKS[slug];
   const definition = getGiftDefinition(slug);
