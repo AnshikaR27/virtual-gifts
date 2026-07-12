@@ -916,7 +916,8 @@ export function resolveLineDoodle(poolId?: string): ResolvedDoodle | null {
 // ── rule engine (auto-doodle) ────────────────────────────────────────────────
 // Deterministic per receipt (no RNG) so the sender preview and recipient print
 // render identically. Resolution order per line: (1) LINE_BINDINGS, (2) the tone
-// rule below, (3) global governors across the whole draw.
+// rule below, capped to ~40% of lines (rule-only; hand picks exempt). no-adjacent
+// and no-repeat removed — see resolveReceiptDoodles.
 
 /** The two circle shapes alternate across a draw so two circles never repeat. */
 const CIRCLE_ALT: readonly string[] = [
@@ -925,7 +926,7 @@ const CIRCLE_ALT: readonly string[] = [
 ];
 const UNDERLINE_DOODLE = 'doodle-underline-teal';
 
-/** Drop-priority for the coverage cap (higher = kept longer). */
+/** Drop-priority for the rule-only coverage cap (higher = kept longer). */
 const PRIORITY = {
   hand: 5,
   price: 4,
@@ -1079,16 +1080,17 @@ function ruleCandidate(
 
 /**
  * Resolve EVERY item line's doodle for one receipt, applying the full pipeline:
- *   1. LINE_BINDINGS (hand) — wins; 2. tone rule; 3. global governors across the
- *   draw: coverage cap (~40%), no adjacent double-marks, no repeated doodle
- *   (number-wraps exempt — they're a separate layer), one mark per line, circle
- *   shapes alternated. Returns an array aligned to `lines` (null = bare line).
+ *   1. LINE_BINDINGS (hand) — wins, uncapped; 2. tone rule fills unbound lines
+ *   under a RULE-ONLY coverage cap (~40% of lines; hand picks exempt and never
+ *   consume the budget). The no-adjacent-double and no-repeat-doodle governors are
+ *   removed by design — the author controls density through the bindings. The rule
+ *   engine also self-limits PER LINE (circle/underline need a target word; real-life
+ *   end-mark fires ~1-in-4). One mark per line, circle shapes alternated. Returns an
+ *   array aligned to `lines` (null = bare line).
  */
 export function resolveReceiptDoodles(
   lines: ReadonlyArray<{ poolId?: string; text: string; price: string }>,
 ): (ResolvedDoodle | null)[] {
-  const n = lines.length;
-
   // (1)+(2) per-line candidate: hand binding, else tone rule (deterministic).
   const cands: (MarkCandidate | null)[] = lines.map((line) => {
     const poolId = line.poolId;
@@ -1106,26 +1108,24 @@ export function resolveReceiptDoodles(
     return ruleCandidate(poolId, line.text, line.price);
   });
 
-  // (3) governors — TWO PASSES so hand bindings are IMMUNE.
+  // (3) resolution — TWO PASSES so hand bindings resolve first.
   const chosen = new Set<number>();
-  const usedDoodles = new Set<string>();
   let altIdx = 0;
 
-  // PASS 1 — hand bindings ALWAYS render. They're curated author picks, so they
-  // bypass the cap / adjacency / no-repeat governors entirely; the governors may
-  // only ever trim RULE-generated marks, never a hand binding. (Two hand marks
-  // may therefore land adjacent — that's the author's call, by design.)
+  // PASS 1 — hand bindings ALWAYS render (curated author picks, resolved first).
   cands.forEach((c, i) => {
     if (!c || !c.fromHand) return;
     chosen.add(i);
-    usedDoodles.add(c.doodle.doodleId); // hand shapes are explicit (circleAlt=false)
   });
 
-  // PASS 2 — rule marks fill the remaining gaps, governed. The coverage cap counts
-  // the hand marks already placed (and never drops below them, so hand picks never
-  // "use up" the budget at the rules' expense); no adjacency to ANY chosen row
-  // (hand or rule); no repeated doodle in the draw.
-  const cap = Math.max(chosen.size, Math.floor(n * 0.4)); // ≤40% of lines, or more if hand-heavy
+  // PASS 2 — rule marks fill unbound lines under a RULE-ONLY coverage cap: at most
+  // ~40% of the receipt's lines get a fallback mark, taking highest-PRIORITY first
+  // and dropping the lowest when the budget runs out. Hand bindings (PASS 1) are
+  // EXEMPT — they never count against or consume this budget, so an all-hand
+  // receipt shows every pick and only UNBOUND draws are throttled. (no-adjacent /
+  // no-repeat stay removed; the priority sort also makes circle-alt deterministic.)
+  const ruleCap = Math.floor(lines.length * 0.4); // ≤40% of lines get a fallback mark
+  let ruleCount = 0;
   const ruleOrder = cands
     .map((c, i) => ({ c, i }))
     .filter(
@@ -1134,28 +1134,24 @@ export function resolveReceiptDoodles(
     .sort((a, b) => b.c.priority - a.c.priority || a.i - b.i);
 
   for (const { c, i } of ruleOrder) {
-    if (chosen.has(i)) continue;
-    if (chosen.size >= cap) break; // coverage cap reached
-    if (chosen.has(i - 1) || chosen.has(i + 1)) continue; // no adjacent doubles
+    if (chosen.has(i)) continue; // one mark per line
+    if (ruleCount >= ruleCap) break; // rule-only cap reached (hand picks exempt)
 
-    // effective doodle id: alternate circle shapes so two circles never repeat.
+    // effective doodle id: alternate circle shapes so two rule circles vary.
     const doodleId = c.circleAlt
       ? CIRCLE_ALT[altIdx % CIRCLE_ALT.length]
       : c.doodle.doodleId;
-    if (usedDoodles.has(doodleId)) continue; // no repeated doodle in a draw
 
     if (c.circleAlt) {
       c.doodle.doodleId = doodleId;
       altIdx++;
     }
     chosen.add(i);
-    usedDoodles.add(doodleId);
+    ruleCount++;
   }
-  // NOTE: "prefer alternating sides" is best-effort — it emerges from the tone→side
-  // mapping (giggle=item / petty+delulu=end / strong-price=price) plus the
-  // no-adjacent rule; it isn't separately enforced. The hard governors above
-  // (cap, adjacency, no-repeat, one-per-line) are enforced on RULE marks only —
-  // hand bindings are immune (PASS 1).
+  // NOTE: hand bindings always render (PASS 1, uncapped); rule marks are capped to
+  // ~40% of lines (PASS 2). Only "one mark per line" + the rule cap remain — the
+  // no-adjacent and no-repeat governors stay removed.
 
   const result: (ResolvedDoodle | null)[] = lines.map(() => null);
   chosen.forEach((i) => {
