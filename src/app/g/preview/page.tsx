@@ -11,6 +11,7 @@ import {
 } from '@/gifts/love-receipt/lines';
 import { LOVE_RECEIPT_POOL } from '@/gifts/love-receipt/love-receipt-pool';
 import { ReceiptPaper } from '@/gifts/love-receipt/receipt-paper';
+import type { ResolvedDoodle } from '@/gifts/love-receipt/love-receipt-doodles';
 
 /**
  * Preview of a gift receiver with mock data, so a scene can be eyeballed
@@ -767,6 +768,219 @@ function PriceWrapDemo() {
   );
 }
 
+// ── CANDIDATES demo — wired-in doodles NOT in the 6-doodle working set ───────
+// Renders each candidate on its own receipt line at true size, self-labelled by
+// the doodle id (the item text IS the id; the doodle marks a token of it, or
+// trails it for end-marks). Uses ReceiptPaper's preview-only lineDoodleOverride
+// so nothing is bound and the resolver is untouched. QTY digits still carry the
+// separate number-wrap layer. Reached with /g/preview?slug=love-receipt&view=candidates
+const CAND_CIRCLE: { id: string; target: string }[] = [
+  { id: 'doodle-peanut-pink', target: 'peanut' },
+  { id: 'doodle-ring', target: 'ring' },
+  { id: 'doodle-star-yellow', target: 'star' },
+  { id: 'doodle-half-oval', target: 'oval' },
+  { id: 'doodle-red-heart', target: 'heart' },
+  { id: 'doodle-saturn-ring', target: 'saturn' },
+];
+const CAND_UNDERLINE: { id: string; target: string }[] = [
+  { id: 'doodle-zigzag-blue', target: 'zigzag' },
+  { id: 'doodle-dashes-lavender', target: 'dashes' },
+];
+const CAND_ENDMARK: string[] = [
+  'doodle-pink-heart',
+  'doodle-question-mark',
+  'doodle-single-exclaim',
+  'doodle-multi-exclaim',
+  'doodle-sparkle',
+];
+
+function candidatesPayload(
+  lines: { text: string; price: string }[],
+): ReceiptPayload {
+  const frame = buildFrame({ recipientName: 'Anshika', senderName: 'Bhumin' });
+  return {
+    version: 1,
+    language: 'en',
+    recipientName: 'Anshika',
+    senderName: 'Bhumin',
+    relationship: 'girlfriend',
+    storeName: frame.storeName,
+    subtitle: frame.subtitle,
+    receiptLabel: frame.receiptLabel,
+    dateLabel: formatReceiptDate(),
+    cashier: frame.cashier,
+    billedTo: frame.billedTo,
+    billNumber: frame.billNumber,
+    gstin: frame.gstin,
+    lines: lines.map((l, i) => ({ id: `c${i}`, text: l.text, price: l.price })),
+    subtotal: frame.subtotal,
+    discount: frame.discount,
+    tax: frame.tax,
+    total: frame.total,
+    paidVia: frame.paidVia,
+    finePrint: frame.finePrint,
+    returnPolicy: frame.returnPolicy,
+    scanLine: frame.scanLine,
+    footer: frame.footer,
+    memeStamp: frame.stamp,
+  };
+}
+
+function CandidateCard({
+  heading,
+  lines,
+  override,
+}: {
+  heading: string;
+  lines: { text: string; price: string }[];
+  override: (ResolvedDoodle | null)[];
+}) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div style={{ fontSize: 12.5, color: '#333', textAlign: 'center' }}>
+        {heading}
+      </div>
+      <ReceiptPaper
+        payload={candidatesPayload(lines)}
+        lineDoodleOverride={override}
+      />
+    </div>
+  );
+}
+
+function CandidatesDemo() {
+  const circleLines = CAND_CIRCLE.map((c) => ({ text: c.id, price: 'circle' }));
+  const circleOverride: (ResolvedDoodle | null)[] = CAND_CIRCLE.map((c) => ({
+    doodleId: c.id,
+    anchor: 'circle-word',
+    target: c.target,
+    scale: 1,
+    rotation: 0,
+  }));
+  const ulLines = CAND_UNDERLINE.map((c) => ({
+    text: c.id,
+    price: 'underline',
+  }));
+  const ulOverride: (ResolvedDoodle | null)[] = CAND_UNDERLINE.map((c) => ({
+    doodleId: c.id,
+    anchor: 'underline',
+    target: c.target,
+    scale: 1,
+    rotation: 0,
+  }));
+  const endLines = CAND_ENDMARK.map((id) => ({ text: id, price: 'end' }));
+  const endOverride: (ResolvedDoodle | null)[] = CAND_ENDMARK.map((id) => ({
+    doodleId: id,
+    anchor: 'punctuate-after',
+    scale: 1,
+    rotation: 0,
+  }));
+  return (
+    <div
+      style={{
+        minHeight: '100vh',
+        background: '#e7e2d8',
+        padding: '24px 14px 80px',
+        fontFamily: 'ui-monospace, monospace',
+      }}
+    >
+      <h1
+        style={{
+          fontSize: 16,
+          margin: '0 0 4px',
+          color: '#1a1a1a',
+          textAlign: 'center',
+        }}
+      >
+        Love Receipt — doodle candidates (not yet in the working set)
+      </h1>
+      <p
+        style={{
+          fontSize: 12,
+          color: '#555',
+          margin: '0 auto 22px',
+          maxWidth: 520,
+          textAlign: 'center',
+          lineHeight: 1.5,
+        }}
+      >
+        Each item line IS the doodle id, rendered at true receipt size: circle
+        candidates ring a token of the id, underline candidates sit under one,
+        and end-mark candidates trail the id. Judge legibility small. (QTY
+        digits carry the usual number-wrap layer — ignore those.)
+      </p>
+      <div
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: 28,
+          alignItems: 'flex-start',
+          justifyContent: 'center',
+        }}
+      >
+        <CandidateCard
+          heading="circle-word / circle-price (6)"
+          lines={circleLines}
+          override={circleOverride}
+        />
+        <CandidateCard
+          heading="underline (2)"
+          lines={ulLines}
+          override={ulOverride}
+        />
+        <CandidateCard
+          heading="end-mark (5)"
+          lines={endLines}
+          override={endOverride}
+        />
+      </div>
+    </div>
+  );
+}
+
+// ── SECTION passes — one whole tone section per slip for review ──────────────
+// Renders every line of a tone section as real receipt lines, so a section's
+// hand bindings can be eyeballed together on a phone. Hand bindings always
+// render (PASS 1 of resolveReceiptDoodles), so the coverage cap never hides one.
+// PETTY (5 lines): reached with /g/preview?slug=love-receipt&view=petty
+const PETTY_IDS = ['lr-001', 'lr-045', 'lr-062', 'lr-068', 'lr-072'];
+
+function SectionDemo({ title, ids }: { title: string; ids: string[] }) {
+  const payload = galleryPayload(ids);
+  return (
+    <div
+      style={{
+        minHeight: '100vh',
+        background: '#e7e2d8',
+        padding: '24px 14px 80px',
+        fontFamily: 'ui-monospace, monospace',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+      }}
+    >
+      <h1 style={{ fontSize: 16, margin: '0 0 4px', color: '#1a1a1a' }}>
+        Love Receipt — {title}
+      </h1>
+      <p
+        style={{
+          fontSize: 12,
+          color: '#555',
+          margin: '0 0 22px',
+          maxWidth: 460,
+          textAlign: 'center',
+          lineHeight: 1.5,
+        }}
+      >
+        Every line in this tone section, rendered as real receipt lines with its
+        actual hand binding (circle / underline / end-mark). The QTY number-wrap
+        layer + barcode fans ride along automatically — ignore those.
+      </p>
+      <ReceiptPaper payload={payload} />
+    </div>
+  );
+}
+
 export default function GiftPreviewPage({
   searchParams,
 }: {
@@ -818,6 +1032,12 @@ export default function GiftPreviewPage({
     return <PriceWrapDemo />;
   }
 
+  // Doodle candidates demo — wired-in doodles not yet in the working set:
+  // /g/preview?slug=love-receipt&view=candidates
+  if (slug === 'love-receipt' && searchParams.view === 'candidates') {
+    return <CandidatesDemo />;
+  }
+
   // REAL shuffled draws — the actual engine, all bindings mixed naturally:
   // /g/preview?slug=love-receipt&view=real
   if (slug === 'love-receipt' && searchParams.view === 'real') {
@@ -840,6 +1060,12 @@ export default function GiftPreviewPage({
   // /g/preview?slug=love-receipt&view=standard
   if (slug === 'love-receipt' && searchParams.view === 'standard') {
     return <StandardDemo />;
+  }
+
+  // SECTION passes — one whole tone section per slip:
+  // /g/preview?slug=love-receipt&view=petty
+  if (slug === 'love-receipt' && searchParams.view === 'petty') {
+    return <SectionDemo title="petty section (5 lines)" ids={PETTY_IDS} />;
   }
   const makeMock = MOCKS[slug];
   const definition = getGiftDefinition(slug);

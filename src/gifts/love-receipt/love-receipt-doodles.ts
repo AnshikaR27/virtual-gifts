@@ -611,7 +611,285 @@ export interface ToneRule {
 // line now falls to the tone rule engine (rule-only capped fallback). Re-add
 // entries here, one object per line, as the pass proceeds. Prior 39-entry set:
 // git show 7cd3f1e:src/gifts/love-receipt/love-receipt-doodles.ts
-export const LINE_BINDINGS: LineBinding[] = [];
+export const LINE_BINDINGS: LineBinding[] = [
+  {
+    poolId: 'lr-001',
+    doodleId: 'doodle-oval-lavender',
+    anchor: 'circle-word',
+    target: 'hoodie',
+  },
+  {
+    poolId: 'lr-002',
+    doodleId: 'doodle-math-heart',
+    anchor: 'punctuate-after',
+  },
+  {
+    poolId: 'lr-003',
+    doodleId: 'doodle-rays-mustard',
+    anchor: 'punctuate-after',
+  },
+  {
+    poolId: 'lr-008',
+    doodleId: 'doodle-oval-lavender',
+    anchor: 'circle-price',
+    target: 'busted',
+  },
+  {
+    poolId: 'lr-023',
+    doodleId: 'doodle-math-heart',
+    anchor: 'punctuate-after',
+  },
+  {
+    poolId: 'lr-033',
+    doodleId: 'doodle-oval-lavender',
+    anchor: 'circle-word',
+    target: 'dupatta',
+  },
+  {
+    poolId: 'lr-035',
+    doodleId: 'doodle-math-heart',
+    anchor: 'punctuate-after',
+  },
+  {
+    poolId: 'lr-039',
+    doodleId: 'doodle-oval-lavender',
+    anchor: 'circle-word',
+    target: 'win',
+  },
+  {
+    poolId: 'lr-044',
+    doodleId: 'doodle-exclaim-question',
+    anchor: 'punctuate-after',
+  },
+  {
+    poolId: 'lr-045',
+    doodleId: 'doodle-oval-lavender',
+    anchor: 'circle-word',
+    target: 'reel',
+  },
+  {
+    poolId: 'lr-050',
+    doodleId: 'doodle-oval-lavender',
+    anchor: 'circle-word',
+    target: 'nonsense',
+  },
+  {
+    poolId: 'lr-056',
+    doodleId: 'doodle-math-heart',
+    anchor: 'punctuate-after',
+  },
+  {
+    poolId: 'lr-057',
+    doodleId: 'doodle-math-heart',
+    anchor: 'punctuate-after',
+  },
+  {
+    poolId: 'lr-058',
+    doodleId: 'doodle-exclaim-question',
+    anchor: 'punctuate-after',
+  },
+  {
+    poolId: 'lr-059',
+    doodleId: 'doodle-exclaim-question',
+    anchor: 'punctuate-after',
+  },
+  {
+    poolId: 'lr-060',
+    doodleId: 'doodle-oval-lavender',
+    anchor: 'circle-price',
+    target: 'launched',
+  },
+  {
+    poolId: 'lr-061',
+    doodleId: 'doodle-oval-lavender',
+    anchor: 'circle-word',
+    target: 'hmm',
+  },
+  {
+    poolId: 'lr-062',
+    doodleId: 'doodle-rays-mustard',
+    anchor: 'punctuate-after',
+  },
+  {
+    poolId: 'lr-063',
+    doodleId: 'doodle-math-heart',
+    anchor: 'punctuate-after',
+  },
+  {
+    poolId: 'lr-064',
+    doodleId: 'doodle-math-heart',
+    anchor: 'punctuate-after',
+  },
+  {
+    poolId: 'lr-065',
+    doodleId: 'doodle-oval-lavender',
+    anchor: 'circle-word',
+    target: 'curtains',
+  },
+  {
+    poolId: 'lr-068',
+    doodleId: 'doodle-rays-mustard',
+    anchor: 'punctuate-after',
+  },
+  {
+    poolId: 'lr-069',
+    doodleId: 'doodle-exclaim-question',
+    anchor: 'punctuate-after',
+  },
+  {
+    poolId: 'lr-071',
+    doodleId: 'doodle-math-heart',
+    anchor: 'punctuate-after',
+  },
+  {
+    poolId: 'lr-072',
+    doodleId: 'doodle-oval-lavender',
+    anchor: 'circle-word',
+    target: 'jealous',
+  },
+  {
+    poolId: 'lr-073',
+    doodleId: 'doodle-oval-lavender',
+    anchor: 'circle-word',
+    target: 'feelings',
+  },
+  {
+    poolId: 'lr-074',
+    doodleId: 'doodle-math-heart',
+    anchor: 'punctuate-after',
+  },
+  {
+    poolId: 'lr-075',
+    doodleId: 'doodle-oval-lavender',
+    anchor: 'circle-word',
+    target: 'reaction',
+  },
+  {
+    poolId: 'lr-078',
+    doodleId: 'doodle-oval-lavender',
+    anchor: 'circle-word',
+    target: 'reason',
+  },
+  {
+    poolId: 'lr-080',
+    doodleId: 'doodle-exclaim-question',
+    anchor: 'punctuate-after',
+  },
+  {
+    poolId: 'lr-088',
+    doodleId: 'doodle-math-heart',
+    anchor: 'punctuate-after',
+  },
+  {
+    poolId: 'lr-096',
+    doodleId: 'doodle-oval-lavender',
+    anchor: 'circle-word',
+    target: 'pookie',
+  },
+  {
+    poolId: 'lr-100',
+    doodleId: 'doodle-math-heart',
+    anchor: 'punctuate-after',
+  },
+  {
+    poolId: 'lr-101',
+    doodleId: 'doodle-math-heart',
+    anchor: 'punctuate-after',
+  },
+  {
+    poolId: 'lr-144',
+    doodleId: 'doodle-oval-lavender',
+    anchor: 'circle-word',
+    target: 'UPI',
+  },
+  {
+    poolId: 'lr-149',
+    doodleId: 'doodle-oval-lavender',
+    anchor: 'circle-price',
+    target: 'viral',
+  },
+  {
+    poolId: 'lr-150',
+    doodleId: 'doodle-oval-lavender',
+    anchor: 'circle-price',
+    target: 'unpaid',
+  },
+  {
+    poolId: 'lr-151',
+    doodleId: 'doodle-oval-lavender',
+    anchor: 'circle-price',
+    target: 'actionable',
+  },
+  {
+    poolId: 'lr-152',
+    doodleId: 'doodle-oval-lavender',
+    anchor: 'circle-price',
+    target: 'recalculating',
+  },
+  {
+    poolId: 'lr-153',
+    doodleId: 'doodle-oval-lavender',
+    anchor: 'circle-price',
+    target: 'prescribed',
+  },
+  {
+    poolId: 'lr-154',
+    doodleId: 'doodle-oval-lavender',
+    anchor: 'circle-price',
+    target: 'unanimous',
+  },
+  {
+    poolId: 'lr-155',
+    doodleId: 'doodle-oval-lavender',
+    anchor: 'circle-word',
+    target: 'interest',
+  },
+  {
+    poolId: 'lr-156',
+    doodleId: 'doodle-math-heart',
+    anchor: 'punctuate-after',
+  },
+  {
+    poolId: 'lr-158',
+    doodleId: 'doodle-math-heart',
+    anchor: 'punctuate-after',
+  },
+  {
+    poolId: 'lr-168',
+    doodleId: 'doodle-exclaim-question',
+    anchor: 'punctuate-after',
+  },
+  {
+    poolId: 'lr-169',
+    doodleId: 'doodle-oval-lavender',
+    anchor: 'circle-price',
+    target: 'staged',
+  },
+  {
+    poolId: 'lr-018',
+    doodleId: 'doodle-wavy-underline',
+    anchor: 'underline',
+    target: 'you',
+  },
+  {
+    poolId: 'lr-019',
+    doodleId: 'doodle-wavy-underline',
+    anchor: 'underline',
+    target: 'Tuesdays',
+  },
+  {
+    poolId: 'lr-025',
+    doodleId: 'doodle-wavy-underline',
+    anchor: 'underline',
+    target: 'first',
+  },
+  {
+    poolId: 'lr-028',
+    doodleId: 'doodle-underline-teal',
+    anchor: 'underline',
+    target: 'remembered',
+  },
+];
 
 /**
  * The tone → auto-mark table (rule A). This is the rule layer that fills lines
