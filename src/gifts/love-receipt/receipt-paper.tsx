@@ -237,6 +237,10 @@ interface ReceiptPaperProps {
   showStamp?: boolean;
   /** Turn the receipt into its own editor (sender builder). */
   editable?: ReceiptEditable;
+  /** PREVIEW-ONLY: force per-line resolved doodles (aligned to payload.lines),
+   *  bypassing resolveReceiptDoodles. Used by the /g/preview candidates view to
+   *  show unbound doodle candidates at true receipt size; unused in production. */
+  lineDoodleOverride?: (ResolvedDoodle | null)[];
   style?: CSSProperties;
 }
 
@@ -246,6 +250,7 @@ export function ReceiptPaper({
   animate = false,
   showStamp = false,
   editable,
+  lineDoodleOverride,
   style,
 }: ReceiptPaperProps) {
   const seq = buildSequence(payload, { showEmptyHint: !!editable });
@@ -255,7 +260,8 @@ export function ReceiptPaper({
   const numberWraps = numberWrapForReceipt(payload.lines);
   // Line marks (hand bindings + rule engine + governors) are ALSO whole-receipt
   // decisions (coverage cap, adjacency, no-repeat), so resolve once and index below.
-  const lineDoodles = resolveReceiptDoodles(payload.lines);
+  const lineDoodles =
+    lineDoodleOverride ?? resolveReceiptDoodles(payload.lines);
 
   // Leading contiguous run of band rows (just the header). It gets wrapped in a
   // full-bleed periwinkle container so the band ends right below the subtitle.
