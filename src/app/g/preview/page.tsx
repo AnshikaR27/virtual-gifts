@@ -944,6 +944,13 @@ function CandidatesDemo() {
 // render (PASS 1 of resolveReceiptDoodles), so the coverage cap never hides one.
 // PETTY (5 lines): reached with /g/preview?slug=love-receipt&view=petty
 const PETTY_IDS = ['lr-001', 'lr-045', 'lr-062', 'lr-068', 'lr-072'];
+// prettier-ignore
+const GIGGLE_IDS = [
+  'lr-003', 'lr-008', 'lr-023', 'lr-033', 'lr-035', 'lr-039', 'lr-044',
+  'lr-050', 'lr-056', 'lr-057', 'lr-060', 'lr-069', 'lr-071', 'lr-073',
+  'lr-074', 'lr-096', 'lr-100', 'lr-101', 'lr-144', 'lr-150', 'lr-151',
+  'lr-152', 'lr-153', 'lr-154', 'lr-155', 'lr-156', 'lr-158',
+];
 
 function SectionDemo({ title, ids }: { title: string; ids: string[] }) {
   const payload = galleryPayload(ids);
@@ -1066,6 +1073,9 @@ export default function GiftPreviewPage({
   // /g/preview?slug=love-receipt&view=petty
   if (slug === 'love-receipt' && searchParams.view === 'petty') {
     return <SectionDemo title="petty section (5 lines)" ids={PETTY_IDS} />;
+  }
+  if (slug === 'love-receipt' && searchParams.view === 'giggle') {
+    return <SectionDemo title="giggle section (27 lines)" ids={GIGGLE_IDS} />;
   }
   const makeMock = MOCKS[slug];
   const definition = getGiftDefinition(slug);
