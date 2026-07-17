@@ -620,8 +620,9 @@ export const LINE_BINDINGS: LineBinding[] = [
   },
   {
     poolId: 'lr-002',
-    doodleId: 'doodle-math-heart',
-    anchor: 'punctuate-after',
+    doodleId: 'doodle-oval-lavender',
+    anchor: 'circle-price',
+    target: 'EMI',
   },
   {
     poolId: 'lr-003',
@@ -713,7 +714,7 @@ export const LINE_BINDINGS: LineBinding[] = [
   },
   {
     poolId: 'lr-063',
-    doodleId: 'doodle-math-heart',
+    doodleId: 'doodle-rays-mustard',
     anchor: 'punctuate-after',
   },
   {
@@ -761,15 +762,13 @@ export const LINE_BINDINGS: LineBinding[] = [
   },
   {
     poolId: 'lr-075',
-    doodleId: 'doodle-oval-lavender',
-    anchor: 'circle-word',
-    target: 'reaction',
+    doodleId: 'doodle-rays-mustard',
+    anchor: 'punctuate-after',
   },
   {
     poolId: 'lr-078',
-    doodleId: 'doodle-oval-lavender',
-    anchor: 'circle-word',
-    target: 'reason',
+    doodleId: 'doodle-rays-mustard',
+    anchor: 'punctuate-after',
   },
   {
     poolId: 'lr-080',
@@ -778,8 +777,9 @@ export const LINE_BINDINGS: LineBinding[] = [
   },
   {
     poolId: 'lr-088',
-    doodleId: 'doodle-math-heart',
-    anchor: 'punctuate-after',
+    doodleId: 'doodle-oval-lavender',
+    anchor: 'circle-word',
+    target: 'fast-track',
   },
   {
     poolId: 'lr-096',
@@ -857,14 +857,14 @@ export const LINE_BINDINGS: LineBinding[] = [
   },
   {
     poolId: 'lr-168',
-    doodleId: 'doodle-exclaim-question',
-    anchor: 'punctuate-after',
+    doodleId: 'doodle-oval-lavender',
+    anchor: 'circle-word',
+    target: '32',
   },
   {
     poolId: 'lr-169',
-    doodleId: 'doodle-oval-lavender',
-    anchor: 'circle-price',
-    target: 'staged',
+    doodleId: 'doodle-exclaim-question',
+    anchor: 'punctuate-after',
   },
   {
     poolId: 'lr-018',

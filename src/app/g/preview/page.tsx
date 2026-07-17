@@ -951,6 +951,11 @@ const GIGGLE_IDS = [
   'lr-074', 'lr-096', 'lr-100', 'lr-101', 'lr-144', 'lr-150', 'lr-151',
   'lr-152', 'lr-153', 'lr-154', 'lr-155', 'lr-156', 'lr-158',
 ];
+// prettier-ignore
+const DELULU_IDS = [
+  'lr-002', 'lr-058', 'lr-059', 'lr-061', 'lr-063', 'lr-064', 'lr-065',
+  'lr-075', 'lr-078', 'lr-080', 'lr-088', 'lr-149', 'lr-168', 'lr-169',
+];
 
 function SectionDemo({ title, ids }: { title: string; ids: string[] }) {
   const payload = galleryPayload(ids);
@@ -1076,6 +1081,9 @@ export default function GiftPreviewPage({
   }
   if (slug === 'love-receipt' && searchParams.view === 'giggle') {
     return <SectionDemo title="giggle section (27 lines)" ids={GIGGLE_IDS} />;
+  }
+  if (slug === 'love-receipt' && searchParams.view === 'delulu') {
+    return <SectionDemo title="delulu section (14 lines)" ids={DELULU_IDS} />;
   }
   const makeMock = MOCKS[slug];
   const definition = getGiftDefinition(slug);
