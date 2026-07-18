@@ -979,6 +979,12 @@ export const LINE_BINDINGS: LineBinding[] = [
     anchor: 'underline',
     target: 'emergency',
   },
+  {
+    poolId: 'lr-165',
+    doodleId: 'doodle-wavy-underline',
+    anchor: 'underline',
+    target: 'just',
+  },
   // ── REAL-LIFE (adds) ───────────────────────────────────────────────────────
   {
     poolId: 'lr-011',
