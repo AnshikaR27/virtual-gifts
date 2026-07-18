@@ -1116,9 +1116,9 @@ export const LINE_BINDINGS: LineBinding[] = [
   },
   {
     poolId: 'lr-147',
-    doodleId: 'doodle-wavy-underline',
-    anchor: 'underline',
-    target: 'half-asleep',
+    doodleId: 'doodle-oval-lavender',
+    anchor: 'circle-word',
+    target: 'voice',
   },
 ];
 

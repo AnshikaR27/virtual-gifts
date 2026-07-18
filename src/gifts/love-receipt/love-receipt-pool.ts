@@ -252,14 +252,6 @@ export const LOVE_RECEIPT_POOL: PoolLine[] = [
     lang: 'en',
   },
   {
-    id: 'lr-070',
-    text: `you laughed at someone else's joke first`,
-    price: `complaint filed`,
-    tone: 'petty',
-    side: 'funny',
-    lang: 'en',
-  },
-  {
     id: 'lr-071',
     text: `i started saying things you say`,
     price: `software update`,
@@ -866,7 +858,6 @@ export const LOVE_RECEIPT_TOTALS: ReceiptTotal[] = [
 export const COLLISION_PAIRS: [string, string][] = [
   ['lr-050', 'lr-078'], // archive / archived
   ['lr-015', 'lr-100'], // overtime / overtime approved
-  ['lr-068', 'lr-070'], // both jealous-following
   ['lr-025', 'lr-048'], // both "first to tell you things"
   ['lr-148', 'lr-160'], // fixed deposit / locked — same hand-holding gesture
   ['lr-152', 'lr-164'], // recalculating / remapped — both navigation-brain
@@ -889,7 +880,7 @@ export const DEFAULT_STARTING_IDS: string[] = [
 export const DEFAULT_TOTAL_ID = 'lrt-001'; // lifer
 
 // Pool composition (post-merge):
-//   funny   49
+//   funny   48
 //   tender  20
 //   flavor  25
-//   total   94 line items + 8 totals
+//   total   93 line items + 8 totals
