@@ -1025,16 +1025,20 @@ function Header({
   payload: ReceiptPayload;
   editable?: ReceiptEditable;
 }) {
-  // The big black "RECEIPTIFY" treatment: heavy uppercase grotesque, large,
-  // tight tracking, pure black — the heaviest thing on the page.
+  // The big black "RECEIPTIFY" treatment: heavy uppercase grotesque, tight
+  // tracking, pure black — the heaviest thing on the page. Sized + tracked so
+  // the fixed "DELULU MART" wordmark holds on ONE line (never wraps) down to the
+  // narrowest phone: nowrap guards the single line, 26px/-1px keeps it inside
+  // the band at the 300px paper cap (and below) with margin to spare.
   const storeStyle: CSSProperties = {
     fontFamily: HEADER_FONT,
     fontWeight: 900,
-    fontSize: 30,
+    fontSize: 26,
     lineHeight: 1.02,
-    letterSpacing: '-0.5px',
+    letterSpacing: '-1px',
     textTransform: 'uppercase',
     color: INK,
+    whiteSpace: 'nowrap',
   };
 
   // The periwinkle band is painted by ReceiptPaper's banded wrapper (it spans
