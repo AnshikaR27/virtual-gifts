@@ -958,6 +958,240 @@ function SectionDemo({ title, ids }: { title: string; ids: string[] }) {
   );
 }
 
+// ── HEADER-FONTS — DELULU MART in a spread of handcrafted Google Fonts ──────
+// EXPLORATORY preview only, to pick a logo font. Bare paper (no band) so the
+// letterforms are judged directly. NOTE: every font here is Language B
+// (handcrafted); this gift is Language A (mono / thermal). Shown per request as
+// a deliberate logo direction. Reached with
+// /g/preview?slug=love-receipt&view=headerfonts
+function HeaderFonts() {
+  const PAPER = '#fbfbf9';
+  const INK = '#1a1a1a';
+  const INK_SOFT = 'rgba(26, 26, 26, 0.58)';
+  const MONO =
+    "var(--font-space-mono), ui-monospace, 'Courier New', Courier, monospace";
+  const SUB = 'est. the day i met anshika';
+  const PAD = 18;
+
+  // One combined Google Fonts request for every family below.
+  const FONTS_HREF =
+    'https://fonts.googleapis.com/css2?family=Lilita+One&family=Fredoka:wght@600&family=Chewy&family=Bagel+Fat+One&family=Sniglet:wght@800&family=Permanent+Marker&family=Rock+Salt&family=Gochi+Hand&family=Caveat:wght@700&family=Shantell+Sans:wght@700&family=Gloria+Hallelujah&family=Pacifico&family=Kaushan+Script&display=swap';
+
+  type Font = {
+    label: string;
+    family: string;
+    weight?: number;
+    size: number;
+  };
+  const groups: { group: string; hint: string; fonts: Font[] }[] = [
+    {
+      group: 'CHUNKY / PLAYFUL',
+      hint: 'your likely lean — matches DELULU energy',
+      fonts: [
+        { label: 'Lilita One', family: "'Lilita One', cursive", size: 40 },
+        {
+          label: 'Fredoka (600)',
+          family: "'Fredoka', sans-serif",
+          weight: 600,
+          size: 40,
+        },
+        { label: 'Chewy', family: "'Chewy', cursive", size: 40 },
+        {
+          label: 'Bagel Fat One',
+          family: "'Bagel Fat One', cursive",
+          size: 34,
+        },
+        {
+          label: 'Sniglet (800)',
+          family: "'Sniglet', cursive",
+          weight: 800,
+          size: 38,
+        },
+      ],
+    },
+    {
+      group: 'MARKER / BRUSH',
+      hint: 'inky, hand-pressed',
+      fonts: [
+        {
+          label: 'Permanent Marker',
+          family: "'Permanent Marker', cursive",
+          size: 34,
+        },
+        { label: 'Rock Salt', family: "'Rock Salt', cursive", size: 24 },
+        { label: 'Gochi Hand', family: "'Gochi Hand', cursive", size: 38 },
+      ],
+    },
+    {
+      group: 'CASUAL HANDWRITING',
+      hint: 'relaxed, personal',
+      fonts: [
+        {
+          label: 'Caveat (700) — was option D',
+          family: "'Caveat', cursive",
+          weight: 700,
+          size: 46,
+        },
+        {
+          label: 'Shantell Sans (700)',
+          family: "'Shantell Sans', cursive",
+          weight: 700,
+          size: 38,
+        },
+        {
+          label: 'Gloria Hallelujah',
+          family: "'Gloria Hallelujah', cursive",
+          size: 30,
+        },
+      ],
+    },
+    {
+      group: 'DECORATIVE / SCRIPT',
+      hint: 'likely too formal for DELULU — here to rule out',
+      fonts: [
+        { label: 'Pacifico', family: "'Pacifico', cursive", size: 36 },
+        {
+          label: 'Kaushan Script',
+          family: "'Kaushan Script', cursive",
+          size: 36,
+        },
+      ],
+    },
+  ];
+
+  const subStyle: CSSProperties = {
+    fontFamily: MONO,
+    fontSize: 10,
+    letterSpacing: '1.5px',
+    textTransform: 'uppercase',
+    color: INK_SOFT,
+    marginTop: 8,
+  };
+  const bodyRows: [string, string, string][] = [
+    ['01', 'your hoodie (not returning)', 'kept'],
+    ['02', '47× futures i planned w u', 'EMI'],
+  ];
+  const Body = () => (
+    <div style={{ fontFamily: MONO, fontSize: 11, color: INK, marginTop: 14 }}>
+      <div
+        style={{ borderTop: `1px dashed ${INK_SOFT}`, margin: '0 0 8px' }}
+        aria-hidden
+      />
+      {bodyRows.map(([q, item, price]) => (
+        <div
+          key={q}
+          style={{ display: 'flex', gap: 8, lineHeight: 1.9, opacity: 0.92 }}
+        >
+          <span style={{ color: INK_SOFT }}>{q}</span>
+          <span style={{ flex: 1 }}>{item}</span>
+          <span>{price}</span>
+        </div>
+      ))}
+      <div
+        style={{ borderTop: `1px dashed ${INK_SOFT}`, margin: '8px 0' }}
+        aria-hidden
+      />
+      <div style={{ display: 'flex', fontWeight: 700 }}>
+        <span style={{ flex: 1 }}>TOTAL</span>
+        <span>priceless</span>
+      </div>
+    </div>
+  );
+
+  return (
+    <div
+      style={{
+        minHeight: '100vh',
+        background: '#e7e2d8',
+        padding: '24px 14px 90px',
+        fontFamily: MONO,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 24,
+      }}
+    >
+      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+      <link rel="stylesheet" href={FONTS_HREF} />
+
+      <div style={{ textAlign: 'center', maxWidth: 460 }}>
+        <h1 style={{ fontSize: 16, margin: '0 0 6px', color: '#1a1a1a' }}>
+          DELULU MART — handcrafted logo font spread
+        </h1>
+        <p style={{ fontSize: 12, color: '#555', margin: 0, lineHeight: 1.5 }}>
+          Each option is the wordmark on bare paper (no band) so you judge the
+          letterforms. Subtitle kept under each. ⚠ Every font here is Language B
+          — this gift is Language A (mono / thermal). Pick by font name.
+        </p>
+      </div>
+
+      {groups.map((g) => (
+        <div key={g.group} style={{ width: '100%', maxWidth: 340 }}>
+          <div
+            style={{
+              fontSize: 12,
+              fontWeight: 700,
+              color: '#1a1a1a',
+              letterSpacing: 1,
+              margin: '6px 0 2px',
+            }}
+          >
+            {g.group}
+          </div>
+          <div style={{ fontSize: 11, color: '#777', marginBottom: 12 }}>
+            {g.hint}
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+            {g.fonts.map((f) => (
+              <div key={f.label}>
+                <div
+                  style={{
+                    fontFamily: MONO,
+                    fontSize: 11,
+                    color: '#444',
+                    marginBottom: 6,
+                  }}
+                >
+                  {f.label}
+                </div>
+                <div
+                  style={{
+                    background: PAPER,
+                    padding: `${PAD}px ${PAD}px ${PAD}px`,
+                    borderRadius: 2,
+                    overflow: 'hidden',
+                    boxShadow: '0 1px 0 #00000010',
+                    border: '1px solid #00000010',
+                    textAlign: 'center',
+                  }}
+                >
+                  <div
+                    style={{
+                      fontFamily: f.family,
+                      fontWeight: f.weight ?? 400,
+                      fontSize: f.size,
+                      lineHeight: 1.12,
+                      color: INK,
+                      wordBreak: 'break-word',
+                    }}
+                  >
+                    DELULU MART
+                  </div>
+                  <div style={subStyle}>{SUB}</div>
+                  <Body />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ── HEADER-COMPARE — five DELULU MART header treatments, stacked ────────────
 // EXPLORATORY preview only. Same receipt fragment under five different header
 // treatments (A–E) so a direction can be picked on the phone. Nothing here is
@@ -1330,6 +1564,12 @@ export default function GiftPreviewPage({
   // /g/preview?slug=love-receipt&view=headercompare
   if (slug === 'love-receipt' && searchParams.view === 'headercompare') {
     return <HeaderCompare />;
+  }
+
+  // HEADERFONTS (exploratory) — DELULU MART in a spread of handcrafted fonts:
+  // /g/preview?slug=love-receipt&view=headerfonts
+  if (slug === 'love-receipt' && searchParams.view === 'headerfonts') {
+    return <HeaderFonts />;
   }
 
   // SHOWCASE — every in-context doodle on one receipt:
