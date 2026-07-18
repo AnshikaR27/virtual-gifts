@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import { notFound } from 'next/navigation';
 import { GiftFrame } from '@/components/gift-frame/gift-frame';
 import { getGiftDefinition } from '@/gifts/registry';
@@ -957,6 +958,317 @@ function SectionDemo({ title, ids }: { title: string; ids: string[] }) {
   );
 }
 
+// ── HEADER-COMPARE — five DELULU MART header treatments, stacked ────────────
+// EXPLORATORY preview only. Same receipt fragment under five different header
+// treatments (A–E) so a direction can be picked on the phone. Nothing here is
+// wired into the real receipt. This gift is Language A (mono / thermal-receipt /
+// Y2K family): treatments C stay pure A; D (handwritten Caveat) is Language B;
+// E (feathered band) mildly softens the A boundary. Both flagged inline.
+// Reached with /g/preview?slug=love-receipt&view=headercompare
+function HeaderCompare() {
+  const PAPER = '#fbfbf9';
+  const INK = '#1a1a1a';
+  const INK_SOFT = 'rgba(26, 26, 26, 0.58)';
+  const BAND = '#c3c8ee'; // current periwinkle band
+  const HEADER_FONT =
+    "var(--font-archivo-black), 'Arial Black', Helvetica, Arial, sans-serif";
+  const MONO =
+    "var(--font-space-mono), ui-monospace, 'Courier New', Courier, monospace";
+  const STORE = 'DELULU MART';
+  const SUB = 'est. the day i met anshika';
+  const PAD = 18;
+
+  const storeStyle: CSSProperties = {
+    fontFamily: HEADER_FONT,
+    fontWeight: 900,
+    fontSize: 28,
+    lineHeight: 1.02,
+    letterSpacing: '-0.5px',
+    textTransform: 'uppercase',
+    color: INK,
+  };
+  const subStyle: CSSProperties = {
+    fontFamily: MONO,
+    fontSize: 10,
+    letterSpacing: '1.5px',
+    textTransform: 'uppercase',
+    color: INK_SOFT,
+    marginTop: 6,
+  };
+
+  // A representative slice of receipt body so each header reads IN CONTEXT.
+  const bodyRows: [string, string, string][] = [
+    ['01', 'your hoodie (not returning)', 'kept'],
+    ['02', '47× futures i planned w u', 'EMI'],
+    ['03', 'the audacity to look this good', 'santoor tax'],
+  ];
+  const Body = () => (
+    <div style={{ fontFamily: MONO, fontSize: 11, color: INK, marginTop: 12 }}>
+      <div
+        style={{ borderTop: `1px dashed ${INK_SOFT}`, margin: '0 0 8px' }}
+        aria-hidden
+      />
+      {bodyRows.map(([q, item, price]) => (
+        <div
+          key={q}
+          style={{ display: 'flex', gap: 8, lineHeight: 1.9, opacity: 0.92 }}
+        >
+          <span style={{ color: INK_SOFT }}>{q}</span>
+          <span style={{ flex: 1 }}>{item}</span>
+          <span>{price}</span>
+        </div>
+      ))}
+      <div
+        style={{ borderTop: `1px dashed ${INK_SOFT}`, margin: '8px 0' }}
+        aria-hidden
+      />
+      <div style={{ display: 'flex', fontWeight: 700 }}>
+        <span style={{ flex: 1 }}>TOTAL</span>
+        <span>priceless</span>
+      </div>
+    </div>
+  );
+
+  const doodle = (src: string, size: number, flip = false) => (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={`/stickers/doodles/${src}`}
+      alt=""
+      style={{
+        height: size,
+        width: 'auto',
+        transform: flip ? 'scaleX(-1)' : undefined,
+        opacity: 0.9,
+      }}
+    />
+  );
+
+  // ── the five header treatments ────────────────────────────────────────────
+  const headers: {
+    key: string;
+    title: string;
+    note?: string;
+    el: JSX.Element;
+  }[] = [
+    {
+      key: 'A',
+      title: 'CURRENT — solid periwinkle band',
+      el: (
+        <div
+          style={{
+            background: BAND,
+            margin: `-${PAD}px -${PAD}px 0`,
+            padding: `18px ${PAD}px 14px`,
+            textAlign: 'center',
+          }}
+        >
+          <div style={storeStyle}>{STORE}</div>
+          <div style={subStyle}>{SUB}</div>
+        </div>
+      ),
+    },
+    {
+      key: 'B',
+      title: 'NO BAND — bare paper + small doodle accents',
+      el: (
+        <div style={{ textAlign: 'center', paddingTop: 4 }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: 10,
+              marginBottom: 6,
+            }}
+          >
+            {doodle('doodle-star-teal-bold.png', 13)}
+            {doodle('doodle-heart-candy.png', 15)}
+            {doodle('doodle-star-coral-bold.png', 13)}
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: 10,
+            }}
+          >
+            {doodle('doodle-sparkle.png', 18)}
+            <div style={storeStyle}>{STORE}</div>
+            {doodle('doodle-sparkle.png', 18, true)}
+          </div>
+          <div style={subStyle}>{SUB}</div>
+        </div>
+      ),
+    },
+    {
+      key: 'C',
+      title: 'PRINTED-RECEIPT — thermal rules, monospace',
+      el: (
+        <div style={{ textAlign: 'center', paddingTop: 2 }}>
+          <div
+            style={{
+              fontFamily: MONO,
+              fontSize: 13,
+              color: INK,
+              letterSpacing: 2,
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {'═'.repeat(48)}
+          </div>
+          <div
+            style={{
+              fontFamily: MONO,
+              fontWeight: 700,
+              fontSize: 22,
+              letterSpacing: 4,
+              textTransform: 'uppercase',
+              color: INK,
+              margin: '8px 0 2px',
+            }}
+          >
+            {STORE}
+          </div>
+          <div style={{ ...subStyle, marginTop: 2 }}>{`* ${SUB} *`}</div>
+          <div
+            style={{
+              fontFamily: MONO,
+              fontSize: 13,
+              color: INK,
+              letterSpacing: 2,
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              marginTop: 8,
+            }}
+          >
+            {'═'.repeat(48)}
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: 'D',
+      title: 'HANDCRAFTED WORDMARK — handwritten Caveat',
+      note: '⚠ LANGUAGE B — Caveat is the B handwritten signal (design-system rule #2). Clashes with this mono / thermal-receipt Language-A gift.',
+      el: (
+        <div style={{ textAlign: 'center', paddingTop: 4 }}>
+          <div
+            style={{
+              fontFamily: "var(--font-caveat), 'Segoe Script', cursive",
+              fontWeight: 700,
+              fontSize: 46,
+              lineHeight: 1,
+              color: '#6b4a5a',
+            }}
+          >
+            Delulu Mart
+          </div>
+          <div style={{ ...subStyle, marginTop: 4 }}>{SUB}</div>
+        </div>
+      ),
+    },
+    {
+      key: 'E',
+      title: 'SOFTENED BAND — pale textured wash, feathered edge',
+      note: '⚠ MILD DRIFT — the feathered/soft bottom edge is a Language-B softness cue. Keep the wash hard-edged to stay in A.',
+      el: (
+        <div
+          style={{
+            margin: `-${PAD}px -${PAD}px 0`,
+            padding: `18px ${PAD}px 20px`,
+            textAlign: 'center',
+            backgroundImage: `linear-gradient(180deg, ${BAND}cc 0%, ${BAND}99 45%, ${BAND}00 100%), repeating-linear-gradient(90deg, #ffffff22 0 2px, #00000000 2px 4px)`,
+          }}
+        >
+          <div style={storeStyle}>{STORE}</div>
+          <div style={subStyle}>{SUB}</div>
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <div
+      style={{
+        minHeight: '100vh',
+        background: '#e7e2d8',
+        padding: '24px 14px 90px',
+        fontFamily: MONO,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 28,
+      }}
+    >
+      <div style={{ textAlign: 'center', maxWidth: 440 }}>
+        <h1 style={{ fontSize: 16, margin: '0 0 6px', color: '#1a1a1a' }}>
+          Love Receipt — DELULU MART header options
+        </h1>
+        <p style={{ fontSize: 12, color: '#555', margin: 0, lineHeight: 1.5 }}>
+          Same receipt fragment, five header treatments. This gift is Language A
+          (mono / thermal-receipt). ⚠ marks a treatment that drifts to Language
+          B. Pick by letter.
+        </p>
+      </div>
+
+      {headers.map((h) => (
+        <div key={h.key} style={{ width: '100%', maxWidth: 340 }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              marginBottom: 8,
+            }}
+          >
+            <span
+              style={{
+                fontFamily: MONO,
+                fontWeight: 700,
+                fontSize: 13,
+                color: '#fff',
+                background: '#1a1a1a',
+                borderRadius: 5,
+                padding: '2px 9px',
+              }}
+            >
+              {h.key}
+            </span>
+            <span style={{ fontSize: 12, color: '#333' }}>{h.title}</span>
+          </div>
+          {h.note ? (
+            <p
+              style={{
+                fontSize: 10.5,
+                color: '#8a2b2b',
+                margin: '0 0 8px',
+                lineHeight: 1.45,
+              }}
+            >
+              {h.note}
+            </p>
+          ) : null}
+          <div
+            style={{
+              background: PAPER,
+              padding: PAD,
+              borderRadius: 2,
+              overflow: 'hidden',
+              boxShadow: '0 1px 0 #00000010',
+              border: '1px solid #00000010',
+            }}
+          >
+            {h.el}
+            <Body />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function GiftPreviewPage({
   searchParams,
 }: {
@@ -1012,6 +1324,12 @@ export default function GiftPreviewPage({
   // /g/preview?slug=love-receipt&view=real
   if (slug === 'love-receipt' && searchParams.view === 'real') {
     return <RealDraws />;
+  }
+
+  // HEADERCOMPARE (exploratory) — five DELULU MART header treatments:
+  // /g/preview?slug=love-receipt&view=headercompare
+  if (slug === 'love-receipt' && searchParams.view === 'headercompare') {
+    return <HeaderCompare />;
   }
 
   // SHOWCASE — every in-context doodle on one receipt:
