@@ -958,6 +958,187 @@ function SectionDemo({ title, ids }: { title: string; ids: string[] }) {
   );
 }
 
+// ── HEADER-ROUNDED — the REAL receipt, chunky rounded "Receiptify" logo ─────
+// EXPLORATORY preview only. Real ReceiptPaper four times; only the logo font
+// changes via the preview-only headerPreview prop (band + subtitle + body
+// unchanged). Tests the chunky rounded machine-printed wordmark (Language A),
+// with/without a dark outline. Reached with
+// /g/preview?slug=love-receipt&view=headerrounded
+function HeaderRounded() {
+  const payload = galleryPayload(['lr-061', 'lr-039', 'lr-018', 'lr-081']);
+  const INK = '#1a1a1a';
+  const INK_SOFT = 'rgba(26, 26, 26, 0.58)';
+  const MONO =
+    "var(--font-space-mono), ui-monospace, 'IBM Plex Mono', 'Courier New', monospace";
+  const FONTS_HREF =
+    'https://fonts.googleapis.com/css2?family=Fredoka:wght@600&family=Lilita+One&display=swap';
+
+  const logo = (opts: {
+    family: string;
+    size: number;
+    weight?: number;
+    outline?: boolean;
+  }) => (
+    <div style={{ textAlign: 'center', marginBottom: 8 }}>
+      <div
+        style={{
+          fontFamily: opts.family,
+          fontWeight: opts.weight ?? 400,
+          fontSize: opts.size,
+          lineHeight: 1.05,
+          textTransform: 'uppercase',
+          color: INK,
+          whiteSpace: 'nowrap',
+          ...(opts.outline
+            ? { WebkitTextStroke: '1.5px #000', paintOrder: 'stroke fill' }
+            : {}),
+        }}
+      >
+        DELULU MART
+      </div>
+      <div
+        style={{
+          fontFamily: MONO,
+          fontSize: 10.5,
+          letterSpacing: '1.5px',
+          textTransform: 'uppercase',
+          color: INK_SOFT,
+          marginTop: 6,
+        }}
+      >
+        est. the day i met anshika
+      </div>
+    </div>
+  );
+
+  const cards: { key: string; title: string; node: ReactNode }[] = [
+    {
+      key: 'A',
+      title: 'CURRENT — Archivo Black (baseline, now one line)',
+      node: <ReceiptPaper payload={payload} />,
+    },
+    {
+      key: 'B',
+      title: 'Fredoka (chunky rounded), no outline — 28px',
+      node: (
+        <ReceiptPaper
+          payload={payload}
+          headerPreview={{
+            node: logo({
+              family: "'Fredoka', sans-serif",
+              size: 28,
+              weight: 600,
+            }),
+            band: 'solid',
+          }}
+        />
+      ),
+    },
+    {
+      key: 'C',
+      title: 'Fredoka + dark outline (the Receiptify look) — 28px',
+      node: (
+        <ReceiptPaper
+          payload={payload}
+          headerPreview={{
+            node: logo({
+              family: "'Fredoka', sans-serif",
+              size: 28,
+              weight: 600,
+              outline: true,
+            }),
+            band: 'solid',
+          }}
+        />
+      ),
+    },
+    {
+      key: 'D',
+      title: 'Lilita One + dark outline (alt letterforms) — 30px',
+      node: (
+        <ReceiptPaper
+          payload={payload}
+          headerPreview={{
+            node: logo({
+              family: "'Lilita One', cursive",
+              size: 30,
+              outline: true,
+            }),
+            band: 'solid',
+          }}
+        />
+      ),
+    },
+  ];
+
+  return (
+    <div
+      style={{
+        minHeight: '100vh',
+        background: '#e7e2d8',
+        padding: '24px 14px 90px',
+        fontFamily: 'ui-monospace, monospace',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 34,
+      }}
+    >
+      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+      <link rel="stylesheet" href={FONTS_HREF} />
+
+      <div style={{ textAlign: 'center', maxWidth: 470 }}>
+        <h1 style={{ fontSize: 16, margin: '0 0 6px', color: '#1a1a1a' }}>
+          Love Receipt — chunky rounded logo (Receiptify style)
+        </h1>
+        <p style={{ fontSize: 12, color: '#555', margin: 0, lineHeight: 1.5 }}>
+          Real receipt; only the logo font changes A→D. Band + subtitle + body +
+          doodles unchanged. All rounded options fit DELULU MART on ONE line at
+          390px (and down to 320px). Crisp, bold, machine-printed — Language A.
+        </p>
+      </div>
+
+      {cards.map((c) => (
+        <div
+          key={c.key}
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              marginBottom: 12,
+              maxWidth: 320,
+            }}
+          >
+            <span
+              style={{
+                fontWeight: 700,
+                fontSize: 13,
+                color: '#fff',
+                background: '#1a1a1a',
+                borderRadius: 5,
+                padding: '2px 9px',
+              }}
+            >
+              {c.key}
+            </span>
+            <span style={{ fontSize: 12, color: '#333' }}>{c.title}</span>
+          </div>
+          {c.node}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ── HEADER-ALL — the REAL receipt with ALL designer Language-A header ideas ─
 // EXPLORATORY preview only. Current vs a header with every suggested change at
 // once: printer metadata, ASCII boundary, perforated tear edge, dithered band,
@@ -2749,6 +2930,12 @@ export default function GiftPreviewPage({
   // /g/preview?slug=love-receipt&view=headerall
   if (slug === 'love-receipt' && searchParams.view === 'headerall') {
     return <HeaderAllChanges />;
+  }
+
+  // HEADERROUNDED (exploratory) — real receipt, chunky rounded logo options:
+  // /g/preview?slug=love-receipt&view=headerrounded
+  if (slug === 'love-receipt' && searchParams.view === 'headerrounded') {
+    return <HeaderRounded />;
   }
 
   // SHOWCASE — every in-context doodle on one receipt:
