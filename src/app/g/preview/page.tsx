@@ -958,6 +958,197 @@ function SectionDemo({ title, ids }: { title: string; ids: string[] }) {
   );
 }
 
+// ── LOGO-COMPARE — the REAL receipt, four header/logo treatments ────────────
+// EXPLORATORY preview only. Renders the actual ReceiptPaper (real pixel body,
+// real colourful doodles, real everything) four times; only the header block
+// changes via the PREVIEW-ONLY headerPreview prop. Tests whether a soft
+// hand-lettered DELULU MART logo sits on the crisp Y2K body or clashes.
+// Reached with /g/preview?slug=love-receipt&view=logocompare
+function LogoCompare() {
+  const payload = galleryPayload(['lr-061', 'lr-039', 'lr-018', 'lr-081']);
+  const INK = '#1a1a1a';
+  const MARKER = "'Permanent Marker', cursive";
+  const FONTS_HREF =
+    'https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap';
+
+  const subStyle: CSSProperties = {
+    fontFamily:
+      "var(--font-space-mono), ui-monospace, 'Courier New', monospace",
+    fontSize: 10.5,
+    letterSpacing: '1.5px',
+    textTransform: 'uppercase',
+    color: 'rgba(26, 26, 26, 0.58)',
+    marginTop: 6,
+  };
+  const Sub = () => <div style={subStyle}>est. the day i met anshika</div>;
+  const HandLogo = ({ size }: { size: number }) => (
+    <div
+      style={{
+        fontFamily: MARKER,
+        fontSize: size,
+        color: INK,
+        lineHeight: 1.05,
+        letterSpacing: 0.5,
+      }}
+    >
+      DELULU MART
+    </div>
+  );
+  const Star = ({ s = 16 }: { s?: number }) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" aria-hidden>
+      <path
+        d="M12 3 L14 9 L20 9.5 L15 13.5 L17 20 L12 16 L7 20 L9 13.5 L4 9.5 L10 9 Z"
+        fill="none"
+        stroke={INK}
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+  const Donut = ({ s = 32 }: { s?: number }) => (
+    <svg width={s} height={s} viewBox="0 0 40 40" aria-hidden>
+      <g fill="none" stroke={INK} strokeWidth="1.7">
+        <circle cx="20" cy="21" r="13" />
+        <circle cx="20" cy="21" r="4.5" />
+        <path d="M9 15 q3 2 5 -1 M27 14 q2 3 4 1 M13 29 q3 -2 5 1 M25 30 q2 -3 4 -1" />
+      </g>
+    </svg>
+  );
+
+  const handOnBand = (
+    <div style={{ textAlign: 'center' }}>
+      <HandLogo size={32} />
+      <Sub />
+    </div>
+  );
+  const handNoBand = (
+    <div style={{ textAlign: 'center' }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: 10,
+        }}
+      >
+        <Donut s={32} />
+        <HandLogo size={27} />
+        <Star s={16} />
+      </div>
+      <Sub />
+    </div>
+  );
+
+  const cards: {
+    key: string;
+    title: string;
+    node: ReactNode;
+  }[] = [
+    {
+      key: 'A',
+      title: 'CURRENT — periwinkle band, Archivo Black (baseline)',
+      node: <ReceiptPaper payload={payload} />,
+    },
+    {
+      key: 'B',
+      title: 'Hand-lettered logo, band KEPT',
+      node: (
+        <ReceiptPaper
+          payload={payload}
+          headerPreview={{ node: handOnBand, band: 'solid' }}
+        />
+      ),
+    },
+    {
+      key: 'C',
+      title: 'Hand-lettered logo + donut & star, NO band',
+      node: (
+        <ReceiptPaper
+          payload={payload}
+          headerPreview={{ node: handNoBand, band: 'none' }}
+        />
+      ),
+    },
+    {
+      key: 'D',
+      title: 'Hand-lettered logo, band SOFTENED (paler)',
+      node: (
+        <ReceiptPaper
+          payload={payload}
+          headerPreview={{ node: handOnBand, band: 'soft' }}
+        />
+      ),
+    },
+  ];
+
+  return (
+    <div
+      style={{
+        minHeight: '100vh',
+        background: '#e7e2d8',
+        padding: '24px 14px 90px',
+        fontFamily: 'ui-monospace, monospace',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 34,
+      }}
+    >
+      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+      <link rel="stylesheet" href={FONTS_HREF} />
+
+      <div style={{ textAlign: 'center', maxWidth: 460 }}>
+        <h1 style={{ fontSize: 16, margin: '0 0 6px', color: '#1a1a1a' }}>
+          Love Receipt — hand-lettered logo on the real Y2K body
+        </h1>
+        <p style={{ fontSize: 12, color: '#555', margin: 0, lineHeight: 1.5 }}>
+          The actual receipt (real body, real doodles) — only the header/logo
+          area changes A→D. Logo font is Permanent Marker as a hand-lettering
+          placeholder. Subtitle + entire body unchanged.
+        </p>
+      </div>
+
+      {cards.map((c) => (
+        <div
+          key={c.key}
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              marginBottom: 12,
+              maxWidth: 320,
+            }}
+          >
+            <span
+              style={{
+                fontWeight: 700,
+                fontSize: 13,
+                color: '#fff',
+                background: '#1a1a1a',
+                borderRadius: 5,
+                padding: '2px 9px',
+              }}
+            >
+              {c.key}
+            </span>
+            <span style={{ fontSize: 12, color: '#333' }}>{c.title}</span>
+          </div>
+          {c.node}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ── HANDDRAWN-COMP — throwaway static comp: the whole receipt reimagined as ─
 // a soft hand-drawn monochrome sticker (Donut-Café reference). ONE dark-navy
 // ink hand on cream: hand-lettered logo (marker-font placeholder), wobbly
@@ -2086,6 +2277,12 @@ export default function GiftPreviewPage({
   // /g/preview?slug=love-receipt&view=handdrawn-comp
   if (slug === 'love-receipt' && searchParams.view === 'handdrawn-comp') {
     return <HandDrawnComp />;
+  }
+
+  // LOGOCOMPARE (exploratory) — real receipt, four hand-lettered logo options:
+  // /g/preview?slug=love-receipt&view=logocompare
+  if (slug === 'love-receipt' && searchParams.view === 'logocompare') {
+    return <LogoCompare />;
   }
 
   // SHOWCASE — every in-context doodle on one receipt:

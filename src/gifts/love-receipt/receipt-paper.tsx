@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import Image from 'next/image';
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import {
   BARCODE_TEXT,
   NEW_LINE_MAX,
@@ -68,6 +68,9 @@ const ITEM_LINE_FONT_SIZE = 12.5;
 // Soft periwinkle header band (the Receiptify reference strip behind the store
 // name). Light enough that the near-black ink title stays high-contrast on it.
 const HEADER_BAND = '#c3c8ee';
+// PREVIEW-ONLY: a paler wash of the periwinkle band, used by the header-logo
+// comparison view's "softened band" option. Not referenced in production.
+const SOFT_HEADER_BAND = '#e1e4f5';
 
 // Very heavy uppercase grotesque for the store header ("RECEIPTIFY" treatment).
 const HEADER_FONT =
@@ -241,6 +244,13 @@ interface ReceiptPaperProps {
    *  bypassing resolveReceiptDoodles. Used by the /g/preview candidates view to
    *  show unbound doodle candidates at true receipt size; unused in production. */
   lineDoodleOverride?: (ResolvedDoodle | null)[];
+  /** PREVIEW-ONLY: replace just the header block (logo + band) while the body
+   *  renders byte-for-byte as production. `node` is drawn in place of the
+   *  default <Header>; `band` picks the strip treatment ('solid' = the current
+   *  periwinkle, 'soft' = a paler wash, 'none' = bare paper). Undefined = the
+   *  exact production header. Used only by the /g/preview logo-comparison view;
+   *  unused in production. */
+  headerPreview?: { node: ReactNode; band: 'solid' | 'soft' | 'none' };
   style?: CSSProperties;
 }
 
@@ -251,6 +261,7 @@ export function ReceiptPaper({
   showStamp = false,
   editable,
   lineDoodleOverride,
+  headerPreview,
   style,
 }: ReceiptPaperProps) {
   const seq = buildSequence(payload, { showEmptyHint: !!editable });
@@ -310,12 +321,20 @@ export function ReceiptPaper({
         />
 
         <div style={{ position: 'relative', zIndex: 2 }}>
-          {bandShown > 0 ? (
+          {/* PREVIEW-ONLY: bare-paper custom header (no band strip). */}
+          {bandShown > 0 && headerPreview && headerPreview.band === 'none' ? (
+            <div style={{ position: 'relative', marginBottom: 8 }}>
+              {headerPreview.node}
+            </div>
+          ) : bandShown > 0 ? (
             <div
               style={{
                 position: 'relative',
                 overflow: 'hidden',
-                background: HEADER_BAND,
+                background:
+                  headerPreview?.band === 'soft'
+                    ? SOFT_HEADER_BAND
+                    : HEADER_BAND,
                 // Full-bleed: negative margins cancel the paper's 28px top / 22px
                 // side padding so the band runs flush to the paper edges (a
                 // printed strip, not a floating rectangle). Inner padding gives
@@ -350,17 +369,19 @@ export function ReceiptPaper({
                 }}
               />
               <div style={{ position: 'relative', zIndex: 1 }}>
-                {seq.slice(0, bandShown).map((row, i) => (
-                  <Row key={i} animate={animate}>
-                    {renderRow(
-                      row,
-                      payload,
-                      editable,
-                      numberWraps,
-                      lineDoodles,
-                    )}
-                  </Row>
-                ))}
+                {headerPreview
+                  ? headerPreview.node
+                  : seq.slice(0, bandShown).map((row, i) => (
+                      <Row key={i} animate={animate}>
+                        {renderRow(
+                          row,
+                          payload,
+                          editable,
+                          numberWraps,
+                          lineDoodles,
+                        )}
+                      </Row>
+                    ))}
               </div>
             </div>
           ) : null}
