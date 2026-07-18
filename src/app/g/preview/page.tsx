@@ -958,6 +958,239 @@ function SectionDemo({ title, ids }: { title: string; ids: string[] }) {
   );
 }
 
+// ── HEADER-TWEAKS — the REAL receipt, subtle Language-A header refinements ──
+// EXPLORATORY preview only. Renders the actual ReceiptPaper six times; only the
+// header changes via the PREVIEW-ONLY headerPreview prop. Every option keeps the
+// current Archivo Black logo + periwinkle band (Language A) — these are small
+// refinements, not redesigns. Reached with
+// /g/preview?slug=love-receipt&view=headertweaks
+function HeaderTweaks() {
+  const payload = galleryPayload(['lr-061', 'lr-039', 'lr-018', 'lr-081']);
+  const INK = '#1a1a1a';
+  const INK_SOFT = 'rgba(26, 26, 26, 0.58)';
+  const HEADER_FONT =
+    "var(--font-archivo-black), 'Arial Black', 'Helvetica Neue', Helvetica, Arial, sans-serif";
+  const MONO =
+    "var(--font-space-mono), ui-monospace, 'IBM Plex Mono', 'Courier New', monospace";
+
+  // Exact reproduction of the production <Header> lockup, with knobs per tweak.
+  const lockup = (opts?: {
+    logoSize?: number;
+    logoLetterSpacing?: string;
+    nowrap?: boolean;
+    subGap?: number;
+    subLetterSpacing?: string;
+    accents?: boolean;
+  }) => (
+    <div style={{ position: 'relative', textAlign: 'center', marginBottom: 8 }}>
+      {opts?.accents ? (
+        <>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/stickers/doodles/doodle-sparkle.png"
+            alt=""
+            style={{
+              position: 'absolute',
+              top: -8,
+              left: -2,
+              height: 15,
+              opacity: 0.85,
+            }}
+          />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/stickers/doodles/doodle-star-teal-bold.png"
+            alt=""
+            style={{
+              position: 'absolute',
+              top: -6,
+              right: -2,
+              height: 13,
+              opacity: 0.85,
+            }}
+          />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/stickers/doodles/doodle-sparkle.png"
+            alt=""
+            style={{
+              position: 'absolute',
+              bottom: 4,
+              right: 6,
+              height: 10,
+              opacity: 0.7,
+            }}
+          />
+        </>
+      ) : null}
+      <div
+        style={{
+          fontFamily: HEADER_FONT,
+          fontWeight: 900,
+          fontSize: opts?.logoSize ?? 30,
+          lineHeight: 1.02,
+          letterSpacing: opts?.logoLetterSpacing ?? '-0.5px',
+          textTransform: 'uppercase',
+          color: INK,
+          whiteSpace: opts?.nowrap ? 'nowrap' : 'normal',
+        }}
+      >
+        DELULU MART
+      </div>
+      <div
+        style={{
+          fontFamily: MONO,
+          fontSize: 10.5,
+          letterSpacing: opts?.subLetterSpacing ?? '1.5px',
+          textTransform: 'uppercase',
+          color: INK_SOFT,
+          marginTop: opts?.subGap ?? 6,
+        }}
+      >
+        est. the day i met anshika
+      </div>
+    </div>
+  );
+
+  const cards: { key: string; title: string; node: ReactNode }[] = [
+    {
+      key: 'A',
+      title: 'CURRENT (baseline)',
+      node: <ReceiptPaper payload={payload} />,
+    },
+    {
+      key: 'B',
+      title: 'Band softened — same periwinkle, a touch paler',
+      node: (
+        <ReceiptPaper
+          payload={payload}
+          headerPreview={{
+            node: lockup(),
+            band: 'solid',
+            bandStyle: { background: '#d5d9f0' },
+          }}
+        />
+      ),
+    },
+    {
+      key: 'C',
+      title: 'Band edge — crisp thin divider at the bottom',
+      node: (
+        <ReceiptPaper
+          payload={payload}
+          headerPreview={{
+            node: lockup(),
+            band: 'solid',
+            bandStyle: { borderBottom: '1.5px solid rgba(26, 26, 26, 0.5)' },
+          }}
+        />
+      ),
+    },
+    {
+      key: 'D',
+      title: 'Logo on ONE line (resized to fit)',
+      node: (
+        <ReceiptPaper
+          payload={payload}
+          headerPreview={{
+            node: lockup({ logoSize: 22, nowrap: true }),
+            band: 'solid',
+          }}
+        />
+      ),
+    },
+    {
+      key: 'E',
+      title: 'Small doodle accents tucked at the edges',
+      node: (
+        <ReceiptPaper
+          payload={payload}
+          headerPreview={{ node: lockup({ accents: true }), band: 'solid' }}
+        />
+      ),
+    },
+    {
+      key: 'F',
+      title: 'Tighter lockup — logo tracking + logo/subtitle gap',
+      node: (
+        <ReceiptPaper
+          payload={payload}
+          headerPreview={{
+            node: lockup({
+              logoLetterSpacing: '-1px',
+              subGap: 3,
+              subLetterSpacing: '1px',
+            }),
+            band: 'solid',
+          }}
+        />
+      ),
+    },
+  ];
+
+  return (
+    <div
+      style={{
+        minHeight: '100vh',
+        background: '#e7e2d8',
+        padding: '24px 14px 90px',
+        fontFamily: 'ui-monospace, monospace',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 34,
+      }}
+    >
+      <div style={{ textAlign: 'center', maxWidth: 460 }}>
+        <h1 style={{ fontSize: 16, margin: '0 0 6px', color: '#1a1a1a' }}>
+          Love Receipt — header refinements (Language A)
+        </h1>
+        <p style={{ fontSize: 12, color: '#555', margin: 0, lineHeight: 1.5 }}>
+          The real receipt (real body + doodles). Same Archivo Black logo +
+          periwinkle band throughout — only subtle header tweaks change A→F.
+          Subtitle + body unchanged.
+        </p>
+      </div>
+
+      {cards.map((c) => (
+        <div
+          key={c.key}
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              marginBottom: 12,
+              maxWidth: 320,
+            }}
+          >
+            <span
+              style={{
+                fontWeight: 700,
+                fontSize: 13,
+                color: '#fff',
+                background: '#1a1a1a',
+                borderRadius: 5,
+                padding: '2px 9px',
+              }}
+            >
+              {c.key}
+            </span>
+            <span style={{ fontSize: 12, color: '#333' }}>{c.title}</span>
+          </div>
+          {c.node}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ── LOGO-COMPARE — the REAL receipt, four header/logo treatments ────────────
 // EXPLORATORY preview only. Renders the actual ReceiptPaper (real pixel body,
 // real colourful doodles, real everything) four times; only the header block
@@ -2283,6 +2516,12 @@ export default function GiftPreviewPage({
   // /g/preview?slug=love-receipt&view=logocompare
   if (slug === 'love-receipt' && searchParams.view === 'logocompare') {
     return <LogoCompare />;
+  }
+
+  // HEADERTWEAKS (exploratory) — real receipt, subtle Language-A header tweaks:
+  // /g/preview?slug=love-receipt&view=headertweaks
+  if (slug === 'love-receipt' && searchParams.view === 'headertweaks') {
+    return <HeaderTweaks />;
   }
 
   // SHOWCASE — every in-context doodle on one receipt:

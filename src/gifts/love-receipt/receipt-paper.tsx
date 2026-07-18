@@ -250,7 +250,13 @@ interface ReceiptPaperProps {
    *  periwinkle, 'soft' = a paler wash, 'none' = bare paper). Undefined = the
    *  exact production header. Used only by the /g/preview logo-comparison view;
    *  unused in production. */
-  headerPreview?: { node: ReactNode; band: 'solid' | 'soft' | 'none' };
+  headerPreview?: {
+    node: ReactNode;
+    band: 'solid' | 'soft' | 'none';
+    /** merged onto the band wrapper (e.g. a paler background or a crisp bottom
+     *  edge) for the header-tweak comparison view. */
+    bandStyle?: CSSProperties;
+  };
   style?: CSSProperties;
 }
 
@@ -344,6 +350,7 @@ export function ReceiptPaper({
                 marginLeft: -22,
                 marginRight: -22,
                 padding: '20px 22px 12px',
+                ...headerPreview?.bandStyle,
               }}
             >
               {/* crease on top of the band color. The texture is near-white, so
