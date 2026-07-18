@@ -1,5 +1,13 @@
 import type { Metadata, Viewport } from 'next';
-import { Fraunces, Outfit, Caveat, VT323 } from 'next/font/google';
+import {
+  Fraunces,
+  Outfit,
+  Caveat,
+  VT323,
+  Archivo_Black,
+  JetBrains_Mono,
+  Space_Mono,
+} from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 import { Taskbar } from '@/components/layout/taskbar';
@@ -38,6 +46,30 @@ const vt323 = VT323({
   display: 'swap',
 });
 
+// Heavy black grotesque for the Love Receipt store header (Receiptify look).
+// JetBrains Mono backs `font-mono` app-wide.
+const archivoBlack = Archivo_Black({
+  subsets: ['latin'],
+  variable: '--font-archivo-black',
+  weight: '400',
+  display: 'swap',
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  variable: '--font-jetbrains-mono',
+  weight: ['400', '700'],
+  display: 'swap',
+});
+
+// Monospace for the Love Receipt body — the Receiptify thermal-print look.
+const spaceMono = Space_Mono({
+  subsets: ['latin'],
+  variable: '--font-space-mono',
+  weight: ['400', '700'],
+  display: 'swap',
+});
+
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
@@ -63,7 +95,7 @@ export default async function RootLayout({
   return (
     <html
       lang={locale}
-      className={`${fraunces.variable} ${outfit.variable} ${caveat.variable} ${vt323.variable}`}
+      className={`${fraunces.variable} ${outfit.variable} ${caveat.variable} ${vt323.variable} ${archivoBlack.variable} ${jetbrainsMono.variable} ${spaceMono.variable}`}
     >
       <body className="safe-area-pad font-body antialiased">
         <div className="scanline-overlay" aria-hidden />

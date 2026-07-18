@@ -38,6 +38,12 @@ interface GiftFrameProps {
   replayBehavior: ReplayBehavior;
   children: React.ReactNode;
   anticipationMs?: number;
+  /**
+   * Gifts that render their own post-climax CTA + replay (e.g. the tiffin-note
+   * action bar) set this to suppress the frame's default ConversionCta +
+   * ReplayButton, avoiding a duplicate. Defaults to false — unchanged behavior.
+   */
+  hideDefaultPostGiftCta?: boolean;
 }
 
 export function GiftFrame({
@@ -45,6 +51,7 @@ export function GiftFrame({
   replayBehavior,
   children,
   anticipationMs,
+  hideDefaultPostGiftCta = false,
 }: GiftFrameProps) {
   const {
     phase,
@@ -86,7 +93,7 @@ export function GiftFrame({
 
         {phase === 'climax' && <ReactionSnapSlot />}
 
-        {isPostGift && (
+        {isPostGift && !hideDefaultPostGiftCta && (
           <div className="flex flex-col items-center">
             <ConversionCta visible={isPostGift} />
             <ReplayButton

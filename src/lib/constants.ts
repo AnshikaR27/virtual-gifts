@@ -1,6 +1,6 @@
 export const BRAND_NAME = 'HoneyHearts';
 export const BRAND_TAGLINE = 'Craft unforgettable interactive surprises';
-export const PRODUCTION_URL = 'https://honeyhearts.com';
+export const PRODUCTION_URL = 'https://virtual-gifts.vercel.app';
 
 export const APP_URL =
   process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';

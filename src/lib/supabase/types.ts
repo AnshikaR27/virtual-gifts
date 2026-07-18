@@ -42,7 +42,8 @@ export type Database = {
         Row: {
           id: string;
           short_id: string;
-          creator_id: string;
+          // Phase 0: nullable for anonymous gifts — see 00005_nullable_creator.sql
+          creator_id: string | null;
           slug: string;
           sender_name: string | null;
           recipient_name: string;
@@ -56,7 +57,8 @@ export type Database = {
         Insert: {
           id?: string;
           short_id: string;
-          creator_id: string;
+          // Phase 0: optional/nullable for anonymous gifts — see 00005_nullable_creator.sql
+          creator_id?: string | null;
           slug: string;
           sender_name?: string | null;
           recipient_name: string;
