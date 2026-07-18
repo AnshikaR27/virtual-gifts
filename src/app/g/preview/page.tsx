@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { notFound } from 'next/navigation';
 import { GiftFrame } from '@/components/gift-frame/gift-frame';
 import { getGiftDefinition } from '@/gifts/registry';
@@ -958,6 +958,516 @@ function SectionDemo({ title, ids }: { title: string; ids: string[] }) {
   );
 }
 
+// ── HANDDRAWN-COMP — throwaway static comp: the whole receipt reimagined as ─
+// a soft hand-drawn monochrome sticker (Donut-Café reference). ONE dark-navy
+// ink hand on cream: hand-lettered logo (marker-font placeholder), wobbly
+// hand-drawn torn border, hand-drawn dashed dividers, single-ink line-art
+// marks (no colour PNGs). Hardcoded sample content — NOT wired to the pool.
+// This is Language B and a big departure from the live Language-A receipt.
+// Reached with /g/preview?slug=love-receipt&view=handdrawn-comp
+function HandDrawnComp() {
+  const NAVY = '#26324c';
+  const NAVY_SOFT = 'rgba(38, 50, 76, 0.62)';
+  const CREAM = '#f5efe1';
+  const MARKER = "'Permanent Marker', cursive";
+  const HAND = "'Gochi Hand', cursive";
+  const FONTS_HREF =
+    'https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Gochi+Hand&display=swap';
+
+  // hand-drawn wobble filter (shared by border + all line-art marks)
+  const wob = 'url(#hd-wobble)';
+
+  const Dashes = () => (
+    <svg
+      width="100%"
+      height="8"
+      viewBox="0 0 300 8"
+      preserveAspectRatio="none"
+      style={{ display: 'block', margin: '10px 0' }}
+      aria-hidden
+    >
+      <line
+        x1="4"
+        y1="4"
+        x2="296"
+        y2="4"
+        stroke={NAVY}
+        strokeWidth="2"
+        strokeDasharray="2 7"
+        strokeLinecap="round"
+        vectorEffect="non-scaling-stroke"
+        filter={wob}
+      />
+    </svg>
+  );
+
+  const Star = ({ s = 16 }: { s?: number }) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" aria-hidden>
+      <path
+        d="M12 3 L14 9 L20 9.5 L15 13.5 L17 20 L12 16 L7 20 L9 13.5 L4 9.5 L10 9 Z"
+        fill="none"
+        stroke={NAVY}
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+        filter={wob}
+      />
+    </svg>
+  );
+  const Sparkle = ({ s = 14 }: { s?: number }) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" aria-hidden>
+      <path
+        d="M12 2 C12 8 12 8 12 12 C12 8 12 8 22 12 C12 12 12 12 12 22 C12 12 12 12 2 12 C12 12 12 12 12 2 Z"
+        fill="none"
+        stroke={NAVY}
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+        filter={wob}
+      />
+    </svg>
+  );
+  const Heart = ({ s = 15 }: { s?: number }) => (
+    <svg
+      width={s}
+      height={s}
+      viewBox="0 0 24 24"
+      aria-hidden
+      style={{ verticalAlign: 'middle' }}
+    >
+      <path
+        d="M12 20 C4 14 3 8 6.5 6 C9 4.5 11 6 12 8 C13 6 15 4.5 17.5 6 C21 8 20 14 12 20 Z"
+        fill="none"
+        stroke={NAVY}
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+        filter={wob}
+      />
+    </svg>
+  );
+  // little donut mascot doodle, single ink (echoes the café mascot slot)
+  const Donut = ({ s = 34 }: { s?: number }) => (
+    <svg width={s} height={s} viewBox="0 0 40 40" aria-hidden>
+      <g fill="none" stroke={NAVY} strokeWidth="1.7" filter={wob}>
+        <circle cx="20" cy="21" r="13" />
+        <circle cx="20" cy="21" r="4.5" />
+        <path d="M9 15 q3 2 5 -1 M27 14 q2 3 4 1 M13 29 q3 -2 5 1 M25 30 q2 -3 4 -1" />
+      </g>
+    </svg>
+  );
+
+  // a word with a hand-drawn oval around it
+  const Circled = ({ children }: { children: ReactNode }) => (
+    <span
+      style={{
+        position: 'relative',
+        display: 'inline-block',
+        padding: '0 5px',
+      }}
+    >
+      <svg
+        viewBox="0 0 100 44"
+        preserveAspectRatio="none"
+        style={{
+          position: 'absolute',
+          inset: '-6px -2px',
+          width: '104%',
+          height: '150%',
+        }}
+        aria-hidden
+      >
+        <ellipse
+          cx="50"
+          cy="22"
+          rx="46"
+          ry="18"
+          fill="none"
+          stroke={NAVY}
+          strokeWidth="2"
+          vectorEffect="non-scaling-stroke"
+          filter={wob}
+        />
+      </svg>
+      <span style={{ position: 'relative' }}>{children}</span>
+    </span>
+  );
+  // a word with a hand-drawn wavy underline
+  const Wavy = ({ children }: { children: ReactNode }) => (
+    <span style={{ position: 'relative', display: 'inline-block' }}>
+      <span style={{ position: 'relative' }}>{children}</span>
+      <svg
+        viewBox="0 0 100 8"
+        preserveAspectRatio="none"
+        style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          bottom: -7,
+          width: '100%',
+          height: 7,
+        }}
+        aria-hidden
+      >
+        <path
+          d="M1 5 Q 12 1 24 5 T 48 5 T 72 5 T 99 5"
+          fill="none"
+          stroke={NAVY}
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          vectorEffect="non-scaling-stroke"
+          filter={wob}
+        />
+      </svg>
+    </span>
+  );
+
+  const items: { item: ReactNode; qty: string; price: string }[] = [
+    {
+      item: (
+        <>
+          your <Circled>hoodie</Circled> (not returning)
+        </>
+      ),
+      qty: '×1',
+      price: 'kept',
+    },
+    {
+      item: (
+        <>
+          47× <Wavy>futures</Wavy> i planned w u
+        </>
+      ),
+      qty: '×1',
+      price: 'EMI',
+    },
+    {
+      item: <>the audacity to look this good</>,
+      qty: '×1',
+      price: 'santoor tax',
+    },
+    {
+      item: (
+        <>
+          every goodnight text, on time <Heart s={14} />
+        </>
+      ),
+      qty: '×1',
+      price: 'priceless',
+    },
+  ];
+
+  const rowStyle: CSSProperties = {
+    display: 'flex',
+    alignItems: 'flex-end',
+    gap: 8,
+    fontFamily: HAND,
+    fontSize: 15,
+    lineHeight: 1.7,
+    color: NAVY,
+  };
+
+  return (
+    <div
+      style={{
+        minHeight: '100vh',
+        background: '#d9d3c6',
+        padding: '22px 14px 80px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 16,
+        fontFamily: HAND,
+      }}
+    >
+      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+      <link rel="stylesheet" href={FONTS_HREF} />
+
+      {/* shared hand-drawn wobble filter */}
+      <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden>
+        <defs>
+          <filter id="hd-wobble">
+            <feTurbulence
+              type="fractalNoise"
+              baseFrequency="0.018"
+              numOctaves={2}
+              seed={7}
+              result="noise"
+            />
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="3.2" />
+          </filter>
+        </defs>
+      </svg>
+
+      <p
+        style={{
+          fontFamily: 'ui-monospace, monospace',
+          fontSize: 11,
+          color: '#5b4a2f',
+          background: '#efe7d4',
+          border: '1px solid #cbb892',
+          borderRadius: 6,
+          padding: '8px 12px',
+          maxWidth: 340,
+          textAlign: 'center',
+          lineHeight: 1.5,
+          margin: 0,
+        }}
+      >
+        ⚠ THROWAWAY COMP · LANGUAGE B. A full redesign in a hand-drawn
+        monochrome style — a big departure from the live Language-A
+        (mono/thermal) receipt. Fonts are marker/hand placeholders standing in
+        for real hand-lettering; marks are single-ink line-art stand-ins.
+      </p>
+
+      {/* white sticker die-cut */}
+      <div
+        style={{
+          background: '#fcfbf7',
+          borderRadius: 22,
+          padding: 9,
+          boxShadow: '0 6px 22px rgba(0,0,0,0.16)',
+          transform: 'rotate(-0.6deg)',
+          maxWidth: 330,
+          width: '100%',
+        }}
+      >
+        {/* cream paper */}
+        <div
+          style={{
+            position: 'relative',
+            background: CREAM,
+            borderRadius: 15,
+            padding: '30px 26px 26px',
+            overflow: 'hidden',
+          }}
+        >
+          {/* wobbly hand-drawn inner border */}
+          <svg
+            width="100%"
+            height="100%"
+            viewBox="0 0 300 520"
+            preserveAspectRatio="none"
+            style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}
+            aria-hidden
+          >
+            <rect
+              x="9"
+              y="9"
+              width="282"
+              height="502"
+              rx="12"
+              fill="none"
+              stroke={NAVY}
+              strokeWidth="2"
+              vectorEffect="non-scaling-stroke"
+              filter={wob}
+            />
+          </svg>
+
+          {/* faint paper grain */}
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              opacity: 0.5,
+              pointerEvents: 'none',
+              backgroundImage:
+                "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E\")",
+            }}
+          />
+
+          {/* content */}
+          <div style={{ position: 'relative' }}>
+            {/* logo row */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 10,
+                marginBottom: 2,
+              }}
+            >
+              <Donut s={38} />
+              <span
+                style={{
+                  fontFamily: MARKER,
+                  fontSize: 30,
+                  color: NAVY,
+                  lineHeight: 1,
+                  letterSpacing: 0.5,
+                }}
+              >
+                DELULU MART
+              </span>
+              <Star s={16} />
+            </div>
+            <div
+              style={{
+                textAlign: 'center',
+                fontFamily: HAND,
+                fontSize: 13,
+                color: NAVY_SOFT,
+                marginBottom: 2,
+              }}
+            >
+              est. the day i met anshika
+            </div>
+
+            <Dashes />
+            <div
+              style={{
+                textAlign: 'center',
+                fontFamily: HAND,
+                fontSize: 15,
+                color: NAVY,
+              }}
+            >
+              No. 1358
+            </div>
+            <Dashes />
+
+            {/* date row */}
+            <div
+              style={{
+                ...rowStyle,
+                justifyContent: 'space-between',
+                fontSize: 13,
+                color: NAVY_SOFT,
+                marginBottom: 6,
+              }}
+            >
+              <span>20 aug · sat</span>
+              <span>14:21</span>
+            </div>
+
+            {/* item lines */}
+            {items.map((it, i) => (
+              <div key={i} style={rowStyle}>
+                <span style={{ flex: 1 }}>{it.item}</span>
+                <span style={{ color: NAVY_SOFT, fontSize: 13 }}>{it.qty}</span>
+                <span style={{ minWidth: 66, textAlign: 'right' }}>
+                  {it.price}
+                </span>
+              </div>
+            ))}
+
+            <Dashes />
+
+            {/* totals */}
+            <div style={{ ...rowStyle, justifyContent: 'space-between' }}>
+              <span>SUBTOTAL</span>
+              <span>a whole lot</span>
+            </div>
+            <div
+              style={{
+                ...rowStyle,
+                justifyContent: 'space-between',
+                color: NAVY_SOFT,
+                fontSize: 13,
+              }}
+            >
+              <span>tax (feelings)</span>
+              <span>18%</span>
+            </div>
+            <div
+              style={{
+                ...rowStyle,
+                justifyContent: 'space-between',
+                fontSize: 20,
+                fontFamily: MARKER,
+              }}
+            >
+              <span>TOTAL</span>
+              <span>∞</span>
+            </div>
+            <div
+              style={{
+                ...rowStyle,
+                justifyContent: 'space-between',
+                fontSize: 13,
+                color: NAVY_SOFT,
+                marginTop: 4,
+              }}
+            >
+              <span>paid via</span>
+              <span>one (1) forehead kiss</span>
+            </div>
+
+            <Dashes />
+
+            {/* hand-drawn barcode */}
+            <svg
+              width="100%"
+              height="34"
+              viewBox="0 0 260 34"
+              preserveAspectRatio="none"
+              style={{ display: 'block', margin: '2px 0 8px' }}
+              aria-hidden
+            >
+              <g
+                stroke={NAVY}
+                strokeWidth="2"
+                vectorEffect="non-scaling-stroke"
+                filter={wob}
+              >
+                {[
+                  6, 12, 16, 24, 30, 40, 46, 52, 62, 70, 76, 84, 92, 100, 110,
+                  116, 124, 132, 140, 150, 158, 166, 176, 184, 192, 202, 210,
+                  220, 230, 238, 248, 254,
+                ].map((x, i) => (
+                  <line key={i} x1={x} y1="2" x2={x} y2="32" />
+                ))}
+              </g>
+            </svg>
+
+            {/* footer doodle row + thank-you */}
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: 10,
+                marginBottom: 4,
+              }}
+            >
+              <Sparkle s={13} />
+              <Heart s={14} />
+              <Star s={13} />
+            </div>
+            <div
+              style={{
+                textAlign: 'center',
+                fontFamily: HAND,
+                fontSize: 14,
+                color: NAVY,
+              }}
+            >
+              * thank you, come again *
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p
+        style={{
+          fontFamily: 'ui-monospace, monospace',
+          fontSize: 10.5,
+          color: '#6b5d40',
+          maxWidth: 320,
+          textAlign: 'center',
+          lineHeight: 1.5,
+          margin: 0,
+        }}
+      >
+        Logo = Permanent Marker (placeholder for real hand-lettering). Body =
+        Gochi Hand. Border, dashes, barcode, marks & mascot are all one-ink SVG
+        line-art.
+      </p>
+    </div>
+  );
+}
+
 // ── HEADER-FONTS — DELULU MART in a spread of handcrafted Google Fonts ──────
 // EXPLORATORY preview only, to pick a logo font. Bare paper (no band) so the
 // letterforms are judged directly. NOTE: every font here is Language B
@@ -1570,6 +2080,12 @@ export default function GiftPreviewPage({
   // /g/preview?slug=love-receipt&view=headerfonts
   if (slug === 'love-receipt' && searchParams.view === 'headerfonts') {
     return <HeaderFonts />;
+  }
+
+  // HANDDRAWN-COMP (throwaway) — full receipt reimagined hand-drawn monochrome:
+  // /g/preview?slug=love-receipt&view=handdrawn-comp
+  if (slug === 'love-receipt' && searchParams.view === 'handdrawn-comp') {
+    return <HandDrawnComp />;
   }
 
   // SHOWCASE — every in-context doodle on one receipt:
