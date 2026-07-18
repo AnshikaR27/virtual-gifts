@@ -958,6 +958,227 @@ function SectionDemo({ title, ids }: { title: string; ids: string[] }) {
   );
 }
 
+// ── HEADER-ALL — the REAL receipt with ALL designer Language-A header ideas ─
+// EXPLORATORY preview only. Current vs a header with every suggested change at
+// once: printer metadata, ASCII boundary, perforated tear edge, dithered band,
+// pixel logo. Body + colourful doodles render byte-for-byte as production (the
+// doodles stay soft — deliberately untouched). Reached with
+// /g/preview?slug=love-receipt&view=headerall
+function HeaderAllChanges() {
+  const payload = galleryPayload(['lr-061', 'lr-039', 'lr-018', 'lr-081']);
+  const INK = '#1a1a1a';
+  const INK_SOFT = 'rgba(26, 26, 26, 0.58)';
+  const PAPER = '#fbfbf9';
+  const MONO =
+    "var(--font-space-mono), ui-monospace, 'IBM Plex Mono', 'Courier New', monospace";
+  const PIXEL = "'DotGothic16', var(--font-vt323), monospace";
+  const FONTS_HREF =
+    'https://fonts.googleapis.com/css2?family=DotGothic16&display=swap';
+
+  // perforated tear-off teeth (paper-coloured spikes poking up into the band)
+  const w = 10;
+  const teeth = 30;
+  const th = 10;
+  let tear = `M0 ${th}`;
+  for (let i = 0; i < teeth; i++) {
+    tear += ` L${i * w + w / 2} 0 L${(i + 1) * w} ${th}`;
+  }
+  tear += ` L300 ${th} Z`;
+
+  const metaRow: CSSProperties = {
+    fontFamily: MONO,
+    fontSize: 8,
+    letterSpacing: '0.5px',
+    color: INK_SOFT,
+    textTransform: 'uppercase',
+  };
+
+  // full-bleed custom header band (band:'none' → I own the whole strip)
+  const allHeader = (
+    <div
+      style={{
+        position: 'relative',
+        marginTop: -28,
+        marginLeft: -22,
+        marginRight: -22,
+        marginBottom: 10,
+        padding: '12px 16px 18px',
+        // 1-bit dithered band: purple dots on a pale lilac base (low-ink look)
+        backgroundColor: '#e6e8f6',
+        backgroundImage: 'radial-gradient(#8990d2 42%, transparent 44%)',
+        backgroundSize: '4px 4px',
+      }}
+    >
+      {/* 1. printer metadata — corners */}
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <span style={metaRow}>PORT: COM1</span>
+        <span style={metaRow}>BAUD: 9600</span>
+      </div>
+
+      {/* 5. pixel / dot-matrix logo */}
+      <div
+        style={{
+          textAlign: 'center',
+          fontFamily: PIXEL,
+          fontSize: 32,
+          lineHeight: 1.05,
+          color: INK,
+          marginTop: 6,
+        }}
+      >
+        DELULU MART
+      </div>
+
+      {/* subtitle (unchanged copy) */}
+      <div
+        style={{
+          textAlign: 'center',
+          fontFamily: MONO,
+          fontSize: 10.5,
+          letterSpacing: '1.5px',
+          textTransform: 'uppercase',
+          color: INK_SOFT,
+          marginTop: 6,
+        }}
+      >
+        est. the day i met anshika
+      </div>
+
+      {/* 1. timestamp with milliseconds */}
+      <div
+        style={{
+          textAlign: 'center',
+          fontFamily: MONO,
+          fontSize: 8.5,
+          letterSpacing: '0.5px',
+          color: INK_SOFT,
+          marginTop: 5,
+        }}
+      >
+        2026-07-18 14:21:07.482
+      </div>
+
+      {/* 2. ASCII boundary row */}
+      <div
+        style={{
+          textAlign: 'center',
+          fontFamily: MONO,
+          fontSize: 11,
+          color: INK_SOFT,
+          marginTop: 8,
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+        }}
+      >
+        {'+' + '-'.repeat(36) + '+'}
+      </div>
+
+      {/* 3. perforated tear-off bottom edge (crisp, hard-edged) */}
+      <svg
+        width="100%"
+        height={th}
+        viewBox={`0 0 300 ${th}`}
+        preserveAspectRatio="none"
+        style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          bottom: -1,
+          display: 'block',
+        }}
+        aria-hidden
+      >
+        <path d={tear} fill={PAPER} />
+      </svg>
+    </div>
+  );
+
+  const cards: { key: string; title: string; node: ReactNode }[] = [
+    {
+      key: 'A',
+      title: 'CURRENT (baseline)',
+      node: <ReceiptPaper payload={payload} />,
+    },
+    {
+      key: 'B',
+      title: 'ALL designer changes applied at once',
+      node: (
+        <ReceiptPaper
+          payload={payload}
+          headerPreview={{ node: allHeader, band: 'none' }}
+        />
+      ),
+    },
+  ];
+
+  return (
+    <div
+      style={{
+        minHeight: '100vh',
+        background: '#e7e2d8',
+        padding: '24px 14px 90px',
+        fontFamily: 'ui-monospace, monospace',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 34,
+      }}
+    >
+      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+      <link rel="stylesheet" href={FONTS_HREF} />
+
+      <div style={{ textAlign: 'center', maxWidth: 470 }}>
+        <h1 style={{ fontSize: 16, margin: '0 0 6px', color: '#1a1a1a' }}>
+          Love Receipt — all Language-A header ideas at once
+        </h1>
+        <p style={{ fontSize: 12, color: '#555', margin: 0, lineHeight: 1.5 }}>
+          Left/top = current. Right/below = printer metadata + ASCII boundary +
+          perforated tear edge + dithered band + pixel logo, all together. Body
+          & doodles unchanged (doodles stay soft). Stacked for phone width.
+        </p>
+      </div>
+
+      {cards.map((c) => (
+        <div
+          key={c.key}
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              marginBottom: 12,
+              maxWidth: 320,
+            }}
+          >
+            <span
+              style={{
+                fontWeight: 700,
+                fontSize: 13,
+                color: '#fff',
+                background: '#1a1a1a',
+                borderRadius: 5,
+                padding: '2px 9px',
+              }}
+            >
+              {c.key}
+            </span>
+            <span style={{ fontSize: 12, color: '#333' }}>{c.title}</span>
+          </div>
+          {c.node}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ── HEADER-TWEAKS — the REAL receipt, subtle Language-A header refinements ──
 // EXPLORATORY preview only. Renders the actual ReceiptPaper six times; only the
 // header changes via the PREVIEW-ONLY headerPreview prop. Every option keeps the
@@ -2522,6 +2743,12 @@ export default function GiftPreviewPage({
   // /g/preview?slug=love-receipt&view=headertweaks
   if (slug === 'love-receipt' && searchParams.view === 'headertweaks') {
     return <HeaderTweaks />;
+  }
+
+  // HEADERALL (exploratory) — real receipt, all designer header ideas at once:
+  // /g/preview?slug=love-receipt&view=headerall
+  if (slug === 'love-receipt' && searchParams.view === 'headerall') {
+    return <HeaderAllChanges />;
   }
 
   // SHOWCASE — every in-context doodle on one receipt:
