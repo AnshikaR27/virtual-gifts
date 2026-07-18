@@ -957,6 +957,136 @@ function SectionDemo({ title, ids }: { title: string; ids: string[] }) {
   );
 }
 
+// ── SOFT-COMPARE 2 — the <3 recolour to the saturn-ring pink ────────────────
+// TEMPORARY preview. Confirms (1) before/after of the softened math-heart and
+// (2) that the new <3 stays distinguishable from the number-wrap heart when
+// both appear together. Uses raw <img> against the doodle PNGs at end-mark
+// scale. Reached with /g/preview?slug=love-receipt&view=softcompare2
+function SoftCompare2() {
+  const swatch = (hex: string, label: string) => (
+    <div style={{ textAlign: 'center' }}>
+      <div
+        style={{
+          width: 54,
+          height: 54,
+          borderRadius: 8,
+          background: hex,
+          border: '1px solid #0002',
+          margin: '0 auto 6px',
+        }}
+      />
+      <div style={{ fontSize: 11, color: '#333' }}>{label}</div>
+      <div style={{ fontSize: 11, color: '#777' }}>{hex}</div>
+    </div>
+  );
+  const png = (src: string, cap: string) => (
+    <figure style={{ margin: 0, textAlign: 'center' }}>
+      <div
+        style={{
+          background: '#fbfbf9',
+          border: '1px solid #0001',
+          borderRadius: 8,
+          padding: 18,
+          display: 'inline-block',
+        }}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={src} alt={cap} style={{ height: 64, display: 'block' }} />
+      </div>
+      <figcaption style={{ fontSize: 11, color: '#555', marginTop: 6 }}>
+        {cap}
+      </figcaption>
+    </figure>
+  );
+  return (
+    <div
+      style={{
+        minHeight: '100vh',
+        background: '#e7e2d8',
+        padding: '24px 14px 80px',
+        fontFamily: 'ui-monospace, monospace',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 24,
+      }}
+    >
+      <h1 style={{ fontSize: 16, margin: 0, color: '#1a1a1a' }}>
+        math-heart &lt;3 — recolour to saturn-ring pink
+      </h1>
+
+      <section style={{ textAlign: 'center' }}>
+        <h2 style={{ fontSize: 13, color: '#333', margin: '0 0 12px' }}>
+          before → after
+        </h2>
+        <div
+          style={{
+            display: 'flex',
+            gap: 20,
+            justifyContent: 'center',
+            flexWrap: 'wrap',
+          }}
+        >
+          {png(
+            '/stickers/doodles/doodle-math-heart.png',
+            'before · #F1A2B1 (washed)',
+          )}
+          {png(
+            '/stickers/doodles/doodle-math-heart-soft2.png',
+            'after · #F996B6 (ring pink)',
+          )}
+        </div>
+      </section>
+
+      <section style={{ textAlign: 'center' }}>
+        <h2 style={{ fontSize: 13, color: '#333', margin: '0 0 4px' }}>
+          sibling check — the two pinks side by side
+        </h2>
+        <p
+          style={{
+            fontSize: 11,
+            color: '#666',
+            margin: '0 0 12px',
+            maxWidth: 420,
+          }}
+        >
+          Left is the new end-mark &lt;3; right is the number-wrap heart. Same
+          candy family, ~13° apart in hue — should read as related, not
+          identical.
+        </p>
+        <div
+          style={{
+            display: 'flex',
+            gap: 20,
+            justifyContent: 'center',
+            flexWrap: 'wrap',
+          }}
+        >
+          {png(
+            '/stickers/doodles/doodle-math-heart-soft2.png',
+            'end-mark <3 · #F996B6',
+          )}
+          {png(
+            '/stickers/doodles/doodle-heart-rosepink-bold.png',
+            'number-wrap heart · #F89DA6',
+          )}
+        </div>
+      </section>
+
+      <section style={{ textAlign: 'center' }}>
+        <h2 style={{ fontSize: 13, color: '#333', margin: '0 0 12px' }}>
+          palette
+        </h2>
+        <div style={{ display: 'flex', gap: 18, justifyContent: 'center' }}>
+          {swatch('#F1A2B1', 'old <3 (washed)')}
+          {swatch('#F996B6', 'new <3 (ring)')}
+          {swatch('#F89DA6', 'number-wrap')}
+        </div>
+      </section>
+    </div>
+  );
+}
+
 export default function GiftPreviewPage({
   searchParams,
 }: {
@@ -1012,6 +1142,12 @@ export default function GiftPreviewPage({
   // /g/preview?slug=love-receipt&view=real
   if (slug === 'love-receipt' && searchParams.view === 'real') {
     return <RealDraws />;
+  }
+
+  // SOFTCOMPARE2 (temporary) — the <3 recolour to saturn-ring pink:
+  // /g/preview?slug=love-receipt&view=softcompare2
+  if (slug === 'love-receipt' && searchParams.view === 'softcompare2') {
+    return <SoftCompare2 />;
   }
 
   // SHOWCASE — every in-context doodle on one receipt:
