@@ -254,58 +254,6 @@ function BindingsDemo() {
   );
 }
 
-// ── TENDER pass demo — word-level underlines on one receipt ──────────────────
-// The real tender LINE_BINDINGS: 5 word-level underlines (end-marks are deferred
-// to a later dedicated pass). Reached with /g/preview?slug=love-receipt&view=tender
-//   underline: lr-018 you · lr-032 forever · lr-164 home · lr-083 ordinary · lr-067 miss
-//   lr-160 / lr-014 are included to show they now render BARE.
-const TENDER_DEMO_IDS = [
-  'lr-018',
-  'lr-032',
-  'lr-164',
-  'lr-083',
-  'lr-067',
-  'lr-160',
-  'lr-014',
-];
-
-function TenderDemo() {
-  const payload = galleryPayload(TENDER_DEMO_IDS);
-  return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: '#e7e2d8',
-        padding: '24px 14px 80px',
-        fontFamily: 'ui-monospace, monospace',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-      }}
-    >
-      <h1 style={{ fontSize: 16, margin: '0 0 4px', color: '#1a1a1a' }}>
-        Love Receipt — LINE_BINDINGS (tender pass)
-      </h1>
-      <p
-        style={{
-          fontSize: 12,
-          color: '#555',
-          margin: '0 0 22px',
-          maxWidth: 460,
-          textAlign: 'center',
-          lineHeight: 1.5,
-        }}
-      >
-        Word-level underlines hugging just under the target word (you / forever
-        / home / ordinary / miss), one per line. End-marks (hearts / &lt;3 / ?!
-        / !!!) are deferred to a later pass, so every other tender line stays
-        bare. Number-wraps + barcode fans ride along.
-      </p>
-      <ReceiptPaper payload={payload} />
-    </div>
-  );
-}
-
 // ── END-MARK pass demo — punctuate-after (?! / <3 / rays) on one receipt ─────
 // Real end-mark LINE_BINDINGS: ?! (question+exclaim pair), <3 (math-heart), rays
 // (mustard). Mixes short + long lines so the mark wraps under the last text line
@@ -956,6 +904,22 @@ const DELULU_IDS = [
   'lr-002', 'lr-058', 'lr-059', 'lr-061', 'lr-063', 'lr-064', 'lr-065',
   'lr-075', 'lr-078', 'lr-080', 'lr-088', 'lr-149', 'lr-168', 'lr-169',
 ];
+// prettier-ignore
+const TENDER_IDS = [
+  'lr-018', 'lr-019', 'lr-025', 'lr-028', 'lr-032', 'lr-047', 'lr-048',
+  'lr-049', 'lr-051', 'lr-067', 'lr-081', 'lr-083', 'lr-157', 'lr-159',
+  'lr-160', 'lr-163', 'lr-164', 'lr-165', 'lr-166', 'lr-167',
+];
+// prettier-ignore
+const REALLIFE_IDS = [
+  'lr-011', 'lr-013', 'lr-014', 'lr-015', 'lr-027', 'lr-040', 'lr-041',
+  'lr-052', 'lr-053', 'lr-054', 'lr-091', 'lr-093', 'lr-143', 'lr-145',
+  'lr-146', 'lr-148', 'lr-161',
+];
+// prettier-ignore
+const ALMOST_IDS = [
+  'lr-004', 'lr-084', 'lr-085', 'lr-086', 'lr-087', 'lr-099', 'lr-147',
+];
 
 function SectionDemo({ title, ids }: { title: string; ids: string[] }) {
   const payload = galleryPayload(ids);
@@ -1020,12 +984,6 @@ export default function GiftPreviewPage({
     return <BindingsDemo />;
   }
 
-  // Tender pass demo — word-level underline + end-heart:
-  // /g/preview?slug=love-receipt&view=tender
-  if (slug === 'love-receipt' && searchParams.view === 'tender') {
-    return <TenderDemo />;
-  }
-
   // Underline demo — teal + wavy underlines on a real 4-line receipt:
   // /g/preview?slug=love-receipt&view=underlines
   if (slug === 'love-receipt' && searchParams.view === 'underlines') {
@@ -1084,6 +1042,19 @@ export default function GiftPreviewPage({
   }
   if (slug === 'love-receipt' && searchParams.view === 'delulu') {
     return <SectionDemo title="delulu section (14 lines)" ids={DELULU_IDS} />;
+  }
+  if (slug === 'love-receipt' && searchParams.view === 'tender') {
+    return <SectionDemo title="tender section (20 lines)" ids={TENDER_IDS} />;
+  }
+  if (slug === 'love-receipt' && searchParams.view === 'reallife') {
+    return (
+      <SectionDemo title="real-life section (17 lines)" ids={REALLIFE_IDS} />
+    );
+  }
+  if (slug === 'love-receipt' && searchParams.view === 'almost') {
+    return (
+      <SectionDemo title="almost-moment section (7 lines)" ids={ALMOST_IDS} />
+    );
   }
   const makeMock = MOCKS[slug];
   const definition = getGiftDefinition(slug);
