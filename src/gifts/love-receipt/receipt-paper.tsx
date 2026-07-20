@@ -75,6 +75,17 @@ const SOFT_HEADER_BAND = '#e1e4f5';
 // Very heavy uppercase grotesque for the store header ("RECEIPTIFY" treatment).
 const HEADER_FONT =
   "var(--font-archivo-black), 'Arial Black', 'Helvetica Neue', Helvetica, Arial, sans-serif";
+
+// ⚠ LOCAL-ONLY / UNLICENSED FONT — DO NOT SHIP. Retro Impact is a personal-use
+// demo font (no commercial license purchased yet). It is loaded by @font-face
+// from public/fonts/retro-impact.otf, which is GITIGNORED — so the file is never
+// committed or deployed. On local dev the logo renders in Retro Impact; on any
+// deploy the file 404s and the logo FALLS BACK to Archivo Black (HEADER_FONT).
+// Before this can ship to production: purchase the license, add the font file,
+// un-ignore it, and re-verify the one-line fit at that size.
+const RETRO_LOGO_FONT = "'RetroImpactLogo', " + HEADER_FONT;
+const RETRO_LOGO_FONTFACE =
+  "@font-face{font-family:'RetroImpactLogo';src:url('/fonts/retro-impact.otf') format('opentype');font-display:swap;}";
 // Everything else is monospace (the Receiptify body look).
 const MONO_FONT =
   "var(--font-space-mono), ui-monospace, 'IBM Plex Mono', 'Courier New', Courier, monospace";
@@ -236,8 +247,6 @@ interface ReceiptPaperProps {
   printedCount?: number;
   /** Animate each row in as it appears (printing). Off for the builder. */
   animate?: boolean;
-  /** Slam the meme stamp down once the receipt is printed. */
-  showStamp?: boolean;
   /** Turn the receipt into its own editor (sender builder). */
   editable?: ReceiptEditable;
   /** PREVIEW-ONLY: force per-line resolved doodles (aligned to payload.lines),
@@ -264,7 +273,6 @@ export function ReceiptPaper({
   payload,
   printedCount,
   animate = false,
-  showStamp = false,
   editable,
   lineDoodleOverride,
   headerPreview,
@@ -295,6 +303,10 @@ export function ReceiptPaper({
         ...style,
       }}
     >
+      {/* ⚠ LOCAL/UNLICENSED logo font — see RETRO_LOGO_FONT. Loads only if the
+          gitignored public/fonts file is present (local dev); 404s → Archivo. */}
+      {/* eslint-disable-next-line react/no-danger */}
+      <style dangerouslySetInnerHTML={{ __html: RETRO_LOGO_FONTFACE }} />
       <div
         style={{
           position: 'relative',
@@ -349,7 +361,9 @@ export function ReceiptPaper({
                 marginTop: -28,
                 marginLeft: -22,
                 marginRight: -22,
-                padding: '20px 22px 12px',
+                // extra top padding = a clear "receipt top margin" of blank band
+                // above the logo (was 20px; print shouldn't jam the top edge).
+                padding: '34px 22px 12px',
                 ...headerPreview?.bandStyle,
               }}
             >
@@ -400,12 +414,6 @@ export function ReceiptPaper({
               ))
             : null}
         </div>
-        {/* slanted rubber meme-stamp — restored to HEAD behavior so the committed
-            receipt renders its stamp exactly as before; the doodle layer renders
-            alongside it. */}
-        {payload.memeStamp ? (
-          <Stamp text={payload.memeStamp} show={showStamp} />
-        ) : null}
       </div>
     </div>
   );
@@ -1025,17 +1033,17 @@ function Header({
   payload: ReceiptPayload;
   editable?: ReceiptEditable;
 }) {
-  // The big black "RECEIPTIFY" treatment: heavy uppercase grotesque, tight
-  // tracking, pure black — the heaviest thing on the page. Sized + tracked so
-  // the fixed "DELULU MART" wordmark holds on ONE line (never wraps) down to the
-  // narrowest phone: nowrap guards the single line, 26px/-1px keeps it inside
-  // the band at the 300px paper cap (and below) with margin to spare.
+  // The big "RECEIPTIFY" treatment: heavy uppercase, pure black — the heaviest
+  // thing on the page. Logo font is Retro Impact (LOCAL/UNLICENSED — see
+  // RETRO_LOGO_FONT; falls back to Archivo Black on deploy). nowrap keeps the
+  // fixed "DELULU MART" wordmark on ONE line; 32px fits inside the band at the
+  // 300px paper cap (and down to a 320px phone) in Retro Impact.
   const storeStyle: CSSProperties = {
-    fontFamily: HEADER_FONT,
+    fontFamily: RETRO_LOGO_FONT,
     fontWeight: 900,
-    fontSize: 26,
+    fontSize: 32,
     lineHeight: 1.02,
-    letterSpacing: '-1px',
+    letterSpacing: '0',
     textTransform: 'uppercase',
     color: INK,
     whiteSpace: 'nowrap',
@@ -1745,66 +1753,5 @@ function Barcode({ scanLine }: { scanLine: string }) {
         {scanLine}
       </div>
     </div>
-  );
-}
-
-// ── meme rubber stamp (restored from HEAD; render + API unchanged) ───────────
-// Distress/grunge alpha-mask so the rubber stamp prints patchy & bled, never a
-// clean solid shape. feTurbulence → alpha; discrete A punches transparent holes.
-const GRUNGE_MASK =
-  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='140'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.05 0.08' numOctaves='4' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.5 0.5 0.5 0 0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='discrete' tableValues='0 0 0 1 1 1 1 1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E\")";
-
-const STAMP_INK = '#c1121f';
-
-function Stamp({ text, show }: { text: string; show: boolean }) {
-  return (
-    <motion.div
-      aria-hidden
-      initial={{ opacity: 0, scale: 2.2, rotate: -12 }}
-      animate={
-        show
-          ? { opacity: 0.6, scale: 1, rotate: -12 }
-          : { opacity: 0, scale: 2.2, rotate: -12 }
-      }
-      transition={{ type: 'spring', stiffness: 280, damping: 15 }}
-      style={{
-        // Top-right corner stamp over the meta block; rotated bottom edge stays
-        // above the QTY/ITEM/PRICE header so it never lands on an item row.
-        position: 'absolute',
-        top: 126,
-        right: 16,
-        zIndex: 6,
-        pointerEvents: 'none',
-        color: STAMP_INK,
-        mixBlendMode: 'multiply',
-        // grunge mask → patchy, bled ink instead of a clean shape
-        WebkitMaskImage: GRUNGE_MASK,
-        maskImage: GRUNGE_MASK,
-        WebkitMaskSize: 'cover',
-        maskSize: 'cover',
-        WebkitMaskRepeat: 'no-repeat',
-        maskRepeat: 'no-repeat',
-      }}
-    >
-      <div
-        style={{
-          // double-ruled "official seal" border
-          border: `4px double ${STAMP_INK}`,
-          borderRadius: 10,
-          padding: '6px 14px',
-          maxWidth: 200,
-          fontFamily: HEADER_FONT,
-          fontWeight: 900,
-          fontSize: 18,
-          lineHeight: 1.04,
-          letterSpacing: '1px',
-          textTransform: 'uppercase',
-          textAlign: 'center',
-          boxShadow: `inset 0 0 0 1px ${STAMP_INK}`,
-        }}
-      >
-        {text}
-      </div>
-    </motion.div>
   );
 }

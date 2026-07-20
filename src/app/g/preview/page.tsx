@@ -98,7 +98,6 @@ function loveReceiptMock(): GiftData {
     returnPolicy: frame.returnPolicy,
     scanLine: frame.scanLine,
     footer: frame.footer,
-    memeStamp: frame.stamp,
   };
   return {
     id: '00000000-0000-0000-0000-000000000001',
@@ -160,7 +159,6 @@ function galleryPayload(
     returnPolicy: frame.returnPolicy,
     scanLine: frame.scanLine,
     footer: frame.footer,
-    memeStamp: frame.stamp,
   };
 }
 
@@ -506,7 +504,6 @@ function realDrawPayload(cursor: number): ReceiptPayload {
     returnPolicy: frame.returnPolicy,
     scanLine: frame.scanLine,
     footer: frame.footer,
-    memeStamp: frame.stamp,
   };
 }
 
@@ -771,7 +768,6 @@ function candidatesPayload(
     returnPolicy: frame.returnPolicy,
     scanLine: frame.scanLine,
     footer: frame.footer,
-    memeStamp: frame.stamp,
   };
 }
 
@@ -957,6 +953,442 @@ function SectionDemo({ title, ids }: { title: string; ids: string[] }) {
     </div>
   );
 }
+
+// ── HEADER-BAND — Retro Impact logo WITH band vs WITHOUT (LOCAL ONLY) ───────
+// EXPLORATORY, LOCAL ONLY (Retro Impact is unlicensed — @font-face from the
+// gitignored public/fonts/, so it renders on local dev only). Real receipt
+// three times; only the header changes: A current band, B bare paper, C bare
+// paper + thermal divider masthead. Logo/subtitle/body/doodles otherwise equal.
+// Reached with /g/preview?slug=love-receipt&view=headerband
+function HeaderBand() {
+  const payload = galleryPayload(['lr-061', 'lr-039', 'lr-018', 'lr-081']);
+  const INK = '#1a1a1a';
+  const INK_SOFT = 'rgba(26, 26, 26, 0.58)';
+  const MONO =
+    "var(--font-space-mono), ui-monospace, 'IBM Plex Mono', 'Courier New', monospace";
+  // Retro Impact primary; Archivo Black fallback. The @font-face itself is
+  // injected by ReceiptPaper (present for every receipt rendered here).
+  const RETRO =
+    "'RetroImpactLogo', var(--font-archivo-black), 'Arial Black', sans-serif";
+
+  const RetroLogo = () => (
+    <div
+      style={{
+        fontFamily: RETRO,
+        fontWeight: 900,
+        fontSize: 32,
+        lineHeight: 1.02,
+        letterSpacing: '0',
+        textTransform: 'uppercase',
+        color: INK,
+        whiteSpace: 'nowrap',
+      }}
+    >
+      DELULU MART
+    </div>
+  );
+  const Subtitle = () => (
+    <div
+      style={{
+        fontFamily: MONO,
+        fontSize: 10.5,
+        letterSpacing: '1.5px',
+        textTransform: 'uppercase',
+        color: INK_SOFT,
+        marginTop: 6,
+      }}
+    >
+      est. the day i met anshika
+    </div>
+  );
+  // thermal masthead rule (double-line mono row — distinct from the body's
+  // dashed section rules so the header still reads as its own zone)
+  const Rule = () => (
+    <div
+      style={{
+        fontFamily: MONO,
+        fontSize: 12,
+        color: INK_SOFT,
+        letterSpacing: 2,
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textAlign: 'center',
+      }}
+      aria-hidden
+    >
+      {'═'.repeat(44)}
+    </div>
+  );
+
+  // subtle dried coffee-ring accent — a faint uneven brown rim (not a blob, not
+  // damage-dark), tucked near a corner like a receipt that sat under a cup.
+  const CoffeeStain = ({ style }: { style: CSSProperties }) => (
+    <svg
+      width="76"
+      height="70"
+      viewBox="0 0 76 70"
+      style={{ position: 'absolute', pointerEvents: 'none', ...style }}
+      aria-hidden
+    >
+      <ellipse
+        cx="38"
+        cy="35"
+        rx="30"
+        ry="27"
+        fill="rgba(124,84,46,0.045)"
+        stroke="rgba(118,72,38,0.20)"
+        strokeWidth="4"
+      />
+      <ellipse
+        cx="38"
+        cy="35"
+        rx="30"
+        ry="27"
+        fill="none"
+        stroke="rgba(92,54,28,0.13)"
+        strokeWidth="1.3"
+        transform="rotate(9 38 35)"
+      />
+    </svg>
+  );
+
+  // B — no band: same logo + breathing room, on bare paper.
+  const noBand = (
+    <div style={{ textAlign: 'center', paddingTop: 8, marginBottom: 8 }}>
+      <RetroLogo />
+      <Subtitle />
+    </div>
+  );
+  // C — no band + thermal divider masthead (rules above and below).
+  const noBandDividers = (
+    <div style={{ paddingTop: 4, marginBottom: 8 }}>
+      <Rule />
+      <div style={{ textAlign: 'center', padding: '12px 0' }}>
+        <RetroLogo />
+        <Subtitle />
+      </div>
+      <Rule />
+    </div>
+  );
+
+  // D — no band + coffee stain tucked near the top-right of the header.
+  const coffeeNoBand = (
+    <div
+      style={{
+        position: 'relative',
+        textAlign: 'center',
+        paddingTop: 8,
+        marginBottom: 8,
+      }}
+    >
+      <CoffeeStain style={{ top: -10, right: 2 }} />
+      <RetroLogo />
+      <Subtitle />
+    </div>
+  );
+  // E — paler band + coffee stain (brand colour AND physical-object detail).
+  const coffeeLightBand = (
+    <div style={{ position: 'relative', textAlign: 'center' }}>
+      <CoffeeStain style={{ top: -20, right: -6 }} />
+      <RetroLogo />
+      <Subtitle />
+    </div>
+  );
+
+  const cards: { key: string; title: string; node: ReactNode }[] = [
+    {
+      key: 'A',
+      title: 'WITH BAND — periwinkle band (the direction we set up)',
+      node: <ReceiptPaper payload={payload} />,
+    },
+    {
+      key: 'B',
+      title: 'NO BAND — logo on bare paper, same breathing room',
+      node: (
+        <ReceiptPaper
+          payload={payload}
+          headerPreview={{ node: noBand, band: 'none' }}
+        />
+      ),
+    },
+    {
+      key: 'C',
+      title: 'NO BAND + DIVIDERS — thermal masthead (rules above & below)',
+      node: (
+        <ReceiptPaper
+          payload={payload}
+          headerPreview={{ node: noBandDividers, band: 'none' }}
+        />
+      ),
+    },
+    {
+      key: 'D',
+      title: 'NO BAND + COFFEE STAIN — subtle coffee-ring accent',
+      node: (
+        <ReceiptPaper
+          payload={payload}
+          headerPreview={{ node: coffeeNoBand, band: 'none' }}
+        />
+      ),
+    },
+    {
+      key: 'E',
+      title: 'LIGHT BAND + STAIN — paler band + coffee-ring accent',
+      node: (
+        <ReceiptPaper
+          payload={payload}
+          headerPreview={{ node: coffeeLightBand, band: 'soft' }}
+        />
+      ),
+    },
+  ];
+
+  return (
+    <div
+      style={{
+        minHeight: '100vh',
+        background: '#e7e2d8',
+        padding: '24px 14px 90px',
+        fontFamily: 'ui-monospace, monospace',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 36,
+      }}
+    >
+      <div style={{ textAlign: 'center', maxWidth: 470 }}>
+        <h1 style={{ fontSize: 16, margin: '0 0 6px', color: '#1a1a1a' }}>
+          Love Receipt — Retro Impact logo: band vs no band
+        </h1>
+        <p style={{ fontSize: 12, color: '#555', margin: 0, lineHeight: 1.5 }}>
+          Real receipt; only the header changes A→C. Same Retro Impact logo +
+          subtitle + breathing room; body/doodles unchanged. LOCAL ONLY — Retro
+          Impact is an unlicensed demo (renders on dev; falls back on deploy).
+          Stacked for phone width.
+        </p>
+      </div>
+
+      {cards.map((c) => (
+        <div
+          key={c.key}
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }}
+        >
+          <div style={{ ...labelChipRow }}>
+            <span style={labelChip}>{c.key}</span>
+            <span style={{ fontSize: 12, color: '#333' }}>{c.title}</span>
+          </div>
+          {c.node}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── HEADER-FONT-DEMO — LOCAL-ONLY test of unlicensed demo fonts ─────────────
+// LOCAL DEV ONLY. The four fonts live in public/fonts/ which is gitignored, so
+// they are never committed or deployed (personal-use/demo, unlicensed). On any
+// deploy these @font-faces 404 and fall back — this view is only meaningful on
+// a local dev server. Each font is shown plain + with the Receiptify treatment
+// (dark outline + HARD 0-blur offset shadow, Language A). Body/band/subtitle/
+// doodles unchanged. Reached with
+// /g/preview?slug=love-receipt&view=headerfontdemo
+function HeaderFontDemo() {
+  const payload = galleryPayload(['lr-061', 'lr-039', 'lr-018', 'lr-081']);
+  const INK = '#1a1a1a';
+  const INK_SOFT = 'rgba(26, 26, 26, 0.58)';
+  const MONO =
+    "var(--font-space-mono), ui-monospace, 'IBM Plex Mono', 'Courier New', monospace";
+  const HARD_SHADOW = '3px 3px 0 #141414';
+
+  const logo = (opts: { family: string; size: number; treated?: boolean }) => (
+    <div style={{ textAlign: 'center', marginBottom: 8 }}>
+      <div
+        style={{
+          fontFamily: opts.family,
+          fontSize: opts.size,
+          lineHeight: 1.12,
+          textTransform: 'uppercase',
+          color: INK,
+          whiteSpace: 'nowrap',
+          ...(opts.treated
+            ? {
+                WebkitTextStroke: '1.5px #000',
+                paintOrder: 'stroke fill',
+                textShadow: HARD_SHADOW,
+              }
+            : {}),
+        }}
+      >
+        DELULU MART
+      </div>
+      <div
+        style={{
+          fontFamily: MONO,
+          fontSize: 10.5,
+          letterSpacing: '1.5px',
+          textTransform: 'uppercase',
+          color: INK_SOFT,
+          marginTop: 6,
+        }}
+      >
+        est. the day i met anshika
+      </div>
+    </div>
+  );
+
+  // per-font logo sizes chosen from measured widths. Most fit one line at 390px
+  // AND down to 320px; exceptions noted. family names map to @font-face below.
+  const testFonts: {
+    key: string;
+    name: string;
+    family: string;
+    size: number;
+    note?: string;
+  }[] = [
+    { key: 'A', name: 'Bright', family: "'DeluluBright', cursive", size: 32 },
+    { key: 'B', name: 'Pinlock', family: "'DeluluPinlock', cursive", size: 28 },
+    {
+      key: 'C',
+      name: 'Positions',
+      family: "'DeluluPositions', cursive",
+      size: 30,
+    },
+    {
+      key: 'D',
+      name: 'Retro Impact',
+      family: "'DeluluRetro', cursive",
+      size: 32,
+    },
+    {
+      key: 'E',
+      name: 'Angelica',
+      family: "'DeluluAngelica', cursive",
+      size: 34,
+    },
+    {
+      key: 'F',
+      name: 'Bigcurls',
+      family: "'DeluluBigcurls', cursive",
+      size: 34,
+    },
+    {
+      key: 'G',
+      name: 'Chalkiez',
+      family: "'DeluluChalkiez', cursive",
+      size: 34,
+    },
+    {
+      key: 'H',
+      name: 'DirlyBelly',
+      family: "'DeluluDirly', cursive",
+      size: 20,
+      note: '20px — very wide font, only fits small; overflows on a 320px phone',
+    },
+    {
+      key: 'I',
+      name: 'Loveletters',
+      family: "'DeluluLove', cursive",
+      size: 30,
+    },
+    {
+      key: 'J',
+      name: 'Mieszkanie9',
+      family: "'DeluluMieszk', cursive",
+      size: 24,
+    },
+  ];
+
+  const fontFace = `
+    @font-face { font-family: 'DeluluBright'; src: url('/fonts/bright.otf') format('opentype'); font-display: swap; }
+    @font-face { font-family: 'DeluluPinlock'; src: url('/fonts/pinlock.otf') format('opentype'); font-display: swap; }
+    @font-face { font-family: 'DeluluPositions'; src: url('/fonts/positions.otf') format('opentype'); font-display: swap; }
+    @font-face { font-family: 'DeluluRetro'; src: url('/fonts/retro-impact.otf') format('opentype'); font-display: swap; }
+    @font-face { font-family: 'DeluluAngelica'; src: url('/fonts/angelica.ttf') format('truetype'); font-display: swap; }
+    @font-face { font-family: 'DeluluBigcurls'; src: url('/fonts/bigcurls.ttf') format('truetype'); font-display: swap; }
+    @font-face { font-family: 'DeluluChalkiez'; src: url('/fonts/chalkiez.ttf') format('truetype'); font-display: swap; }
+    @font-face { font-family: 'DeluluDirly'; src: url('/fonts/dirlybelly.otf') format('opentype'); font-display: swap; }
+    @font-face { font-family: 'DeluluLove'; src: url('/fonts/loveletters.ttf') format('truetype'); font-display: swap; }
+    @font-face { font-family: 'DeluluMieszk'; src: url('/fonts/mieszkanie9.otf') format('opentype'); font-display: swap; }
+  `;
+
+  const receipt = (family: string, size: number, treated: boolean) => (
+    <ReceiptPaper
+      payload={payload}
+      headerPreview={{ node: logo({ family, size, treated }), band: 'solid' }}
+    />
+  );
+
+  return (
+    <div
+      style={{
+        minHeight: '100vh',
+        background: '#e7e2d8',
+        padding: '24px 14px 90px',
+        fontFamily: 'ui-monospace, monospace',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 40,
+      }}
+    >
+      {/* eslint-disable-next-line react/no-danger */}
+      <style dangerouslySetInnerHTML={{ __html: fontFace }} />
+
+      <div style={{ textAlign: 'center', maxWidth: 480 }}>
+        <h1 style={{ fontSize: 16, margin: '0 0 6px', color: '#1a1a1a' }}>
+          DELULU MART — demo-font test (LOCAL ONLY)
+        </h1>
+        <p style={{ fontSize: 12, color: '#555', margin: 0, lineHeight: 1.5 }}>
+          Unlicensed demo fonts, gitignored — this view only renders on a local
+          dev server (fonts 404 on any deploy). Each font shown plain (no
+          outline / shadow). All four fit DELULU MART on one line at 390px (and
+          320px). Body/band/subtitle unchanged.
+        </p>
+      </div>
+
+      {/* A–D — only the four test fonts, each plain + treated */}
+      {testFonts.map((tf) => (
+        <div
+          key={tf.key}
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 18,
+          }}
+        >
+          <div style={{ ...labelChipRow }}>
+            <span style={labelChip}>{tf.key}</span>
+            <span style={{ fontSize: 12, color: '#333' }}>
+              {tf.name} — {tf.note ?? `${tf.size}px · fits 1 line ✓`}
+            </span>
+          </div>
+          {receipt(tf.family, tf.size, false)}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+const labelChipRow: CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 8,
+  marginBottom: 12,
+  maxWidth: 320,
+};
+const labelChip: CSSProperties = {
+  fontWeight: 700,
+  fontSize: 13,
+  color: '#fff',
+  background: '#1a1a1a',
+  borderRadius: 5,
+  padding: '2px 9px',
+};
 
 // ── HEADER-SHADOW — chunky rounded logo + outline + HARD offset shadow ──────
 // EXPLORATORY preview only. The full Receiptify sticker treatment: rounded bold
@@ -3131,6 +3563,18 @@ export default function GiftPreviewPage({
   // /g/preview?slug=love-receipt&view=headershadow
   if (slug === 'love-receipt' && searchParams.view === 'headershadow') {
     return <HeaderShadow />;
+  }
+
+  // HEADERFONTDEMO (LOCAL ONLY) — unlicensed demo fonts from public/fonts/:
+  // /g/preview?slug=love-receipt&view=headerfontdemo
+  if (slug === 'love-receipt' && searchParams.view === 'headerfontdemo') {
+    return <HeaderFontDemo />;
+  }
+
+  // HEADERBAND (LOCAL ONLY) — Retro Impact logo, band vs no-band vs dividers:
+  // /g/preview?slug=love-receipt&view=headerband
+  if (slug === 'love-receipt' && searchParams.view === 'headerband') {
+    return <HeaderBand />;
   }
 
   // SHOWCASE — every in-context doodle on one receipt:
