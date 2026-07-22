@@ -808,6 +808,57 @@ export const LOVE_RECEIPT_POOL: PoolLine[] = [
     side: 'flavor',
     lang: 'en',
   },
+  // almost-moment depth batch — the charged near-misses were only 7 lines
+  // against a guaranteed flavor slot, so they recycled first. These 6 bring
+  // almost-moment to 13 (real-life 18), closer to the freshness the anchor needs.
+  {
+    id: 'lr-170',
+    text: `you leaned in… then checked if anyone was watching`,
+    price: `aborted`,
+    tone: 'almost-moment',
+    side: 'flavor',
+    lang: 'en',
+  },
+  {
+    id: 'lr-171',
+    text: `your hand hovered over mine for a full second`,
+    price: `pending`,
+    tone: 'almost-moment',
+    side: 'flavor',
+    lang: 'en',
+  },
+  {
+    id: 'lr-172',
+    text: `you almost said something at the door, then didn't`,
+    price: `unsent`,
+    tone: 'almost-moment',
+    side: 'flavor',
+    lang: 'en',
+  },
+  {
+    id: 'lr-173',
+    text: `you paused mid-sentence, just looking at me`,
+    price: `buffering`,
+    tone: 'almost-moment',
+    side: 'flavor',
+    lang: 'en',
+  },
+  {
+    id: 'lr-174',
+    text: `your fingers grazed mine passing the plate`,
+    price: `accidental (allegedly)`,
+    tone: 'almost-moment',
+    side: 'flavor',
+    lang: 'en',
+  },
+  {
+    id: 'lr-175',
+    text: `we both reached for the same thing and neither let go`,
+    price: `deadlock`,
+    tone: 'almost-moment',
+    side: 'flavor',
+    lang: 'en',
+  },
 ];
 
 /** TOTAL-slot pool. Longer phrasing allowed; lands as the receipt total. */
@@ -865,6 +916,8 @@ export const COLLISION_PAIRS: [string, string][] = [
   ['lr-161', 'lr-033'], // outsourced / cloakroom — both "carries my stuff"
   ['lr-167', 'lr-025'], // consolidated / 1st call — both "first call"
   ['lr-145', 'lr-146'], // reinforced / rerouted — both scooty (one per receipt)
+  ['lr-171', 'lr-004'], // pending / void — both a hand/lean-in that stalls out
+  ['lr-173', 'lr-087'], // buffering / safety violation — both a held-gaze pause
 ];
 
 // First-load receipt (before any regenerate). Exactly STARTING_LINE_COUNT (4)
@@ -882,5 +935,5 @@ export const DEFAULT_TOTAL_ID = 'lrt-001'; // lifer
 // Pool composition (post-merge):
 //   funny   48
 //   tender  20
-//   flavor  25
-//   total   93 line items + 8 totals
+//   flavor  31   (real-life 18, almost-moment 13)
+//   total   99 line items + 8 totals
