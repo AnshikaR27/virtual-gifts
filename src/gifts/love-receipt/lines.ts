@@ -180,9 +180,10 @@ export function formatReceiptDate(date = new Date()): string {
 
 // ── balanced tone-shuffle over the single pool ──────────────────────────
 // Draw 4 lines at a time with the receipt's whole appeal — tonal whiplash —
-// GUARANTEED: every draw reserves one joke anchor (side 'funny') and one
-// gut-punch anchor (side 'tender'), then fills the rest by rotating across the
-// tones. Dedupe prices within a draw, respect collision pairs, and track
+// GUARANTEED: every draw reserves one joke anchor (side 'funny'), one
+// gut-punch anchor (side 'tender'), and one flavor anchor (the lived-in tones —
+// 'real-life' / 'almost-moment'), then fills the last slot with a tone not yet
+// in the draw. Dedupe prices within a draw, respect collision pairs, and track
 // shownIds so regenerate stays fresh until the pool's exhausted (then it resets
 // rather than dead-ending). Offline-safe: no AI.
 
@@ -199,6 +200,24 @@ const TONE_ORDER: Tone[] = [
 
 /** The three funny tones — the joke anchor rotates across these via toneCursor. */
 const FUNNY_TONES: Tone[] = ['giggle', 'petty', 'delulu'];
+
+/**
+ * The two flavor tones — the specific, lived-in lines (temple sandals, "khaana
+ * khaya?", the metro wall). The strongest material in the pool, so one is
+ * anchored into every draw.
+ */
+const FLAVOR_TONES: Tone[] = ['real-life', 'almost-moment'];
+
+/**
+ * Which flavor tone the anchor takes, indexed by `toneCursor`. Length 3 is
+ * deliberate and load-bearing: `toneCursor` advances by STARTING_LINE_COUNT (4)
+ * mod TONE_ORDER.length (6), so it only ever visits {0, 4, 2}. Indexing a
+ * length-2 array by those would be `% 2` — always 0 — pinning the anchor to
+ * 'real-life' forever. Length 3 hits all three residues (as FUNNY_TONES does),
+ * and the 2:1 weighting toward 'real-life' matches supply: 17 real-life lines
+ * against 7 almost-moment, so the scarcer tone isn't drained first.
+ */
+const FLAVOR_ROTATION: Tone[] = ['real-life', 'almost-moment', 'real-life'];
 
 const POOL_BY_ID = new Map(LOVE_RECEIPT_POOL.map((l) => [l.id, l]));
 
@@ -237,13 +256,19 @@ export interface BalancedDraw {
 
 /**
  * Pull a balanced set of {@link STARTING_LINE_COUNT} lines with the whiplash
- * GUARANTEED: ≥1 joke (side 'funny') AND ≥1 gut-punch (side 'tender'). Two anchor
- * slots are reserved up front — slot A a funny line (rotating which funny tone via
- * `toneCursor` for variety), slot B a tender line — and the remaining slots fill
- * by rotating the cursor across the tones. All prices distinct, no collision pair
- * together, fresh (not in `shownIds`) where possible. If too few fresh lines
- * remain, `shownIds` resets so a draw always succeeds; the anchors additionally
- * relax freshness as a last resort so the funny+tender minimum can never fail.
+ * GUARANTEED: ≥1 joke (side 'funny'), ≥1 gut-punch (side 'tender'), AND ≥1 flavor
+ * line ({@link FLAVOR_TONES}). Three anchor slots are reserved up front — slot A a
+ * funny line, slot B a tender line, slot C a flavor line (A and C rotate WHICH
+ * tone via `toneCursor` for variety) — and the last slot takes a tone not already
+ * in the draw, so every receipt carries four distinct tones and no tone gets
+ * double-dipped by the fill. Because funny/tender/flavor are already claimed by
+ * then, that last slot most often lands on the second flavor tone or a second
+ * joke tone — a second flavor line is common but never guaranteed.
+ *
+ * All prices distinct, no collision pair together, fresh (not in `shownIds`)
+ * where possible. If too few fresh lines remain, `shownIds` resets so a draw
+ * always succeeds; the three anchors additionally relax freshness as a last
+ * resort so the funny+tender+flavor minimum can never fail.
  */
 export function sampleBalanced(
   shownIdsIn: ReadonlySet<string>,
@@ -306,10 +331,32 @@ export function sampleBalanced(
     LOVE_RECEIPT_POOL.filter((l) => l.side === 'tender'),
     true,
   );
+  // Slot C: one flavor line — the specific, lived-in material. Rotate WHICH
+  // flavor tone via the cursor; fall back to any flavor line if that tone is
+  // blocked/exhausted, so the flavor guarantee holds like the other two.
+  const flavorTone = FLAVOR_ROTATION[toneCursor % FLAVOR_ROTATION.length];
+  if (
+    !take(
+      LOVE_RECEIPT_POOL.filter((l) => l.tone === flavorTone),
+      true,
+    )
+  ) {
+    take(
+      LOVE_RECEIPT_POOL.filter((l) => FLAVOR_TONES.includes(l.tone)),
+      true,
+    );
+  }
 
-  // ── remaining slots — existing cursor rotation across the tones ──
+  // ── remaining slots — cursor rotation, skipping tones already in the draw ──
+  // Skipping used tones is what keeps the fill from re-serving tender or the
+  // anchor's funny tone (which is what previously pushed tender to ~30% of all
+  // lines). With three tones claimed, the fill lands on a fresh joke tone or the
+  // OTHER flavor tone — hence second-flavor-often, never-guaranteed.
+  const usedTones = () => new Set(picks.map((p) => p.tone));
   for (let i = 0; picks.length < count && i < TONE_ORDER.length; i++) {
+    const used = usedTones();
     const tone = TONE_ORDER[(toneCursor + i) % TONE_ORDER.length];
+    if (used.has(tone)) continue;
     // one line of this tone; if its tone is exhausted/blocked, take any eligible
     if (!take(LOVE_RECEIPT_POOL.filter((l) => l.tone === tone))) {
       take(LOVE_RECEIPT_POOL);

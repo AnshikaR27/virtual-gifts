@@ -10,7 +10,8 @@
  *
  * Invariants checked (mirrors the task acceptance list):
  *  1. Over 1000 sampleBalanced draws (state threaded like the real builder):
- *     every draw has ≥1 funny AND ≥1 tender, no duplicate normalized prices,
+ *     every draw has ≥1 funny AND ≥1 tender AND ≥1 flavor tone, no duplicate
+ *     normalized prices,
  *     no collision pair co-occurs, no id repeats within a draw.
  *  2. shownIds prevents repeats across consecutive draws until a reset (or until
  *     the pool can't satisfy an anchor side freshly — the documented relax).
@@ -33,6 +34,7 @@ import {
   DEFAULT_TOTAL_ID,
   LOVE_RECEIPT_POOL,
   type Side,
+  type Tone,
 } from '../src/gifts/love-receipt/love-receipt-pool';
 
 const SIDE_BY_ID = new Map<string, Side>(
@@ -58,6 +60,17 @@ const norm = (p: string) => p.trim().toLowerCase();
 // that tone, so a repeat is "by design" precisely when the cursor's funny tone
 // has no fresh line left — even if other funny tones still do.
 const FUNNY_TONES = ['giggle', 'petty', 'delulu'] as const;
+
+// The flavor guarantee is asserted on TONE, not side: the guarantee is that a
+// 'real-life'/'almost-moment' LINE surfaces, and tone is the source of truth for
+// that. Checking tone keeps the gate correct even if a flavor line is ever
+// tagged with a non-flavor tone (as lr-162 once was, before it was corrected).
+const TONE_BY_ID = new Map<string, Tone>(
+  LOVE_RECEIPT_POOL.map((l) => [l.id, l.tone]),
+);
+const FLAVOR_TONES: readonly Tone[] = ['real-life', 'almost-moment'];
+const hasFlavorTone = (lines: ReceiptLine[]) =>
+  lines.some((l) => FLAVOR_TONES.includes(TONE_BY_ID.get(l.id)!));
 
 let failures = 0;
 function check(cond: boolean, msg: string): void {
@@ -117,6 +130,7 @@ for (let i = 0; i < DRAWS; i++) {
 
   const hasFunny = sides.includes('funny');
   const hasTender = sides.includes('tender');
+  const hasFlavor = hasFlavorTone(lines);
 
   const prices = lines.map((l) => norm(l.price));
   const distinctPrices = new Set(prices).size === prices.length;
@@ -135,6 +149,7 @@ for (let i = 0; i < DRAWS; i++) {
     lines.length === STARTING_LINE_COUNT &&
     hasFunny &&
     hasTender &&
+    hasFlavor &&
     distinctPrices &&
     distinctIds &&
     !collides;
@@ -147,6 +162,7 @@ for (let i = 0; i < DRAWS; i++) {
         prices,
         hasFunny,
         hasTender,
+        hasFlavor,
         distinctPrices,
         distinctIds,
         collides,
@@ -171,7 +187,7 @@ for (let i = 0; i < DRAWS; i++) {
 check(
   firstBad === null,
   firstBad === null
-    ? `${DRAWS} draws: each has ≥1 funny + ≥1 tender, distinct prices, distinct ids, no collision`
+    ? `${DRAWS} draws: each has ≥1 funny + ≥1 tender + ≥1 flavor, distinct prices, distinct ids, no collision`
     : `draw violated an invariant → ${firstBad}`,
 );
 check(

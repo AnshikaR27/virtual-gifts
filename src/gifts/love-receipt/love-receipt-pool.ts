@@ -804,7 +804,7 @@ export const LOVE_RECEIPT_POOL: PoolLine[] = [
     id: 'lr-162',
     text: `you saved my ugliest selfie as your wallpaper`,
     price: `committed`,
-    tone: 'giggle',
+    tone: 'real-life',
     side: 'flavor',
     lang: 'en',
   },
