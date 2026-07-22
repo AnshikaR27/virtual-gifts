@@ -18,6 +18,9 @@ MAX_EDGE = 800
 # per-image overrides; default mode is 'global'
 CONFIG = {
     "doodle-love-letter": {"mode": "floodfill"},
+    # solid paper wrapper — global keying leaves its light interior folds
+    # semi-transparent, so keep the whole enclosed motif via floodfill.
+    "sticker-bouquet": {"mode": "floodfill"},
     # shape ships as an alpha matte over a flat pink fill — keying by colour/
     # luminance would erase it, so reuse the source alpha verbatim.
     "doodle-heart-pink": {"mode": "alpha"},
