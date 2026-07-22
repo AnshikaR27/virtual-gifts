@@ -97,3 +97,7 @@ __pycache__/
 !/public/stickers/doodles/doodle-wine-glass.png
 !/public/stickers/doodles/doodle-zigzag-blue.png
 !/public/stickers/doodles/sticker-bouquet.png
+
+# Claude Code tooling — personal, machine-specific (permission allowlists,
+# plugin toggles). Keep out of shared history.
+.claude/
