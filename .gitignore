@@ -30,6 +30,12 @@ yarn-error.log*
 # local env files
 .env*.local
 
+# UNLICENSED font demos — local logo testing ONLY. Personal-use/demo fonts that
+# are NOT licensed for distribution; must never be committed or deployed. Loaded
+# only by a local-dev preview view. Remove this rule (and add the file) only for
+# a specific font AFTER its commercial license is confirmed.
+/public/fonts/
+
 # vercel
 .vercel
 
