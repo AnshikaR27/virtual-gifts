@@ -14,6 +14,7 @@ import { Taskbar } from '@/components/layout/taskbar';
 import { Footer } from '@/components/layout/footer';
 import { HideOnGiftRoute } from '@/components/layout/hide-on-gift-route';
 import { RetroSounds } from '@/components/retro-sounds';
+import { AppViewportLock } from '@/components/app-viewport-lock';
 import { ToastProvider } from '@/components/y2k-toast';
 import { Y2KContextMenu } from '@/components/y2k-context-menu';
 import { WelcomePopup } from '@/components/welcome-popup';
@@ -70,9 +71,17 @@ const spaceMono = Space_Mono({
   display: 'swap',
 });
 
+// App-like, not web-like: lock scaling so the pages don't pinch/double-tap zoom.
+// This covers Android/Chrome; iOS Safari ignores maximumScale/userScalable for
+// accessibility, so <AppViewportLock> additionally cancels its gesture* events.
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
+  // pin the scale at exactly 1 — min AND max — so neither pinch-in (zoom in) nor
+  // pinch-out (zoom out) can rescale the page.
+  minimumScale: 1,
+  maximumScale: 1,
+  userScalable: false,
   viewportFit: 'cover',
 };
 
@@ -100,6 +109,7 @@ export default async function RootLayout({
       <body className="safe-area-pad font-body antialiased">
         <div className="scanline-overlay" aria-hidden />
         <NextIntlClientProvider messages={messages}>
+          <AppViewportLock />
           <RetroSounds />
           <HideOnGiftRoute>
             <Taskbar />

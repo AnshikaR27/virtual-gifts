@@ -392,6 +392,14 @@ body {
 
 html {
   scroll-behavior: smooth;
+  /* App-like, not web-like: allow scrolling but disable pinch- and double-tap
+     zoom so the pages don't rescale under touch. iOS pinch is additionally
+     blocked in <AppViewportLock>. */
+  touch-action: pan-x pan-y;
+  /* Never let mobile browsers auto-inflate text (keeps the receipt sizing
+     exactly as designed). */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 /* â”€â”€ Y2K custom cursor (desktop only) â”€â”€ */
