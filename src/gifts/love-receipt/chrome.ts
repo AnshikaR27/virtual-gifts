@@ -28,11 +28,37 @@
 
 import type { ReceiptSummaryRow } from './lines';
 
+/**
+ * The "joke register" a money-row value belongs to. SUBTOTAL and TOTAL DUE
+ * always print together a few rows apart, so drawing both from the same register
+ * reads as one gag told twice ("GDP-level" over "₹∞", or a doubled "priceless").
+ * {@link pickChrome} guarantees the drawn pair never shares a register — the
+ * SUBTOTAL/TOTAL equivalent of the structural DISCOUNT/TAX disjointness.
+ *
+ * Only {@link SUBTOTAL_VALUE_POOL} and {@link TOTAL_DUE_POOL} tag this; every
+ * other pool leaves it undefined and is unaffected.
+ */
+export type MoneyRegister =
+  /** unpayably large — "too much", "unaffordable", "GDP-level", "₹∞" */
+  | 'vast'
+  /** the whole of something — "everything", "all of me" */
+  | 'entirety'
+  /** beyond price — "priceless" */
+  | 'priceless'
+  /** the person IS the payment — "you.", "sold (to you)" */
+  | 'you'
+  /** organ-donation bit — "2 kidneys" */
+  | 'body'
+  /** reassurance rather than a sum — "ur worth it" */
+  | 'affirmation';
+
 /** One pooled value for a single-value chrome slot. */
 export interface ChromeOption {
   text: string;
   /** 🌶️ — unhinged-possessive; capped at `maxSpicy` per receipt. */
   spicy?: boolean;
+  /** Money rows only — see {@link MoneyRegister}. */
+  register?: MoneyRegister;
 }
 
 /** An adjustment line ("label … value") feeding the discount / tax rows. */
@@ -69,122 +95,102 @@ export const SUBTITLE_POOL: ChromeOption[] = [
   { text: `a subsidiary of I Can Fix Him Pvt. Ltd.` },
   { text: `raided by the feelings dept. — still operating` },
   { text: `estd. 0.2 seconds after you said "hi"` },
-  { text: `ISO 143:2025 certified down bad` },
-  { text: `now under new management (you)` },
-  { text: `est. the day you replied "haha" instead of leaving me on seen` },
-  { text: `branch permanently closed to everyone except [recipient]` },
 ];
 
 export const CASHIER_POOL: ChromeOption[] = [
   { text: `[sender]'s last 2 braincells (1 on medical leave)` },
-  { text: `the delulu running this entire operation` },
-  { text: `my impulse control (terminated for cause)` },
-  { text: `the 3am version of me (most honest, least employable)` },
-  { text: `cupid (currently on a PIP)` },
-  { text: `the committee of voices that said "just text them"` },
-  { text: `the HR dept. (recused — also down bad)` },
+  { text: `ur pookie [sender]` },
 ];
 
 export const BILLED_TO_POOL: ChromeOption[] = [
-  { text: `[recipient] (suspect #1)`, spicy: true },
-  { text: `pookie (alias), DOB: my whole world` },
-  { text: `my emotional support felony`, spicy: true },
-  { text: `person of interest in 0 ongoing cases (charges dropped, by me)` },
-  { text: `the defendant my heart refuses to prosecute` },
   { text: `[recipient], reachable at: my every thought` },
+  { text: `[recipient] (mine only)` },
 ];
 
 export const BILL_NUMBER_POOL: ChromeOption[] = [
-  { text: `FIR-143/IPC-LOVE` },
-  { text: `TATKAL-4EVER (waitlisted my whole life)` },
-  { text: `AADHAAR-OF-MY-HEART` },
-  { text: `CASE-2025-DOWNBAD` },
-  { text: `CHALLAN-FOR-SPEEDING-INTO-LOVE` },
-  { text: `UPI-REF-ILY69420` },
+  { text: `4EVER-001` },
+  { text: `KISS-143` },
 ];
 
 export const GSTIN_POOL: ChromeOption[] = [
-  { text: `143INLOVE-RAIDED-OK` },
-  { text: `27DOWNBAD0FCKS1Z9` },
-  { text: `UIDAI-VERIFIED-OBSESSED` },
-  { text: `INCOME-TAX-NOTICE-PENDING` },
-  { text: `RBI-FLAGGED-TXN-69` },
+  { text: `NOCHILL69420` },
+  { text: `POOKIE143143` },
+  { text: `SIMP4U143143` },
+  { text: `UWU420CUTIE0` },
+  { text: `MWAH00001430` },
 ];
 
+/** SUBTOTAL values. `register` keeps this row off TOTAL DUE's joke — see
+ *  {@link MoneyRegister}. */
 export const SUBTOTAL_VALUE_POOL: ChromeOption[] = [
-  { text: `a sum no calculator survived` },
-  { text: `error: too much to compute` },
-  { text: `the amount the RBI flagged` },
-  { text: `more than mukesh ambani can afford` },
+  { text: `too much`, register: 'vast' },
+  { text: `everything`, register: 'entirety' },
+  { text: `priceless`, register: 'priceless' },
+  { text: `unaffordable`, register: 'vast' },
+  { text: `ur worth it`, register: 'affirmation' },
+  { text: `GDP-level`, register: 'vast' },
 ];
 
-/** Adjustment lines — pick 2 distinct for the discount + tax rows. */
-export const ADJUSTMENTS_POOL: AdjustmentOption[] = [
-  { label: `delusion tax (200%)`, value: `levied by the feelings dept.` },
-  { label: `"you're cute" discount`, value: `-100%, the manager was fired` },
-  { label: `overthinking surcharge`, value: `compounded daily` },
-  { label: `jealousy GST (28% + cess)`, value: `self-assessed` },
-  { label: `income-tax raid on my heart`, value: `nothing found but you` },
-  { label: `tatkal urgency fee (i wanted you NOW)`, value: `paid` },
-  { label: `"did the seva for you" rebate`, value: `bhagwan approved` },
-  { label: `ex-detection software license`, value: `annual, auto-renews` },
-  { label: `3am voice-note data charges`, value: `unlimited pack` },
-  {
-    label: `mood-swing handling fee (you sulked, i replied late)`,
-    value: `itemized`,
-  },
+/** Discount-row adjustments. Disjoint from {@link TAX_POOL}, so the two summary
+ *  rows can never draw the same label (the old shared-pool distinctness rule is
+ *  now structural rather than enforced at pick time). */
+export const DISCOUNT_POOL: AdjustmentOption[] = [
+  { label: `"you're cute" discount`, value: `-100%` },
+  { label: `pookie privilege`, value: `-50%` },
+  { label: `"that smile" rebate`, value: `applied` },
+  { label: `simp loyalty points`, value: `redeemed` },
+  { label: `first-look discount`, value: `-143%` },
 ];
 
+/** Tax-row adjustments. Every label carries the fixed (200%) rate. */
+export const TAX_POOL: AdjustmentOption[] = [
+  { label: `delusion tax (200%)`, value: `deserved` },
+  { label: `simp tax (200%)`, value: `worth it` },
+  { label: `yearning tax (200%)`, value: `obviously` },
+  { label: `butterflies tax (200%)`, value: `no regrets` },
+  { label: `down-bad tax (200%)`, value: `self-assessed` },
+];
+
+/** TOTAL DUE values. Drawn AFTER the subtotal and forced into a different
+ *  {@link MoneyRegister}, so the two money rows never tell the same joke. */
 export const TOTAL_DUE_POOL: ChromeOption[] = [
-  { text: `my whole ❤ + 2 kidneys`, spicy: true },
-  { text: `everything mukesh ambani can't buy` },
-  { text: `you. — seized, not for sale` },
-  { text: `the entire GDP of my heart` },
-  { text: `₹∞ (RBI, please don't audit)` },
+  { text: `you.`, register: 'you' },
+  { text: `my everything`, register: 'entirety' },
+  { text: `2 kidneys`, spicy: true, register: 'body' },
+  { text: `₹∞`, register: 'vast' },
+  { text: `all of me`, register: 'entirety' },
+  { text: `priceless`, register: 'priceless' },
+  { text: `sold (to you)`, register: 'you' },
 ];
 
 export const PAID_VIA_POOL: ChromeOption[] = [
-  { text: `emotional damage (EMI, 0% interest)` },
-  { text: `one (1) risky text, no refunds` },
-  { text: `UPI: simp@okheart` },
-  { text: `crying in the club + UPI` },
-  { text: `tatkal payment, confirmed instantly` },
+  { text: `emotional damage` },
+  { text: `one risky text` },
+  { text: `UPI: simp@ok` },
+  { text: `crying + UPI` },
+  { text: `my sanity` },
+  { text: `forehead kiss` },
+  { text: `overthinking` },
 ];
 
 export const FINE_PRINT_POOL: ChromeOption[] = [
   { text: `all sales final. the feelings dept. does not entertain refunds.` },
   { text: `by reading this you are now legally my pookie. the courts agree.` },
-  { text: `this document is admissible in the court of my heart.` },
-  { text: `subject to mumma's approval and bhagwan's blessing.` },
-  {
-    text: `warranty void if you talk to your ex (we're watching)`,
-    spicy: true,
-  },
-  { text: `e.&o.e. — errors, overthinking & ex-stalking excepted.` },
   { text: `prices revised daily per my personal delulu index.` },
 ];
 
 export const RETURN_POLICY_POOL: ChromeOption[] = [
-  { text: `you can't — you've been Aadhaar-linked to me.` },
-  { text: `returns processed in the next lifetime (currently waitlisted).` },
   { text: `exchange window closed the second you said "hi".` },
-  { text: `no returns. escalate to mumma if dissatisfied.` },
-  { text: `you are now a non-cancellable subscription <3` },
+  { text: `try it. i'll cry. <3` },
 ];
 
 export const SCAN_LINE_POOL: ChromeOption[] = [
   { text: `scan = how down bad i am (results may disturb you)` },
   { text: `scan to file your FIR (i'm the crime)` },
-  { text: `do NOT scan at the dinner table (mumma will know)` },
-  { text: `scan = legally binding simp agreement` },
-  { text: `scanned 4,000,000 times (all me)` },
-  { text: `caution: scanning reveals classified feelings` },
 ];
 
 export const FOOTER_POOL: ChromeOption[] = [
   { text: `come again (tonight? tomorrow? forever? asking for me)` },
-  { text: `no loyalty card — you're Aadhaar-linked now` },
-  { text: `this store has no exit, by design` },
   { text: `delulu mart: now open inside your chest, rent-free` },
   { text: `thank you for shopping your heart out` },
 ];
@@ -222,20 +228,23 @@ export function getDefaultChrome(opts: ChromeNames = {}): ReceiptChrome {
   const sender = opts.senderName?.trim() ?? '';
   const fill = (t: string) => fillNames(t, recipient, sender);
   return {
-    subtitle: fill(`est. the day i met [recipient]`),
-    cashier: fill(`[sender]'s last 2 braincells`),
-    billedTo: fill(`[recipient]`),
+    subtitle: fill(`estd. 0.2 seconds after you said "hi"`),
+    cashier: fill(`[sender]'s last 2 braincells (1 on medical leave)`),
+    billedTo: fill(`[recipient] (mine only)`),
     billNumber: `4EVER-001`,
     gstin: `NOCHILL69420`,
     subtotal: { label: SUBTOTAL_LABEL, price: `too much` },
-    discount: { label: `"you’re cute" discount`, price: `-100%` },
-    tax: { label: `delusion tax (200%)`, price: `generous` },
-    total: `my whole ❤`,
+    discount: {
+      label: `"you're cute" discount`,
+      price: `-100%`,
+    },
+    tax: { label: `delusion tax (200%)`, price: `deserved` },
+    total: `you.`,
     paidVia: `emotional damage`,
-    finePrint: `all sales final. no refunds on feelings.`,
-    returnPolicy: `return policy: you can't — you're stuck with me <3`,
-    scanLine: `scan = how down bad i am`,
-    footer: `come again (tonight?)`,
+    finePrint: `all sales final. the feelings dept. does not entertain refunds.`,
+    returnPolicy: `exchange window closed the second you said "hi".`,
+    scanLine: `scan = how down bad i am (results may disturb you)`,
+    footer: `come again (tonight? tomorrow? forever? asking for me)`,
   };
 }
 
@@ -290,24 +299,53 @@ export function pickChrome(opts: PickChromeOptions = {}): ReceiptChrome {
   const isLocked = (k: keyof ReceiptChrome): boolean => canLock && !!lock![k];
 
   // Pick one option from a single-value pool: drop spicy lines once the spicy
-  // budget is spent, prefer values that differ from `prevValue`, and fill names.
-  const pickOne = (pool: ChromeOption[], prevValue?: string): string => {
+  // budget is spent, skip anything `veto`ed, prefer values that differ from
+  // `prevValue`. Returns the OPTION (callers that need only the rendered string
+  // use pickOne); the money rows need the chosen entry's `register` too.
+  // Every narrowing step is applied only when it leaves something to draw from,
+  // so an over-constrained slot degrades to a wider pool instead of throwing.
+  const pickOption = (
+    pool: ChromeOption[],
+    prevValue?: string,
+    veto?: (o: ChromeOption) => boolean,
+  ): ChromeOption => {
     let candidates = spicyUsed < maxSpicy ? pool : pool.filter((o) => !o.spicy);
     if (!candidates.length) candidates = pool; // safety (no non-spicy option)
+    if (veto) {
+      const allowed = candidates.filter((o) => !veto(o));
+      if (allowed.length) candidates = allowed;
+    }
     if (prevValue) {
       const fresh = candidates.filter((o) => fill(o.text) !== prevValue);
       if (fresh.length) candidates = fresh;
     }
     const choice = candidates[Math.floor(rng() * candidates.length)];
     if (choice.spicy) spicyUsed++;
-    return fill(choice.text);
+    return choice;
   };
 
-  // Pick one fresh adjustment row (label … value), avoiding the `avoid` labels
-  // and respecting the remaining spicy budget.
-  const pickAdjustment = (avoid: Set<string>): ReceiptSummaryRow => {
-    let pool = ADJUSTMENTS_POOL.filter((a) => spicyUsed < maxSpicy || !a.spicy);
-    if (!pool.length) pool = ADJUSTMENTS_POOL.slice();
+  const pickOne = (pool: ChromeOption[], prevValue?: string): string =>
+    fill(pickOption(pool, prevValue).text);
+
+  /** The register of an already-decided money value (a LOCKED slot, or one the
+   *  user typed by hand). Custom text matches no pool entry → undefined → that
+   *  row simply imposes no constraint on the other. */
+  const registerOf = (
+    pool: ChromeOption[],
+    value: string,
+  ): MoneyRegister | undefined =>
+    pool.find((o) => fill(o.text) === value)?.register;
+
+  // Pick one fresh adjustment row (label … value) from the given pool, avoiding
+  // the `avoid` labels and respecting the remaining spicy budget. DISCOUNT_POOL
+  // and TAX_POOL are disjoint, so the discount/tax rows can no longer collide —
+  // `avoid` now only carries the PRIOR draw's label, for freshness.
+  const pickAdjustment = (
+    from: AdjustmentOption[],
+    avoid: Set<string>,
+  ): ReceiptSummaryRow => {
+    let pool = from.filter((a) => spicyUsed < maxSpicy || !a.spicy);
+    if (!pool.length) pool = from.slice();
     const fresh = pool.filter((a) => !avoid.has(fill(a.label)));
     const source = fresh.length ? fresh : pool;
     const a = shuffleArr(source, rng)[0];
@@ -341,7 +379,9 @@ export function pickChrome(opts: PickChromeOptions = {}): ReceiptChrome {
     chargeLocked('scanLine', SCAN_LINE_POOL, prev!.scanLine);
     chargeLocked('footer', FOOTER_POOL, prev!.footer);
     const spicyAdjLabels = new Set(
-      ADJUSTMENTS_POOL.filter((a) => a.spicy).map((a) => fill(a.label)),
+      [...DISCOUNT_POOL, ...TAX_POOL]
+        .filter((a) => a.spicy)
+        .map((a) => fill(a.label)),
     );
     if (isLocked('discount') && spicyAdjLabels.has(prev!.discount.label)) {
       spicyUsed++;
@@ -366,42 +406,53 @@ export function pickChrome(opts: PickChromeOptions = {}): ReceiptChrome {
   const gstin = isLocked('gstin')
     ? prev!.gstin
     : pickOne(GSTIN_POOL, prev?.gstin);
+  // SUBTOTAL is drawn FIRST so its register can constrain TOTAL DUE below. The
+  // reverse case matters too: when TOTAL is locked and SUBTOTAL is not, the
+  // locked total's register constrains THIS draw, so the guarantee holds in both
+  // directions rather than only for the draw that happens to run second.
+  const lockedTotalRegister = isLocked('total')
+    ? registerOf(TOTAL_DUE_POOL, prev!.total)
+    : undefined;
   const subtotal: ReceiptSummaryRow = isLocked('subtotal')
     ? prev!.subtotal
     : {
         label: SUBTOTAL_LABEL,
-        price: pickOne(SUBTOTAL_VALUE_POOL, prev?.subtotal.price),
+        price: fill(
+          pickOption(
+            SUBTOTAL_VALUE_POOL,
+            prev?.subtotal.price,
+            lockedTotalRegister
+              ? (o) => o.register === lockedTotalRegister
+              : undefined,
+          ).text,
+        ),
       };
+  // Works for a locked/user-typed subtotal too: registerOf just looks the final
+  // value up in the pool, so the constraint holds however the row was decided.
+  const subtotalRegister = registerOf(SUBTOTAL_VALUE_POOL, subtotal.price);
 
-  // discount + tax — retain locked rows; draw the rest distinct from each other
-  // and from the prior labels.
-  const prevAdjLabels = new Set(
-    [prev?.discount.label, prev?.tax.label].filter(Boolean) as string[],
-  );
-  const avoidWith = (extra: string): Set<string> => {
-    const s = new Set(prevAdjLabels);
-    s.add(extra);
-    return s;
-  };
-  let discount: ReceiptSummaryRow;
-  let tax: ReceiptSummaryRow;
-  if (isLocked('discount') && isLocked('tax')) {
-    discount = prev!.discount;
-    tax = prev!.tax;
-  } else if (isLocked('discount')) {
-    discount = prev!.discount;
-    tax = pickAdjustment(avoidWith(discount.label));
-  } else if (isLocked('tax')) {
-    tax = prev!.tax;
-    discount = pickAdjustment(avoidWith(tax.label));
-  } else {
-    discount = pickAdjustment(prevAdjLabels);
-    tax = pickAdjustment(avoidWith(discount.label));
-  }
+  // discount + tax — retain locked rows, draw the rest from their OWN pool. The
+  // two pools are disjoint, so the rows are distinct by construction; `avoid`
+  // now only carries that row's prior label, so a regenerate feels fresh.
+  const avoidPrev = (label?: string): Set<string> =>
+    new Set(label ? [label] : []);
+  const discount: ReceiptSummaryRow = isLocked('discount')
+    ? prev!.discount
+    : pickAdjustment(DISCOUNT_POOL, avoidPrev(prev?.discount.label));
+  const tax: ReceiptSummaryRow = isLocked('tax')
+    ? prev!.tax
+    : pickAdjustment(TAX_POOL, avoidPrev(prev?.tax.label));
 
+  // TOTAL DUE — never the same joke register as the SUBTOTAL printed above it.
   const total = isLocked('total')
     ? prev!.total
-    : pickOne(TOTAL_DUE_POOL, prev?.total);
+    : fill(
+        pickOption(
+          TOTAL_DUE_POOL,
+          prev?.total,
+          subtotalRegister ? (o) => o.register === subtotalRegister : undefined,
+        ).text,
+      );
   const paidVia = isLocked('paidVia')
     ? prev!.paidVia
     : pickOne(PAID_VIA_POOL, prev?.paidVia);
