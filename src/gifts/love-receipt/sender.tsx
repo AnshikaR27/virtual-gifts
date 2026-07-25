@@ -106,29 +106,40 @@ type Action =
   | { type: 'setDraft'; field: 'draftText' | 'draftPrice'; value: string }
   | { type: 'step'; step: State['step'] };
 
+/** Optional seed values — lets a caller pre-fill the names and/or open straight
+ *  on the builder (step 2), skipping the intake. Used by the dev/preview
+ *  `?skip` shortcut on the create page; the real product passes nothing. */
+export interface LoveReceiptSenderProps {
+  initialStep?: 1 | 2;
+  initialRecipientName?: string;
+  initialSenderName?: string;
+}
+
 // Balanced starting-4 render immediately on load — no empty state.
-const initialState: State = {
-  step: 1,
-  recipientName: '',
-  senderName: '',
-  relationship: RELATIONSHIP_OPTIONS[0],
-  answers: {},
-  lines: getStartingLines().map((l) => ({
-    id: newId(),
-    poolId: l.poolId,
-    text: l.text,
-    price: l.price,
-  })),
-  // deterministic first-paint total (DEFAULT_TOTAL_ID); regenerate picks a fresh,
-  // non-colliding one.
-  total: getDefaultTotal().price,
-  // chrome starts null → the deterministic default chrome renders, recomputed
-  // live from the names; the first regenerate swaps in a shuffled draw.
-  chrome: null,
-  fine: {},
-  draftText: '',
-  draftPrice: '',
-};
+function makeInitialState(props: LoveReceiptSenderProps = {}): State {
+  return {
+    step: props.initialStep ?? 1,
+    recipientName: props.initialRecipientName ?? '',
+    senderName: props.initialSenderName ?? '',
+    relationship: RELATIONSHIP_OPTIONS[0],
+    answers: {},
+    lines: getStartingLines().map((l) => ({
+      id: newId(),
+      poolId: l.poolId,
+      text: l.text,
+      price: l.price,
+    })),
+    // deterministic first-paint total (DEFAULT_TOTAL_ID); regenerate picks a fresh,
+    // non-colliding one.
+    total: getDefaultTotal().price,
+    // chrome starts null → the deterministic default chrome renders, recomputed
+    // live from the names; the first regenerate swaps in a shuffled draw.
+    chrome: null,
+    fine: {},
+    draftText: '',
+    draftPrice: '',
+  };
+}
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
@@ -311,8 +322,8 @@ function buildPayload(state: State): ReceiptPayload {
   };
 }
 
-export function LoveReceiptSender() {
-  const [state, dispatch] = useReducer(reducer, initialState);
+export function LoveReceiptSender(props: LoveReceiptSenderProps = {}) {
+  const [state, dispatch] = useReducer(reducer, props, makeInitialState);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fineOpen, setFineOpen] = useState(false);
