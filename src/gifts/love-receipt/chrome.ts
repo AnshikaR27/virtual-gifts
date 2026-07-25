@@ -4,7 +4,7 @@
  * Everything on the receipt that ISN'T a line item: the subtitle, cashier,
  * "Billed to", bill #, GSTIN, the summary rows (subtotal value + two
  * adjustments → discount/tax), the TOTAL DUE, "paid via", fine print, return
- * policy, scan caption, footer, and the rubber stamp.
+ * policy, scan caption, and footer.
  *
  * These used to be fixed defaults pulled from buildFrame() in ./lines. Now they
  * SHUFFLE per receipt the same way the item lines do — mirroring the
@@ -58,7 +58,6 @@ export interface ReceiptChrome {
   returnPolicy: string;
   scanLine: string;
   footer: string;
-  stamp: string;
 }
 
 /** The SUBTOTAL row label is fixed; only its value shuffles. */
@@ -190,16 +189,6 @@ export const FOOTER_POOL: ChromeOption[] = [
   { text: `thank you for shopping your heart out` },
 ];
 
-export const STAMP_POOL: ChromeOption[] = [
-  { text: `CERTIFIED DELULU (by RBI)` },
-  { text: `RAIDED BY THE FEELINGS DEPT.` },
-  { text: `PROPERTY OF [recipient] — DO NOT TOUCH` },
-  { text: `DOWN BAD — VERIFIED BY UIDAI` },
-  { text: `APPROVED BY MUMMA & BHAGWAN` },
-  { text: `EVIDENCE — DO NOT REMOVE` },
-  { text: `PAID IN FULL (with my sanity)` },
-];
-
 // ── placeholder substitution ────────────────────────────────────────────
 // Reuses the existing buildFrame() fallback logic: [recipient] → the recipient
 // name (fallback "my favourite person"), [sender] → the sender name (fallback
@@ -247,7 +236,6 @@ export function getDefaultChrome(opts: ChromeNames = {}): ReceiptChrome {
     returnPolicy: `return policy: you can't — you're stuck with me <3`,
     scanLine: `scan = how down bad i am`,
     footer: `come again (tonight?)`,
-    stamp: `CERTIFIED DELULU`,
   };
 }
 
@@ -352,7 +340,6 @@ export function pickChrome(opts: PickChromeOptions = {}): ReceiptChrome {
     chargeLocked('returnPolicy', RETURN_POLICY_POOL, prev!.returnPolicy);
     chargeLocked('scanLine', SCAN_LINE_POOL, prev!.scanLine);
     chargeLocked('footer', FOOTER_POOL, prev!.footer);
-    chargeLocked('stamp', STAMP_POOL, prev!.stamp);
     const spicyAdjLabels = new Set(
       ADJUSTMENTS_POOL.filter((a) => a.spicy).map((a) => fill(a.label)),
     );
@@ -430,9 +417,6 @@ export function pickChrome(opts: PickChromeOptions = {}): ReceiptChrome {
   const footer = isLocked('footer')
     ? prev!.footer
     : pickOne(FOOTER_POOL, prev?.footer);
-  const stamp = isLocked('stamp')
-    ? prev!.stamp
-    : pickOne(STAMP_POOL, prev?.stamp);
 
   return {
     subtitle,
@@ -449,6 +433,5 @@ export function pickChrome(opts: PickChromeOptions = {}): ReceiptChrome {
     returnPolicy,
     scanLine,
     footer,
-    stamp,
   };
 }

@@ -98,7 +98,6 @@ function loveReceiptMock(): GiftData {
     returnPolicy: frame.returnPolicy,
     scanLine: frame.scanLine,
     footer: frame.footer,
-    memeStamp: frame.stamp,
   };
   return {
     id: '00000000-0000-0000-0000-000000000001',
@@ -160,7 +159,6 @@ function galleryPayload(
     returnPolicy: frame.returnPolicy,
     scanLine: frame.scanLine,
     footer: frame.footer,
-    memeStamp: frame.stamp,
   };
 }
 
@@ -506,7 +504,6 @@ function realDrawPayload(cursor: number): ReceiptPayload {
     returnPolicy: frame.returnPolicy,
     scanLine: frame.scanLine,
     footer: frame.footer,
-    memeStamp: frame.stamp,
   };
 }
 
@@ -771,7 +768,6 @@ function candidatesPayload(
     returnPolicy: frame.returnPolicy,
     scanLine: frame.scanLine,
     footer: frame.footer,
-    memeStamp: frame.stamp,
   };
 }
 

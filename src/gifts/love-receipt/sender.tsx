@@ -46,7 +46,7 @@ let idCounter = 0;
 const newId = () => `l${Date.now().toString(36)}${idCounter++}`;
 
 // Name-independent ★ defaults of the locked frame (DELULU MART) — used for the
-// initial total/stamp. Name-bearing fields are filled live via
+// initial total. Name-bearing fields are filled live via
 // getDefaultChrome(names) inside buildPayload / the fine-print panel.
 const DEFAULT_CHROME = getDefaultChrome();
 
@@ -81,9 +81,6 @@ interface State {
   /** The drawn chrome (frame/meta). null = render the deterministic default,
    *  recomputed live from the names until the first regenerate shuffles one in. */
   chrome: ReceiptChrome | null;
-  memeStamp: string | null;
-  /** true once the user edits the stamp — stops regenerate from reshuffling it. */
-  stampDirty: boolean;
   fine: FineOverrides;
   draftText: string;
   draftPrice: string;
@@ -94,7 +91,6 @@ type Action =
   | { type: 'setRelationship'; value: string }
   | { type: 'setAnswer'; key: string; value: string }
   | { type: 'setTotal'; value: string }
-  | { type: 'setStamp'; value: string | null }
   | { type: 'setChrome'; chrome: ReceiptChrome }
   | { type: 'setFine'; field: keyof FineOverrides; value: string }
   // poolId rides along when the source is a pool draw (so the doodle layer can
@@ -124,13 +120,11 @@ const initialState: State = {
     price: l.price,
   })),
   // deterministic first-paint total (DEFAULT_TOTAL_ID); regenerate picks a fresh,
-  // non-colliding one. The total slot renders this stamp.
+  // non-colliding one.
   total: getDefaultTotal().price,
   // chrome starts null → the deterministic default chrome renders, recomputed
   // live from the names; the first regenerate swaps in a shuffled draw.
   chrome: null,
-  memeStamp: DEFAULT_CHROME.stamp,
-  stampDirty: false,
   fine: {},
   draftText: '',
   draftPrice: '',
@@ -149,8 +143,6 @@ function reducer(state: State, action: Action): State {
       };
     case 'setTotal':
       return { ...state, total: action.value };
-    case 'setStamp':
-      return { ...state, memeStamp: action.value, stampDirty: true };
     case 'setChrome':
       return { ...state, chrome: action.chrome };
     case 'setFine':
@@ -226,10 +218,9 @@ function effectiveChrome(state: State): ReceiptChrome {
 
 /**
  * The chrome slots the user has edited, derived from the fine overrides (set on
- * every fine-print edit) plus the stamp's own dirty flag. pickChrome keeps these
- * from the previous draw on regenerate instead of reshuffling them. A future
- * "reset frame" affordance would clear the fine overrides + stampDirty to release
- * every slot back to the shuffle.
+ * every fine-print edit). pickChrome keeps these from the previous draw on
+ * regenerate instead of reshuffling them. A future "reset frame" affordance
+ * would clear the fine overrides to release every slot back to the shuffle.
  */
 function lockedChromeSlots(
   state: State,
@@ -249,7 +240,6 @@ function lockedChromeSlots(
     returnPolicy: f.returnPolicy !== undefined,
     scanLine: f.scanLine !== undefined,
     footer: f.footer !== undefined,
-    stamp: state.stampDirty,
   };
 }
 
@@ -258,8 +248,6 @@ function lockedChromeSlots(
  * the user's fine-print edits applied on top. Used to build the payload and
  * passed to pickChrome as `prev`, so locked slots are retained as their EDITED
  * value and the spicy budget is computed over what's actually on the receipt.
- * The stamp's null ("no stamp") is squashed to '' here — buildPayload keeps the
- * real null via state.memeStamp.
  */
 function mergedChrome(state: State): ReceiptChrome {
   const base = effectiveChrome(state);
@@ -288,7 +276,6 @@ function mergedChrome(state: State): ReceiptChrome {
     returnPolicy: f.returnPolicy ?? base.returnPolicy,
     scanLine: f.scanLine ?? base.scanLine,
     footer: f.footer ?? base.footer,
-    stamp: state.stampDirty ? (state.memeStamp ?? '') : base.stamp,
   };
 }
 
@@ -321,9 +308,6 @@ function buildPayload(state: State): ReceiptPayload {
     returnPolicy: chrome.returnPolicy,
     scanLine: chrome.scanLine,
     footer: chrome.footer,
-    // the stamp follows the chrome shuffle until the user edits it (stampDirty),
-    // after which their value — including a cleared null — is kept verbatim.
-    memeStamp: state.stampDirty ? state.memeStamp : chrome.stamp,
   };
 }
 
@@ -841,19 +825,6 @@ export function LoveReceiptSender() {
                   value={state.fine.footer ?? chrome.footer}
                   onChange={(v) =>
                     dispatch({ type: 'setFine', field: 'footer', value: v })
-                  }
-                />
-                <FineInput
-                  label="Stamp"
-                  value={
-                    state.stampDirty ? (state.memeStamp ?? '') : chrome.stamp
-                  }
-                  placeholder="(leave blank for no stamp)"
-                  onChange={(v) =>
-                    dispatch({
-                      type: 'setStamp',
-                      value: v.trim() ? v : null,
-                    })
                   }
                 />
               </div>

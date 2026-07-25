@@ -89,8 +89,6 @@ export interface ReceiptPayload {
   /** caption under the faux barcode. */
   scanLine: string;
   footer: string;
-  /** null = no stamp. */
-  memeStamp: string | null;
 }
 
 /** Default price applied when a line's price is left blank. */
@@ -123,7 +121,6 @@ export interface ReceiptScaffold {
   returnPolicy: string;
   scanLine: string;
   footer: string;
-  stamp: string;
 }
 
 /** Inputs that personalize the otherwise-locked DELULU MART frame. Both names
@@ -165,7 +162,6 @@ export function buildFrame(names: FrameNames = {}): ReceiptScaffold {
     returnPolicy: "return policy: you can't — you're stuck with me <3",
     scanLine: 'scan = how down bad i am',
     footer: 'come again (tonight?)',
-    stamp: 'CERTIFIED DELULU',
   };
 }
 
@@ -464,7 +460,6 @@ export interface GeneratedReceipt {
   returnPolicy?: string;
   scanLine?: string;
   footer: string;
-  memeStamp: string | null;
 }
 
 export interface GenerateInput {
@@ -504,6 +499,5 @@ export function buildFallbackReceipt(): GeneratedReceipt {
     returnPolicy: frame.returnPolicy,
     scanLine: frame.scanLine,
     footer: frame.footer,
-    memeStamp: frame.stamp,
   };
 }

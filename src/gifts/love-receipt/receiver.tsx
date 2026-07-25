@@ -15,7 +15,9 @@ import { buildFrame, formatReceiptDate, type ReceiptPayload } from './lines';
 const FIRST_DELAY = 350;
 const ROW_DELAY = 300;
 const PRE_TOTAL_DELAY = 1150; // comic slow-down right before the TOTAL
-const STAMP_DELAY = 480;
+// Beat after the last row prints before the receipt counts as done (this used
+// to be the stamp slam; the pause still paces the climax, so it stays).
+const FINISH_DELAY = 480;
 
 // The window body reads as the same OS as ROMANCE.exe / MEMORIES.exe: a light
 // near-white interior with very faint horizontal ruled lines (the HoneyHearts
@@ -60,7 +62,6 @@ function normalize(
     returnPolicy: p.returnPolicy || frame.returnPolicy,
     scanLine: p.scanLine || frame.scanLine,
     footer: p.footer || frame.footer,
-    memeStamp: p.memeStamp ?? frame.stamp,
   };
 }
 
@@ -92,7 +93,7 @@ export function LoveReceiptReceiver({ gift }: { gift: GiftData }) {
             onClimax();
             trackInteraction('receipt_printed');
           }
-        }, STAMP_DELAY);
+        }, FINISH_DELAY);
         return;
       }
       const nextIndex = shown; // 0-based index of the row we'll reveal next
