@@ -18,8 +18,18 @@
  *  3. getStartingLines() returns EXACTLY the 4 DEFAULT_STARTING_IDS, in order.
  *  4. getDefaultTotal() is DEFAULT_TOTAL_ID (the deterministic first paint).
  *  5. pickTotal() never returns a price (normalized) already on a drawn line.
+ *  6. Every SUBTOTAL / TOTAL DUE pooled value carries a MoneyRegister tag — an
+ *     untagged one silently opts out of 7.
+ *  7. pickChrome() never draws SUBTOTAL and TOTAL DUE from the same register,
+ *     both on a free draw and with a LOCKED total constraining the subtotal.
  */
 
+import {
+  pickChrome,
+  SUBTOTAL_VALUE_POOL,
+  TOTAL_DUE_POOL,
+  type MoneyRegister,
+} from '../src/gifts/love-receipt/chrome';
 import {
   DEFAULT_STARTING_IDS,
   getDefaultTotal,
@@ -234,6 +244,104 @@ for (let i = 0; i < DRAWS; i++) {
 check(
   totalBad === null,
   totalBad ?? `pickTotal over ${DRAWS} draws never echoed a line price`,
+);
+
+// ── 6) every money-row value carries a register tag ──────────────────────
+// The tag IS the invariant: pickChrome looks a decided value up in its pool to
+// find the register, so an untagged entry resolves to undefined and silently
+// imposes/receives no constraint — it would opt out of 7 without failing it.
+const untagged = [
+  ...SUBTOTAL_VALUE_POOL.map((o) => ['SUBTOTAL', o] as const),
+  ...TOTAL_DUE_POOL.map((o) => ['TOTAL DUE', o] as const),
+].filter(([, o]) => !o.register);
+check(
+  untagged.length === 0,
+  untagged.length === 0
+    ? `every SUBTOTAL (${SUBTOTAL_VALUE_POOL.length}) + TOTAL DUE ` +
+        `(${TOTAL_DUE_POOL.length}) value carries a register tag`
+    : `untagged money value(s): ` +
+        untagged.map(([row, o]) => `${row} "${o.text}"`).join(', '),
+);
+
+// ── 7) SUBTOTAL and TOTAL DUE never share a register ─────────────────────
+// The two money rows print a few lines apart, so drawing both from the same
+// joke register reads as a repeat ("GDP-level" over "₹∞", "priceless" twice).
+const CHROME_DRAWS = 20_000;
+
+const regOf = (
+  pool: readonly { text: string; register?: MoneyRegister }[],
+  value: string,
+): MoneyRegister | undefined => pool.find((o) => o.text === value)?.register;
+
+let chromeBad: string | null = null;
+const subSeen = new Set<string>();
+const totSeen = new Set<string>();
+
+for (let i = 0; i < CHROME_DRAWS; i++) {
+  const c = pickChrome();
+  subSeen.add(c.subtotal.price);
+  totSeen.add(c.total);
+  if (chromeBad !== null) continue;
+
+  const rs = regOf(SUBTOTAL_VALUE_POOL, c.subtotal.price);
+  const rt = regOf(TOTAL_DUE_POOL, c.total);
+  // A DRAWN value (never user-typed here) must always resolve. An unresolvable
+  // one — e.g. a pooled value carrying a [recipient] token, which reaches the
+  // row already filled — would skip the comparison and hide a violation.
+  if (!rs || !rt) {
+    chromeBad =
+      `draw ${i}: value did not resolve to a register ` +
+      `(subtotal "${c.subtotal.price}" → ${rs ?? 'none'}, ` +
+      `total "${c.total}" → ${rt ?? 'none'})`;
+  } else if (rs === rt) {
+    chromeBad =
+      `draw ${i}: subtotal "${c.subtotal.price}" and total "${c.total}" ` +
+      `share register "${rs}"`;
+  }
+}
+
+// Coverage guard — a pass means nothing if the sweep never exercised the pools.
+const covered =
+  subSeen.size === SUBTOTAL_VALUE_POOL.length &&
+  totSeen.size === TOTAL_DUE_POOL.length;
+check(
+  chromeBad === null && covered,
+  chromeBad ??
+    (covered
+      ? `pickChrome over ${CHROME_DRAWS} draws never shared a register ` +
+        `(saw all ${subSeen.size} subtotal + ${totSeen.size} total values)`
+      : `coverage gap: saw ${subSeen.size}/${SUBTOTAL_VALUE_POOL.length} ` +
+        `subtotal, ${totSeen.size}/${TOTAL_DUE_POOL.length} total values`),
+);
+
+// The reverse direction: when TOTAL is locked the subtotal is the row that must
+// dodge, so the guarantee can't depend on which row happens to be drawn second.
+const LOCKED_DRAWS = 300;
+let lockedBad: string | null = null;
+let lockedChecked = 0;
+
+for (const tot of TOTAL_DUE_POOL) {
+  for (let i = 0; i < LOCKED_DRAWS && lockedBad === null; i++) {
+    const prev = { ...pickChrome(), total: tot.text };
+    const c = pickChrome({ prev, lock: { total: true } });
+    if (c.total !== tot.text) {
+      lockedBad = `lock ignored: total "${tot.text}" became "${c.total}"`;
+      break;
+    }
+    lockedChecked++;
+    const rs = regOf(SUBTOTAL_VALUE_POOL, c.subtotal.price);
+    if (rs && rs === tot.register) {
+      lockedBad =
+        `locked total "${tot.text}" (${tot.register}) drew subtotal ` +
+        `"${c.subtotal.price}" from the same register`;
+    }
+  }
+}
+check(
+  lockedBad === null,
+  lockedBad ??
+    `a LOCKED total constrains the subtotal redraw ` +
+      `(${lockedChecked} draws across ${TOTAL_DUE_POOL.length} locked totals)`,
 );
 
 // ── verdict ─────────────────────────────────────────────────────────────
