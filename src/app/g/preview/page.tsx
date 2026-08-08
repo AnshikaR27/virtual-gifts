@@ -3186,6 +3186,9 @@ export default function GiftPreviewPage({
       replayBehavior={definition.replayBehavior}
       anticipationMs={0}
       hideDefaultPostGiftCta={definition.ownsPostGiftCta ?? false}
+      // Undefined falls back to the frame's defaults (scale spring, centred).
+      entrance={definition.entrance}
+      contentAlign={definition.contentAlign}
     >
       <Receiver gift={gift} />
     </GiftFrame>

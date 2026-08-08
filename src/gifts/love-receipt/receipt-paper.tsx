@@ -248,6 +248,17 @@ interface ReceiptPaperProps {
    *  periwinkle, 'soft' = a paler wash, 'none' = bare paper). Undefined = the
    *  exact production header. Used only by the /g/preview logo-comparison view;
    *  unused in production. */
+  /** PREVIEW-ONLY: extra lines appended to the meta block, under GSTIN. Used by
+   *  the order-confirmation reveal prototype for its "PURCHASED BY:" payoff.
+   *  Undefined in production, where the meta block renders exactly as before. */
+  metaExtra?: ReactNode;
+  /** PREVIEW-ONLY: a cardholder line printed inside the PAYMENT BLOCK, under
+   *  PAID VIA — used by the reveal-framing prototype for its "PURCHASED BY:"
+   *  payoff, so the name reveals in the same clip moment as TOTAL. Undefined in
+   *  production, where the total block renders exactly as before. */
+  paymentExtra?: ReactNode;
+  /** PREVIEW-ONLY: replace just the header block (logo + band) while the body
+   *  renders byte-for-byte as production. */
   headerPreview?: {
     node: ReactNode;
     band: 'solid' | 'soft' | 'none';
@@ -255,6 +266,10 @@ interface ReceiptPaperProps {
      *  edge) for the header-tweak comparison view. */
     bandStyle?: CSSProperties;
   };
+  /** Override the sheet's top padding. The printer reveal passes 0 because its
+   *  own blank leader supplies the top margin above the masthead — see
+   *  reveal/printer-feed.tsx (LEADER_PX). Everywhere else keeps the default. */
+  padTop?: number;
   style?: CSSProperties;
 }
 
@@ -264,7 +279,10 @@ export function ReceiptPaper({
   animate = false,
   editable,
   lineDoodleOverride,
+  metaExtra,
+  paymentExtra,
   headerPreview,
+  padTop = 28,
   style,
 }: ReceiptPaperProps) {
   const seq = buildSequence(payload, { showEmptyHint: !!editable });
@@ -298,8 +316,9 @@ export function ReceiptPaper({
           background: PAPER,
           backgroundImage: GRAIN,
           // clean straight rectangular edges (no torn/deckle treatment)
-          // narrow centered slip with generous side padding
-          padding: '28px 22px 26px',
+          // narrow centered slip with generous side padding. The top is a prop
+          // so the printer reveal can hand that margin to its own blank leader.
+          padding: `${padTop}px 22px 26px`,
           color: INK,
           // soft gray edge vignette for the white paper
           boxShadow: 'inset 0 0 36px rgba(0, 0, 0, 0.05)',
@@ -324,10 +343,32 @@ export function ReceiptPaper({
         />
 
         <div style={{ position: 'relative', zIndex: 2 }}>
-          {/* PREVIEW-ONLY: bare-paper custom header (no band strip). */}
-          {bandShown > 0 && headerPreview && headerPreview.band === 'none' ? (
+          {/* PRODUCTION: the masthead sits on plain receipt paper — no colored
+              band. DELULU MART stays bold black and the subtitle sits under it,
+              both painted straight onto the sheet (see <Header>).
+
+              The banded branch below is PREVIEW-ONLY now: it is reachable only
+              when headerPreview asks for 'solid' or 'soft', which just the
+              /g/preview header-comparison views do. Production passes no
+              headerPreview at all and therefore always takes this branch. */}
+          {bandShown > 0 &&
+          (!headerPreview || headerPreview.band === 'none') ? (
             <div style={{ position: 'relative', marginBottom: 8 }}>
-              {headerPreview.node}
+              {headerPreview
+                ? headerPreview.node
+                : seq.slice(0, bandShown).map((row, i) => (
+                    <Row key={i} animate={animate}>
+                      {renderRow(
+                        row,
+                        payload,
+                        editable,
+                        numberWraps,
+                        lineDoodles,
+                        metaExtra,
+                        paymentExtra,
+                      )}
+                    </Row>
+                  ))}
             </div>
           ) : bandShown > 0 ? (
             <div
@@ -338,12 +379,12 @@ export function ReceiptPaper({
                   headerPreview?.band === 'soft'
                     ? SOFT_HEADER_BAND
                     : HEADER_BAND,
-                // Full-bleed: negative margins cancel the paper's 28px top / 22px
+                // Full-bleed: negative margins cancel the paper's top / 22px
                 // side padding so the band runs flush to the paper edges (a
                 // printed strip, not a floating rectangle). Inner padding gives
                 // the content breathing room; the band ends here, just above the
                 // dashed rule before the items.
-                marginTop: -28,
+                marginTop: -padTop,
                 marginLeft: -22,
                 marginRight: -22,
                 padding: '20px 22px 12px',
@@ -383,6 +424,8 @@ export function ReceiptPaper({
                           editable,
                           numberWraps,
                           lineDoodles,
+                          metaExtra,
+                          paymentExtra,
                         )}
                       </Row>
                     ))}
@@ -392,7 +435,15 @@ export function ReceiptPaper({
           {shown > bandCount
             ? seq.slice(bandCount, shown).map((row, i) => (
                 <Row key={bandCount + i} animate={animate}>
-                  {renderRow(row, payload, editable, numberWraps, lineDoodles)}
+                  {renderRow(
+                    row,
+                    payload,
+                    editable,
+                    numberWraps,
+                    lineDoodles,
+                    metaExtra,
+                    paymentExtra,
+                  )}
                 </Row>
               ))
             : null}
@@ -428,6 +479,8 @@ function renderRow(
   editable: ReceiptEditable | undefined,
   numberWraps: (string | null)[],
   lineDoodles: (ResolvedDoodle | null)[],
+  metaExtra?: ReactNode,
+  paymentExtra?: ReactNode,
 ): React.ReactNode {
   switch (row.kind) {
     case 'header':
@@ -439,7 +492,7 @@ function renderRow(
     case 'rule':
       return <Rule banded={row.band} />;
     case 'meta':
-      return <MetaBlock payload={payload} />;
+      return <MetaBlock payload={payload} extra={metaExtra} />;
     case 'emptyhint':
       return (
         <EmptyHint
@@ -503,6 +556,7 @@ function renderRow(
           total={payload.total}
           paidVia={payload.paidVia}
           editable={editable}
+          paymentExtra={paymentExtra}
         />
       );
     case 'fineprint':
@@ -1101,7 +1155,14 @@ function Header({
 }
 
 // ── meta block — left-aligned uppercase mono lines ─────────────────────
-function MetaBlock({ payload }: { payload: ReceiptPayload }) {
+function MetaBlock({
+  payload,
+  extra,
+}: {
+  payload: ReceiptPayload;
+  /** PREVIEW-ONLY extra lines; undefined in production. */
+  extra?: ReactNode;
+}) {
   const row: CSSProperties = {
     fontFamily: MONO_FONT,
     fontSize: 12,
@@ -1115,6 +1176,7 @@ function MetaBlock({ payload }: { payload: ReceiptPayload }) {
       <div style={row}>Billed to: {payload.billedTo}</div>
       <div style={row}>Bill #{payload.billNumber}</div>
       {payload.gstin ? <div style={row}>GSTIN: {payload.gstin}</div> : null}
+      {extra ? <div style={row}>{extra}</div> : null}
     </div>
   );
 }
@@ -1544,10 +1606,13 @@ function TotalRow({
   total,
   paidVia,
   editable,
+  paymentExtra,
 }: {
   total: string;
   paidVia: string;
   editable?: ReceiptEditable;
+  /** PREVIEW-ONLY cardholder line under PAID VIA; undefined in production. */
+  paymentExtra?: ReactNode;
 }) {
   const valueStyle: CSSProperties = {
     fontFamily: MONO_FONT,
@@ -1602,7 +1667,10 @@ function TotalRow({
   }
 
   return (
-    <div style={{ padding: '2px 0' }}>
+    // `data-lr-total` marks the payment block for preview-only framing scenes
+    // that pulse it after the print. Inert in production — no styling hangs off
+    // it here, and nothing reads it unless a preview scene opts in.
+    <div data-lr-total style={{ padding: '2px 0' }}>
       <div
         style={{
           display: 'flex',
@@ -1632,6 +1700,20 @@ function TotalRow({
           }}
         >
           PAID VIA: {paidVia}
+        </div>
+      ) : null}
+      {paymentExtra ? (
+        <div
+          style={{
+            fontFamily: MONO_FONT,
+            fontSize: 11,
+            letterSpacing: '0.3px',
+            textTransform: 'uppercase',
+            color: INK_SOFT,
+            marginTop: 3,
+          }}
+        >
+          {paymentExtra}
         </div>
       ) : null}
     </div>

@@ -57,6 +57,9 @@ export default async function RecipientViewPage({
       // the frame's name-card anticipation. Unregistered gifts keep the default.
       anticipationMs={Receiver ? 0 : undefined}
       hideDefaultPostGiftCta={definition?.ownsPostGiftCta ?? false}
+      // Undefined falls back to the frame's defaults (scale spring, centred).
+      entrance={definition?.entrance}
+      contentAlign={definition?.contentAlign}
     >
       {Receiver ? (
         <Receiver gift={giftData} />

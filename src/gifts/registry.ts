@@ -1,6 +1,7 @@
 import type { ComponentType } from 'react';
 import type { ReplayBehavior } from '@/types';
 import type { GiftData } from '@/components/gift-frame/gift-frame';
+import type { GiftEntrance } from '@/components/gift-frame/gift-reveal';
 import { TiffinNoteSender } from './tiffin-note/sender';
 import { TiffinNoteReceiver } from './tiffin-note/receiver';
 import { LoveReceiptSender } from './love-receipt/sender';
@@ -28,6 +29,18 @@ export interface GiftDefinition {
    * route tells GiftFrame to hide its default ConversionCta + ReplayButton).
    */
   ownsPostGiftCta?: boolean;
+  /**
+   * How the gift subtree arrives. Omit for the default scale spring. Set to
+   * 'none' (or 'fade') when the gift's own reveal has a fixed anchor point that
+   * a subtree-wide scale would drag around. See gift-frame/gift-reveal.tsx.
+   */
+  entrance?: GiftEntrance;
+  /**
+   * Where the gift column sits in the viewport. Omit for the default centring.
+   * Set 'top' when the gift has a fixed on-screen apparatus that must not move
+   * as late-loading content below it reflows. See gift-frame/gift-frame.tsx.
+   */
+  contentAlign?: 'center' | 'top';
 }
 
 const registry = new Map<string, GiftDefinition>();
@@ -63,4 +76,13 @@ registerGift({
   replayBehavior: 'replayable',
   // The receipt prints its own screenshot hint + SHARE / MAKE YOUR OWN bar.
   ownsPostGiftCta: true,
+  // No entrance transform. The printer bar is a fixed machine the paper feeds
+  // out of, so it must not drift: the frame's default scale spring grows the
+  // whole subtree about its centre and visibly slides the printer for the
+  // ~700ms it takes to settle. The printer feed IS this gift's entrance.
+  entrance: 'none',
+  // Top-anchored for the same reason: vertical centring would tie the printer's
+  // screen position to the receipt's total height, so every late-decoding
+  // doodle below it would shove the printer up the screen mid-feed.
+  contentAlign: 'top',
 });

@@ -53,6 +53,7 @@ __pycache__/
 /screenshots/
 /receipt-preview.png
 /receipt-all-six.png
+/love-receipt-reveal.webm
 # large raw sticker source art (local-only; feeds scripts/extract-doodles.py)
 /assets/stickers/
 # Commit every PNG the DOODLES registry references (src/gifts/love-receipt/

@@ -1,30 +1,28 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
+import type { CSSProperties } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { TitlebarButtons } from '@/components/win98-chrome';
-import { Clothespin } from '@/components/ui/clothespin';
 import { useGiftContext } from '@/components/gift-frame/gift-frame';
 import type { GiftData } from '@/components/gift-frame/gift-frame';
 import { playClick } from '@/components/retro-sounds';
-import { ReceiptPaper, getSequenceMeta } from './receipt-paper';
 import { buildFrame, formatReceiptDate, type ReceiptPayload } from './lines';
+import { DreamyBackdrop } from './reveal/dreamy-backdrop';
+import { PrinterFeed } from './reveal/printer-feed';
 
-// Pacing for the paper feeding out (ms).
-const FIRST_DELAY = 350;
-const ROW_DELAY = 300;
-const PRE_TOTAL_DELAY = 1150; // comic slow-down right before the TOTAL
-// Beat after the last row prints before the receipt counts as done (this used
-// to be the stamp slam; the pause still paces the climax, so it stays).
-const FINISH_DELAY = 480;
-
-// The window body reads as the same OS as ROMANCE.exe / MEMORIES.exe: a light
-// near-white interior with very faint horizontal ruled lines (the HoneyHearts
-// lined-paper tone), so the crumpled receipt sits on real paper, not a panel.
-const PAPER_STAGE_BG = '#fffdf7';
-const PAPER_STAGE_LINES =
-  'repeating-linear-gradient(180deg, transparent 0, transparent 27px, rgba(26,10,46,0.05) 27px, rgba(26,10,46,0.05) 28px)';
+/**
+ * The recipient's Love Receipt.
+ *
+ * The reveal is a printer beat: a soft pastel field, a small CSS thermal
+ * printer at the top, and the receipt feeding out of its slot and coming to
+ * rest. That is the whole beat — nothing follows the landing. See
+ * ./reveal/printer-feed.tsx for the mechanics and
+ * ./reveal/dreamy-backdrop.tsx for the field (and its editable PALETTE).
+ *
+ * The receipt itself — <ReceiptPaper>, its payload, and every line on it — is
+ * untouched by any of this; the reveal only wraps and reveals it.
+ */
 
 /** Coerce stored JSON into a renderable payload, healing older/partial rows. */
 function normalize(
@@ -69,50 +67,27 @@ export function LoveReceiptReceiver({ gift }: { gift: GiftData }) {
   const { onClimax, trackInteraction } = useGiftContext();
   const payloadRef = useRef<ReceiptPayload>(normalize(gift.contentJsonb, gift));
   const payload = payloadRef.current;
-  const { count, totalIndex } = getSequenceMeta(payload);
 
-  const [printedCount, setPrintedCount] = useState(0);
   const [done, setDone] = useState(false);
   const [replayNonce, setReplayNonce] = useState(0);
   const [copied, setCopied] = useState(false);
   const climaxFired = useRef(false);
 
-  // ── drive the printing ──
-  useEffect(() => {
-    let shown = 0;
-    let timer: ReturnType<typeof setTimeout>;
-
-    const reveal = () => {
-      shown += 1;
-      setPrintedCount(shown);
-      if (shown >= count) {
-        timer = setTimeout(() => {
-          setDone(true);
-          if (!climaxFired.current) {
-            climaxFired.current = true;
-            onClimax();
-            trackInteraction('receipt_printed');
-          }
-        }, FINISH_DELAY);
-        return;
-      }
-      const nextIndex = shown; // 0-based index of the row we'll reveal next
-      timer = setTimeout(
-        reveal,
-        nextIndex === totalIndex ? PRE_TOTAL_DELAY : ROW_DELAY,
-      );
-    };
-
-    timer = setTimeout(reveal, FIRST_DELAY);
-    return () => clearTimeout(timer);
-    // replayNonce re-runs the whole print
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [count, totalIndex, replayNonce]);
+  // Fired by <PrinterFeed> once the paper has finished feeding out and landed.
+  const handleSettled = useCallback(() => {
+    setDone(true);
+    if (!climaxFired.current) {
+      climaxFired.current = true;
+      onClimax();
+      trackInteraction('receipt_printed');
+    }
+  }, [onClimax, trackInteraction]);
 
   const replay = useCallback(() => {
     playClick();
     setDone(false);
-    setPrintedCount(0);
+    // Bumping the nonce remounts <PrinterFeed>, which restarts its mount-only
+    // feed sequence from the top.
     setReplayNonce((n) => n + 1);
   }, []);
 
@@ -142,141 +117,162 @@ export function LoveReceiptReceiver({ gift }: { gift: GiftData }) {
   }, [gift.shortId, trackInteraction]);
 
   return (
-    <div className="mx-auto w-full max-w-[360px]">
-      {/* Same OS chrome as ROMANCE.exe / MEMORIES.exe: gradient titlebar +
-          beveled min/max/close + light lined-paper body. One window only. */}
-      <div className="win98-window">
-        <div className="win98-titlebar">
-          <span>🧾 RECEIPT.exe</span>
-          <TitlebarButtons />
-        </div>
-        <div
-          className="win98-body"
+    <div style={styles.root}>
+      <DreamyBackdrop />
+
+      {/* Everything above the backdrop layer. */}
+      <div style={styles.scene}>
+        <PrinterFeed
+          key={replayNonce}
+          payload={payload}
+          onSettled={handleSettled}
+        />
+
+        {/* post-reveal footer: screenshot hint + actions */}
+        <motion.div
+          initial={false}
+          animate={{ opacity: done ? 1 : 0, y: done ? 0 : 10 }}
+          transition={{ duration: 0.45, ease: 'easeOut' }}
           style={{
-            background: PAPER_STAGE_BG,
-            backgroundImage: PAPER_STAGE_LINES,
-            padding: '26px 18px 18px',
+            ...styles.footer,
+            pointerEvents: done ? 'auto' : 'none',
           }}
         >
-          {/* printing stage — the crumpled receipt sits on the lined paper with
-              generous margin, clipped to the top by a wooden clothespin. */}
-          <div style={{ display: 'flex', justifyContent: 'center' }}>
-            {/* relative box for the clothespin; line-bound doodles render
-                inside <ReceiptPaper> per row (no overlay layer). */}
-            <div style={{ position: 'relative', width: 'min(300px, 86vw)' }}>
-              {/* clothespin pinching the receipt to the top of the paper —
-                  matches the polaroid-wall clothespins. */}
-              <Clothespin
-                style={{
-                  position: 'absolute',
-                  top: -20,
-                  left: '50%',
-                  width: 30,
-                  height: 42,
-                  marginLeft: -15,
-                  zIndex: 6,
-                  filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.22))',
-                }}
-              />
-              <ReceiptPaper
-                payload={payload}
-                printedCount={printedCount}
-                animate
-                style={{ width: '100%' }}
-              />
-            </div>
-          </div>
+          <p className="font-body" style={styles.hint}>
+            screenshot me 💕
+          </p>
 
-          {/* post-print footer: screenshot hint + actions */}
-          <motion.div
-            initial={false}
-            animate={{ opacity: done ? 1 : 0, y: done ? 0 : 8 }}
-            transition={{ duration: 0.4 }}
-            style={{ pointerEvents: done ? 'auto' : 'none', marginTop: 12 }}
-          >
-            <p
-              className="font-pixel"
-              style={{
-                textAlign: 'center',
-                fontSize: 13,
-                color: 'var(--win-magenta)',
-                letterSpacing: '0.5px',
-                marginBottom: 10,
-              }}
-            >
-              📸 screenshot me 💕
-            </p>
-            <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-              <button
-                type="button"
-                onClick={share}
-                className="font-pixel"
-                style={actionBtn(
-                  'linear-gradient(180deg,#34e379,var(--whatsapp-green,#25d366))',
-                  ['#6cf2a4', '#128a44'],
-                )}
-              >
-                {copied ? 'LINK COPIED ✓' : 'SHARE 💌'}
-              </button>
-              <Link
-                href="/create/love-receipt"
-                onClick={() => playClick()}
-                className="font-pixel"
-                style={{
-                  ...actionBtn(
-                    'linear-gradient(180deg,var(--win-hot-pink),var(--win-magenta))',
-                    ['#ffb1d6', '#a01060'],
-                  ),
-                  textDecoration: 'none',
-                  display: 'block',
-                  textAlign: 'center',
-                }}
-              >
-                MAKE YOUR OWN 🧾
-              </Link>
-            </div>
+          <div style={styles.actionRow}>
             <button
               type="button"
-              onClick={replay}
-              className="font-pixel"
-              style={{
-                ...actionBtn('var(--win-chrome)', [
-                  'var(--win-chrome-light)',
-                  'var(--win-chrome-dark)',
-                ]),
-                color: 'var(--ink, #1a0a2e)',
-                width: '100%',
-              }}
+              onClick={share}
+              className="lr-action font-body"
+              style={styles.sharePill}
             >
-              ↻ PRINT AGAIN
+              {copied ? 'link copied ✓' : 'share 💌'}
             </button>
-          </motion.div>
-        </div>
+            <Link
+              href="/create/love-receipt"
+              onClick={() => playClick()}
+              className="lr-action font-body"
+              style={styles.makePill}
+            >
+              make your own
+            </Link>
+          </div>
+
+          <button
+            type="button"
+            onClick={replay}
+            className="lr-action font-body"
+            style={styles.replayBtn}
+          >
+            ↻ print again
+          </button>
+        </motion.div>
       </div>
+
+      {/* Raw-HTML injection, not a text child: React's server renderer escapes
+          quotes and angle brackets inside a <style> text child while the client
+          does not, which is a hydration mismatch. See reveal/printer-feed.tsx. */}
+      <style dangerouslySetInnerHTML={{ __html: RECEIVER_CSS }} />
     </div>
   );
 }
 
-function actionBtn(
-  background: string,
-  [light, dark]: [string, string],
-): React.CSSProperties {
-  return {
-    flex: 1,
-    textAlign: 'center',
-    padding: 11,
-    fontSize: 14,
-    letterSpacing: '1px',
-    cursor: 'pointer',
-    color: '#fff',
-    background,
-    borderStyle: 'solid',
-    borderWidth: 2,
-    borderRadius: 0,
-    borderTopColor: light,
-    borderLeftColor: light,
-    borderRightColor: dark,
-    borderBottomColor: dark,
-    boxShadow: '2px 2px 0 rgba(26,10,46,.5)',
-  };
+const RECEIVER_CSS = `
+.lr-action {
+  transition: transform 160ms ease, box-shadow 160ms ease, opacity 160ms ease;
 }
+.lr-action:active { transform: translateY(1px) scale(0.99); }
+.lr-action:focus-visible {
+  outline: 2px solid rgba(168, 158, 255, 0.9);
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .lr-action { transition: none; }
+  .lr-action:active { transform: none; }
+}
+`;
+
+const styles: Record<string, CSSProperties> = {
+  root: {
+    position: 'relative',
+    width: '100%',
+    display: 'flex',
+    justifyContent: 'center',
+  },
+  scene: {
+    // Above <DreamyBackdrop> (which sits at z-index 0).
+    position: 'relative',
+    zIndex: 1,
+    width: '100%',
+    maxWidth: 420,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    padding: '26px 0 40px',
+  },
+  footer: {
+    width: 'min(300px, 86vw)',
+    marginTop: 18,
+  },
+  hint: {
+    textAlign: 'center',
+    fontSize: 14,
+    letterSpacing: '0.01em',
+    color: 'rgba(120, 92, 150, 0.78)',
+    marginBottom: 14,
+  },
+  actionRow: {
+    display: 'flex',
+    gap: 10,
+    marginBottom: 10,
+  },
+  sharePill: {
+    flex: 1,
+    minHeight: 46,
+    padding: '13px 16px',
+    fontSize: 15,
+    fontWeight: 500,
+    letterSpacing: '0.01em',
+    color: '#fff',
+    cursor: 'pointer',
+    border: '1px solid rgba(255,255,255,0.6)',
+    borderRadius: 999,
+    background: `linear-gradient(180deg, #ffa8cd 0%, #f47bb0 100%)`,
+    boxShadow: '0 8px 18px rgba(230, 120, 170, 0.32)',
+  },
+  makePill: {
+    flex: 1,
+    minHeight: 46,
+    padding: '13px 16px',
+    fontSize: 15,
+    fontWeight: 500,
+    letterSpacing: '0.01em',
+    textAlign: 'center',
+    textDecoration: 'none',
+    color: 'rgba(96, 72, 130, 0.95)',
+    cursor: 'pointer',
+    border: '1px solid rgba(168, 158, 255, 0.45)',
+    borderRadius: 999,
+    background: 'rgba(255,255,255,0.72)',
+    boxShadow: '0 8px 18px rgba(120, 92, 150, 0.14)',
+    // Match the flex button's optical baseline.
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  replayBtn: {
+    width: '100%',
+    minHeight: 40,
+    padding: '10px 16px',
+    fontSize: 14,
+    letterSpacing: '0.01em',
+    color: 'rgba(120, 92, 150, 0.72)',
+    cursor: 'pointer',
+    border: '1px solid transparent',
+    borderRadius: 999,
+    background: 'transparent',
+  },
+};
