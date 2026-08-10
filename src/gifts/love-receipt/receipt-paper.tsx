@@ -72,9 +72,14 @@ const HEADER_BAND = '#c3c8ee';
 // comparison view's "softened band" option. Not referenced in production.
 const SOFT_HEADER_BAND = '#e1e4f5';
 
-// Very heavy uppercase grotesque for the store header ("RECEIPTIFY" treatment).
-const HEADER_FONT =
-  "var(--font-archivo-black), 'Arial Black', 'Helvetica Neue', Helvetica, Arial, sans-serif";
+// Store masthead. Fraunces — the app's own display serif (`font-display`, the
+// face the homepage headlines are set in), so the receipt's biggest piece of
+// type belongs to the same family as the rest of HoneyHearts. This replaced
+// Archivo Black, which was loaded for this one component and appeared nowhere
+// else in the product, so the masthead read as a font from another app.
+// Fraunces is wider than Archivo Black at the same size — see the size note in
+// <Header>, and re-measure EST_CHROME_PX if you change it again.
+const HEADER_FONT = "var(--font-fraunces), Georgia, 'Times New Roman', serif";
 // Everything else is monospace (the Receiptify body look).
 const MONO_FONT =
   "var(--font-space-mono), ui-monospace, 'IBM Plex Mono', 'Courier New', Courier, monospace";
@@ -306,7 +311,12 @@ export function ReceiptPaper({
       style={{
         position: 'relative',
         width: 'min(300px, 86vw)',
-        filter: 'drop-shadow(0 12px 22px rgba(0, 0, 0, 0.18))',
+        // Language A hard pixel shadow — a drop-shadow at ZERO blur, so it
+        // matches the Npx Npx 0 0 box-shadows the rest of the Y2K surface uses
+        // while still following the sheet's alpha rather than its rectangle.
+        // The printer reveal passes `filter: 'none'` and casts its own from the
+        // post-tear silhouette instead; this is what the sender's builder sees.
+        filter: 'drop-shadow(3px 3px 0 rgba(0, 0, 0, 0.3))',
         ...style,
       }}
     >
@@ -320,8 +330,12 @@ export function ReceiptPaper({
           // so the printer reveal can hand that margin to its own blank leader.
           padding: `${padTop}px 22px 26px`,
           color: INK,
-          // soft gray edge vignette for the white paper
-          boxShadow: 'inset 0 0 36px rgba(0, 0, 0, 0.05)',
+          // Language A: a crisp 1px inner edge instead of the old 36px-blur
+          // vignette. Zero blur, so the sheet reads as a cut piece of paper
+          // rather than a softly lit one. This is the ONE height-affecting
+          // change in the re-skin (it is inset, so it adds nothing) — see
+          // EST_CHROME_PX in reveal/printer-feed.tsx for the re-measurement.
+          boxShadow: 'inset 0 0 0 1px rgba(0, 0, 0, 0.10)',
         }}
       >
         {/* Crumple overlay (multiply): a real crumpled-paper texture so the

@@ -121,8 +121,12 @@ export default async function RootLayout({
           <ToastProvider />
           <HideOnGiftRoute>
             <Y2KContextMenu />
-            <WelcomePopup />
           </HideOnGiftRoute>
+          {/* Deliberately OUTSIDE the chrome guard: the popup is not marketing
+              shell, it is route-aware and picks its own copy per audience —
+              shopper lines while browsing, "someone sent you something" lines
+              for a recipient, and nothing at all while building a gift. */}
+          <WelcomePopup />
         </NextIntlClientProvider>
       </body>
     </html>

@@ -8,17 +8,30 @@ import { useGiftContext } from '@/components/gift-frame/gift-frame';
 import type { GiftData } from '@/components/gift-frame/gift-frame';
 import { playClick } from '@/components/retro-sounds';
 import { buildFrame, formatReceiptDate, type ReceiptPayload } from './lines';
-import { DreamyBackdrop } from './reveal/dreamy-backdrop';
 import { PrinterFeed } from './reveal/printer-feed';
+import { PinkAura } from './reveal/pink-aura';
 
 /**
  * The recipient's Love Receipt.
  *
- * The reveal is a printer beat: a soft pastel field, a small CSS thermal
- * printer at the top, and the receipt feeding out of its slot and coming to
- * rest. That is the whole beat — nothing follows the landing. See
- * ./reveal/printer-feed.tsx for the mechanics and
- * ./reveal/dreamy-backdrop.tsx for the field (and its editable PALETTE).
+ * The reveal is a printer beat: a soft pink aura field, the printer at the top,
+ * and the receipt ratcheting out of its slot and coming to rest. That is the
+ * whole beat — nothing follows the landing. See ./reveal/printer-feed.tsx for
+ * the mechanics, ./reveal/printer-chassis.tsx for the hardware, and
+ * ./reveal/pink-aura.tsx for the backdrop (its tones, star opacity/density and
+ * star sprite are the three tuning blocks up top).
+ *
+ * VISUAL LANGUAGE: Language A (Y2K / Windows 98) throughout, and deliberately
+ * WITHOUT window chrome — no .win98-window, no titlebar, no .exe name. The
+ * printer and the paper sit directly on the sky, because the gift is the
+ * object, not an application showing you an object. Everything else is Language
+ * A: --win-chrome for the hardware, the --win-title-start → --win-title-end
+ * titlebar gradient for the pink accents, .win98-btn / .win98-btn-pink for the
+ * actions, VT323 for system text, and hard pixel shadows (Npx Npx 0 0) with no
+ * blur anywhere.
+ *
+ * The page-wide .scanline-overlay in app/layout.tsx already lays a CRT grid over
+ * this scene. Do not add a second one here.
  *
  * The receipt itself — <ReceiptPaper>, its payload, and every line on it — is
  * untouched by any of this; the reveal only wraps and reveals it.
@@ -118,9 +131,18 @@ export function LoveReceiptReceiver({ gift }: { gift: GiftData }) {
 
   return (
     <div style={styles.root}>
-      <DreamyBackdrop />
+      {/* The field: a soft pink aura with hollow 8-bit stars. GiftFrame's own
+          root paints `bg-surface`, so the gift's backdrop has to be laid down
+          inside the gift rather than inherited from <body>. Fixed and z-0 —
+          exactly the layer every previous backdrop occupied (sky, flat lavender,
+          candy swirl), so the scene's z-1 stacking below is unchanged.
 
-      {/* Everything above the backdrop layer. */}
+          Retune it in ./reveal/pink-aura.tsx — the pink tones, the star opacity
+          and density, and the star sprite itself are the three tuning blocks at
+          the top of that file. */}
+      <PinkAura />
+
+      {/* Everything above the field layer. */}
       <div style={styles.scene}>
         <PrinterFeed
           key={replayNonce}
@@ -138,15 +160,18 @@ export function LoveReceiptReceiver({ gift }: { gift: GiftData }) {
             pointerEvents: done ? 'auto' : 'none',
           }}
         >
-          <p className="font-body" style={styles.hint}>
+          <p className="font-pixel" style={styles.hint}>
             screenshot me 💕
           </p>
 
           <div style={styles.actionRow}>
+            {/* .win98-btn-pink / .win98-btn carry their own Language A bevels,
+                VT323 and :active depress — the only thing added here is the hard
+                pixel shadow and the flex sizing. */}
             <button
               type="button"
               onClick={share}
-              className="lr-action font-body"
+              className="win98-btn-pink lr-action"
               style={styles.sharePill}
             >
               {copied ? 'link copied ✓' : 'share 💌'}
@@ -154,7 +179,7 @@ export function LoveReceiptReceiver({ gift }: { gift: GiftData }) {
             <Link
               href="/create/love-receipt"
               onClick={() => playClick()}
-              className="lr-action font-body"
+              className="win98-btn lr-action"
               style={styles.makePill}
             >
               make your own
@@ -164,7 +189,7 @@ export function LoveReceiptReceiver({ gift }: { gift: GiftData }) {
           <button
             type="button"
             onClick={replay}
-            className="lr-action font-body"
+            className="win98-btn lr-action"
             style={styles.replayBtn}
           >
             ↻ print again
@@ -180,18 +205,25 @@ export function LoveReceiptReceiver({ gift }: { gift: GiftData }) {
   );
 }
 
+/**
+ * The buttons' bevel + depress come from .win98-btn / .win98-btn-pink. What is
+ * added here is the hard pixel shadow (and its removal on :active, so the button
+ * reads as being pressed INTO the page) and a square Language A focus ring.
+ *
+ * There are no transitions: a Win98 control snaps between states, and easing a
+ * bevel is the single fastest way to make this stop looking like 1998.
+ */
 const RECEIVER_CSS = `
 .lr-action {
-  transition: transform 160ms ease, box-shadow 160ms ease, opacity 160ms ease;
+  box-shadow: 3px 3px 0 0 rgba(0, 0, 0, 0.3);
+  transition: none;
 }
-.lr-action:active { transform: translateY(1px) scale(0.99); }
+.lr-action:active {
+  box-shadow: 1px 1px 0 0 rgba(0, 0, 0, 0.3);
+}
 .lr-action:focus-visible {
-  outline: 2px solid rgba(168, 158, 255, 0.9);
-  outline-offset: 3px;
-}
-@media (prefers-reduced-motion: reduce) {
-  .lr-action { transition: none; }
-  .lr-action:active { transform: none; }
+  outline: 2px dotted var(--win-chrome-darkest);
+  outline-offset: 2px;
 }
 `;
 
@@ -203,7 +235,7 @@ const styles: Record<string, CSSProperties> = {
     justifyContent: 'center',
   },
   scene: {
-    // Above <DreamyBackdrop> (which sits at z-index 0).
+    // Above <PinkAura> (which sits at z-index 0).
     position: 'relative',
     zIndex: 1,
     width: '100%',
@@ -219,9 +251,20 @@ const styles: Record<string, CSSProperties> = {
   },
   hint: {
     textAlign: 'center',
-    fontSize: 14,
-    letterSpacing: '0.01em',
-    color: 'rgba(120, 92, 150, 0.78)',
+    // VT323 is a pixel face and reads small at body sizes; 20px here matches the
+    // optical weight the old 14px body text had.
+    fontSize: 20,
+    lineHeight: 1.1,
+    letterSpacing: '0.04em',
+    // Dark ink with a white pixel highlight — the classic Win98 emboss, and the
+    // only pairing that survives the WHOLE sky. This flipped twice: white was
+    // correct against the old saturated-blue field, but the sky is now pastel
+    // and fades to near-white (#edf8ff) at the horizon, where white text on a
+    // fixed backdrop washes out entirely as the page scrolls. Dark holds contrast
+    // at every stop of the gradient, so it cannot regress if the palette is
+    // retuned again. Shadow is offset and zero-blur — still a pixel shadow.
+    color: '#1a0a2e',
+    textShadow: '1px 1px 0 rgba(255, 255, 255, 0.7)',
     marginBottom: 14,
   },
   actionRow: {
@@ -229,35 +272,24 @@ const styles: Record<string, CSSProperties> = {
     gap: 10,
     marginBottom: 10,
   },
+  // Both pills override .win98-btn's nowrap + horizontal padding so they can
+  // share the row evenly at phone width; everything else comes from the class.
   sharePill: {
     flex: 1,
-    minHeight: 46,
-    padding: '13px 16px',
-    fontSize: 15,
-    fontWeight: 500,
-    letterSpacing: '0.01em',
-    color: '#fff',
-    cursor: 'pointer',
-    border: '1px solid rgba(255,255,255,0.6)',
-    borderRadius: 999,
-    background: `linear-gradient(180deg, #ffa8cd 0%, #f47bb0 100%)`,
-    boxShadow: '0 8px 18px rgba(230, 120, 170, 0.32)',
+    minHeight: 44,
+    padding: '6px 10px',
+    fontSize: 19,
+    whiteSpace: 'normal',
   },
   makePill: {
     flex: 1,
-    minHeight: 46,
-    padding: '13px 16px',
-    fontSize: 15,
-    fontWeight: 500,
-    letterSpacing: '0.01em',
+    minHeight: 44,
+    padding: '6px 10px',
+    fontSize: 19,
+    whiteSpace: 'normal',
     textAlign: 'center',
     textDecoration: 'none',
-    color: 'rgba(96, 72, 130, 0.95)',
-    cursor: 'pointer',
-    border: '1px solid rgba(168, 158, 255, 0.45)',
-    borderRadius: 999,
-    background: 'rgba(255,255,255,0.72)',
-    boxShadow: '0 8px 18px rgba(120, 92, 150, 0.14)',
+    color: '#1a0a2e',
     // Match the flex button's optical baseline.
     display: 'flex',
     alignItems: 'center',
@@ -265,14 +297,9 @@ const styles: Record<string, CSSProperties> = {
   },
   replayBtn: {
     width: '100%',
-    minHeight: 40,
-    padding: '10px 16px',
-    fontSize: 14,
-    letterSpacing: '0.01em',
-    color: 'rgba(120, 92, 150, 0.72)',
-    cursor: 'pointer',
-    border: '1px solid transparent',
-    borderRadius: 999,
-    background: 'transparent',
+    minHeight: 38,
+    padding: '4px 12px',
+    fontSize: 18,
+    color: '#1a0a2e',
   },
 };

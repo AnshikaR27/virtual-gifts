@@ -1,13 +1,18 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
+import { isChromeFreeRoute } from '@/lib/route-roles';
 
-// Routes that get a focused, chrome-free screen: the recipient gift view and
-// every gift creation/builder flow.
-const FOCUSED_ROUTE_PREFIXES = ['/g/', '/create/'];
-
+/**
+ * Renders `children` only on the marketing site — used to keep the app's
+ * chrome (taskbar, footer, context menu) off focused screens.
+ *
+ * The route list lives in `@/lib/route-roles` because the popup needs the same
+ * answer to pick its copy, and two copies of that list would drift. Add new
+ * focused routes there, not here.
+ */
 export function HideOnGiftRoute({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  if (FOCUSED_ROUTE_PREFIXES.some((p) => pathname.startsWith(p))) return null;
+  if (isChromeFreeRoute(pathname)) return null;
   return <>{children}</>;
 }
