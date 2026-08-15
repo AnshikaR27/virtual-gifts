@@ -1,12 +1,24 @@
 'use client';
 
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { playClick } from '@/components/retro-sounds';
 import { GiftLoading } from '@/components/gift-loading';
 import { allGifts, type GiftItem } from './gift-catalog';
 import { TitlebarButtons } from '@/components/win98-chrome';
 import { Clothespin } from '@/components/ui/clothespin';
+// The wall's look and layout maths. Shared with the OUR_STORY memory wall so
+// the two are the same wall with different contents — see polaroid-wall-shared.
+import {
+  gradients,
+  swayAngles,
+  THREAD_D,
+  PER_STRING,
+  MAX_SAG,
+  getSagOffset,
+  useIsDesktop,
+  useGarlandReveal,
+} from './polaroid-wall-shared';
 
 const INITIAL_STRINGS = 3;
 
@@ -37,48 +49,11 @@ const orderedGifts: GiftItem[] = [
   ...allGifts.filter((g) => !preferredSet.has(g.slug)),
 ];
 
-const gradients = [
-  'linear-gradient(135deg, #FFB6C1, #FF85A2)',
-  'linear-gradient(135deg, #DCD0FF, #B8A9E8)',
-  'linear-gradient(135deg, #A8F0D0, #7DDBB5)',
-  'linear-gradient(135deg, #FFE066, #F5C842)',
-  'linear-gradient(135deg, #FFB4A2, #FF8A75)',
-  'linear-gradient(135deg, #FECACA, #FCA5A5)',
-  'linear-gradient(135deg, #C4B5FD, #A78BFA)',
-  'linear-gradient(135deg, #A7F3D0, #6EE7B7)',
-  'linear-gradient(135deg, #FDE68A, #FCD34D)',
-  'linear-gradient(135deg, #FBCFE8, #F9A8D4)',
-  'linear-gradient(135deg, #BAE6FD, #7DD3FC)',
-  'linear-gradient(135deg, #FED7AA, #FDBA74)',
-];
-
-const swayAngles = [-4, 2, -3, 5, -1, 3, -5, 1, -2, 4];
-
 // Slugs with a real, built sender flow route to /create/<slug>; the rest still
 // point at the /gift/<slug> detail page until their flows exist.
 const BUILT_SENDER_SLUGS = new Set(['tiffin-note', 'love-receipt']);
 const giftHref = (slug: string) =>
   BUILT_SENDER_SLUGS.has(slug) ? `/create/${slug}` : `/gift/${slug}`;
-
-function useIsDesktop() {
-  const [isDesktop, setIsDesktop] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia('(min-width: 768px)');
-    setIsDesktop(mq.matches);
-    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
-    mq.addEventListener('change', handler);
-    return () => mq.removeEventListener('change', handler);
-  }, []);
-  return isDesktop;
-}
-
-function getSagOffset(index: number, total: number, maxSag: number) {
-  if (total <= 1) return 0;
-  const t = (index + 0.5) / total;
-  return maxSag * 4 * t * (1 - t);
-}
-
-const THREAD_D = 'M-10,8 Q500,34 1010,8';
 
 export function PolaroidWall() {
   const [stringCount, setStringCount] = useState(INITIAL_STRINGS);
@@ -86,40 +61,10 @@ export function PolaroidWall() {
   const [loadingSlug, setLoadingSlug] = useState<string | null>(null);
   const router = useRouter();
   const isDesktop = useIsDesktop();
-  const wallRef = useRef<HTMLDivElement>(null);
+  const wallRef = useGarlandReveal(stringCount);
 
-  useEffect(() => {
-    const wall = wallRef.current;
-    if (!wall) return;
-
-    const prefersReducedMotion = window.matchMedia(
-      '(prefers-reduced-motion: reduce)',
-    ).matches;
-
-    if (prefersReducedMotion) {
-      wall.querySelectorAll('.garland-string-row').forEach((el) => {
-        (el as HTMLElement).classList.add('is-visible');
-      });
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          wall.querySelectorAll('.garland-string-row').forEach((el) => {
-            (el as HTMLElement).classList.add('is-visible');
-          });
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.15, rootMargin: '0px 0px -40px 0px' },
-    );
-    observer.observe(wall);
-    return () => observer.disconnect();
-  }, [stringCount]);
-
-  const perString = isDesktop ? 5 : 3;
-  const maxSag = isDesktop ? 20 : 14;
+  const perString = isDesktop ? PER_STRING.desktop : PER_STRING.phone;
+  const maxSag = isDesktop ? MAX_SAG.desktop : MAX_SAG.phone;
 
   const visibleGifts = orderedGifts.slice(0, stringCount * perString);
   const hasMore = stringCount * perString < orderedGifts.length;

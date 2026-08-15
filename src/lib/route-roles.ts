@@ -30,10 +30,11 @@ export type RouteRole = 'browse' | 'sender' | 'receiver';
 
 /**
  * Routes where the visitor is opening something sent TO them.
- * `/g/` is the live recipient link; `/love-receipt/` holds the isolated
- * previews of those same receiver screens (passcode, reveal, framing).
+ * `/g/` is the live recipient link; `/love-receipt/` and `/our-story/` hold the
+ * isolated previews of those same receiver screens (passcode, reveal, framing,
+ * memory wall).
  */
-const RECEIVER_PREFIXES = ['/g/', '/love-receipt/'];
+const RECEIVER_PREFIXES = ['/g/', '/love-receipt/', '/our-story/'];
 
 /** Routes where the visitor is building a gift to send. */
 const SENDER_PREFIXES = ['/create/'];

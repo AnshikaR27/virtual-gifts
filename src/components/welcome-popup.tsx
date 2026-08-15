@@ -16,8 +16,13 @@
  *
  * Both pools are plain arrays at the top of this file — edit them freely, the
  * component reads whatever is in them. The dialog CHROME is shared and should
- * stay shared: same gold titlebar, same bevels, same OK button, whoever is
- * reading it. Only the words change.
+ * stay shared: same gold titlebar, same bevels, same button in the same
+ * corner, whoever is reading it. Only the words change.
+ *
+ * ONE BUTTON, ALWAYS, BOTTOM RIGHT. The dialog used to offer two captions that
+ * both meant yes. That bit is gone: every dialog now has exactly one small
+ * button, sized to its text and pinned to the bottom-right corner — where a
+ * Win98 dialog has always put the thing you press to make it go away.
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -31,13 +36,21 @@ export interface PopupMessage {
   /** The body line. One or two sentences — this is a dialog, not a paragraph. */
   text: string;
   /**
-   * Button captions, left → right. Optional; omit to take the pool's default
-   * from DEFAULT_BUTTONS (OK for shoppers, [Yes] [Obviously] for recipients).
-   * EVERY button just dismisses — the joke is that the choice is fake, so
-   * `['Yes', 'Absolutely']` is a punchline, not a branch. Do not wire these to
-   * different actions without rethinking the copy.
+   * The single button's caption. Optional; a line without one falls back to
+   * DEFAULT_BUTTON for its role (`open it` for a recipient).
+   *
+   * It is a reply to THIS line, in the recipient's voice — the reader agreeing
+   * to open, in the tone the line put them in.
+   *
+   * PLAIN EVERYDAY ENGLISH. No emoji, no stage directions, and no slang or
+   * in-jokes: the recipient could be anyone the sender knows, of any age, and
+   * a caption they have to decode is a caption that stops the moment dead.
+   * Warm and simple beats clever. Keep it SHORT — the button is small and sits
+   * in the corner, so anything past a few words stops fitting.
+   *
+   * The button dismisses and opens the gift; there is nothing else it can do.
    */
-  buttons?: string[];
+  button?: string;
 }
 
 // ── COPY POOL 1: the marketing site. Someone deciding whether to SEND. ──────
@@ -169,6 +182,11 @@ export const POPUP_MESSAGES: PopupMessage[] = [
  * obviously adored. It never actually insults them. The tease is always in
  * their favour: you are loved, deal with it.
  *
+ * THE LINE IS SPICY; THE BUTTON IS NOT. The `text` can be as dramatic as it
+ * likes, but the `button` under it answers in plain everyday English — that
+ * contrast is the joke landing, and it keeps the dialog readable for a
+ * recipient who has never seen this site before.
+ *
  * PLAIN ENGLISH ONLY. This pool deliberately does NOT reuse the shopper pool's
  * computer-vocabulary formula — no .exe, no .zip, no downloading, buffering,
  * transmissions or file transfers. The recipient could be anyone the sender
@@ -190,6 +208,16 @@ export const POPUP_MESSAGES: PopupMessage[] = [
  * Kept short deliberately: this fires before someone reads a message a person
  * wrote them, so it should be a doorbell, not a conversation.
  *
+ * EVERY LINE OWNS ITS BUTTON. `button` sits next to the `text` it answers
+ * because the two are one joke — the line sets up, the caption lands. Editing
+ * them together is the point; a lookup table keyed on prose would drift the
+ * first time a line was reworded. A line with no `button` falls back to
+ * DEFAULT_BUTTON.receiver (`open it`), which is a safe caption under anything.
+ *
+ * Captions repeat across lines on purpose — `show me`, `aw, open it` and
+ * `open it` each answer more than one line. Only one line is ever on screen,
+ * so a shared caption costs nothing and reads better than a strained unique.
+ *
  * One is drawn at random per landing, so two people opening two different
  * gifts do not get the same greeting. Add lines freely — the pool is read at
  * render time and nothing depends on its length or order.
@@ -198,94 +226,110 @@ export const RECEIVER_POPUP_MESSAGES: PopupMessage[] = [
   {
     title: '📂 NOTICE',
     text: "Someone's obsessed with you. Anyway. Open it.",
-    buttons: ['Open it', 'Yes'],
+    button: 'i like them too',
   },
   {
     title: '⚠️ WARNING',
     text: "Brace yourself. Someone caught feelings and it's your fault.",
-    buttons: ['Open', 'Guilty'],
+    button: 'my fault, huh',
   },
   {
     title: '⚠️ CAUTION',
     text: 'This is going to be embarrassingly sincere. Open?',
-    buttons: ['Open', 'Yes'],
+    button: 'go on then',
   },
   {
     title: '📂 NOTICE',
     text: "Someone likes you so much it's honestly a little much. See?",
-    buttons: ['Show me', 'Yes'],
+    button: 'show me',
   },
   {
     title: '⚠️ WARNING',
     text: 'Warning: dangerous levels of affection ahead. Proceed?',
-    buttons: ['Proceed', 'Accept'],
+    button: 'worth it',
   },
   {
     title: '💌 MESSAGE',
     text: "Sit down. Someone has a confession and it's a lot.",
-    buttons: ['Sitting down', 'Go on'],
+    button: "i'm ready",
   },
   {
     title: '📂 ALERT',
     text: "Plot twist: someone's completely down bad for you. Evidence inside.",
-    buttons: ['See evidence', 'Yes'],
+    button: 'show me',
   },
   {
     title: '📂 NOTICE',
     text: 'Someone risked looking soft for you. Respect it. Open?',
-    buttons: ['Open', 'Respect'],
+    button: 'open it',
   },
   {
     title: '⚠️ SYSTEM',
     text: "This is your villain-origin story, except you're loved. Open?",
-    buttons: ['Open', 'Accept'],
+    button: "let's see",
   },
   {
     title: '📬 DELIVERY',
     text: 'Someone made you a whole thing. You must be kind of a big deal.',
-    // no buttons → falls back to [Yes] [Obviously]
+    button: 'aw, open it',
   },
   {
     title: '💌 MESSAGE',
     text: 'Act surprised. (Someone worked hard on this.)',
-    buttons: ['Acting surprised', 'Yes'],
+    button: 'open it',
   },
   {
     title: '⚠️ WARNING',
     text: "You did something to someone's heart. Come see the damage.",
-    buttons: ['See the damage', 'Yes'],
+    button: 'let me see',
   },
   {
     title: '📂 NOTICE',
     text: "Someone's ignoring their to-do list to think about you. Open?",
-    buttons: ['Open', 'Yes'],
+    // No caption assigned yet → takes DEFAULT_BUTTON.receiver (`open it`).
+    // The only line in this pool without its own; give it one when a good
+    // reply to "ignoring their to-do list" turns up.
   },
   {
     title: '📂 ALERT',
     text: "Yeah, it's about you. Get over yourself and open it.",
-    buttons: ['Open it', 'Fine'],
+    button: 'okay, fine',
   },
   {
     title: '⚠️ SYSTEM',
     text: "Someone's whole personality is you right now. Congrats. Open?",
-    buttons: ['Open', 'Deserved'],
+    button: 'aw, open it',
   },
   {
     title: '⚠️ WARNING',
     text: "You're someone's problem now (the good kind). Open?",
-    buttons: ['Open', 'Accept'],
+    button: "i'm okay with that",
+  },
+  {
+    title: '💌 MESSAGE',
+    text: "Someone had a lot of feelings today. They're all in here.",
+    button: 'open gently',
+  },
+  {
+    title: '📬 DELIVERY',
+    text: 'This is going to feel like a hug. Open it?',
+    button: 'hug me then',
+  },
+  {
+    title: '⚠️ CAUTION',
+    text: "You're about to feel very loved. Take a breath first.",
+    button: "okay, i'm ready",
   },
 ];
 
 /**
- * Captions for lines that do not name their own. The shopper dialog is a
- * single deadpan OK; the receiver dialog is a fake choice where both answers
- * are yes, which is the house voice for "you are going to open this anyway".
+ * The caption for a line that does not name its own. The shopper dialog keeps
+ * its deadpan OK; a recipient gets the plainest possible yes.
  */
-const DEFAULT_BUTTONS: Record<RouteRole, string[]> = {
-  browse: ['OK'],
-  sender: ['OK'], // unused — senders get no dialog
-  receiver: ['Yes', 'Obviously'],
+const DEFAULT_BUTTON: Record<RouteRole, string> = {
+  browse: 'OK',
+  sender: 'OK', // unused — senders get no dialog
+  receiver: 'open it',
 };
 
 /**
@@ -303,6 +347,10 @@ const STORAGE_KEYS: Record<RouteRole, string> = {
 const APPEAR_DELAY_MS = 1500;
 const DISMISS_MS = 200;
 
+function pickOne<T>(pool: T[]): T {
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
 export function WelcomePopup() {
   const pathname = usePathname();
   const role = getRouteRole(pathname);
@@ -318,7 +366,7 @@ export function WelcomePopup() {
     if (sessionStorage.getItem(STORAGE_KEYS[role]) === 'true') return;
 
     const pool = role === 'receiver' ? RECEIVER_POPUP_MESSAGES : POPUP_MESSAGES;
-    setMessage(pool[Math.floor(Math.random() * pool.length)]);
+    setMessage(pickOne(pool));
     setDismissing(false);
     const timer = setTimeout(() => setVisible(true), APPEAR_DELAY_MS);
     return () => clearTimeout(timer);
@@ -335,7 +383,7 @@ export function WelcomePopup() {
 
   if (role === 'sender' || !visible) return null;
 
-  const buttons = message?.buttons ?? DEFAULT_BUTTONS[role];
+  const buttonLabel = message?.button ?? DEFAULT_BUTTON[role];
 
   return (
     <div
@@ -372,6 +420,8 @@ export function WelcomePopup() {
             <span className="font-pixel text-[15px] font-bold tracking-wide text-white">
               {message?.title ?? '⚠️ WARNING'}
             </span>
+            {/* Dismisses exactly like the button below it. Lives in the
+                titlebar, two rows above the action — they cannot collide. */}
             <button
               className="win98-titlebar-btn"
               aria-label="Close"
@@ -390,26 +440,39 @@ export function WelcomePopup() {
               border: '2px solid',
               borderColor:
                 'var(--win-chrome-dark) var(--win-chrome-light) var(--win-chrome-light) var(--win-chrome-dark)',
-              padding: '16px 14px',
+              // The bottom/right padding IS the button's margin from the
+              // dialog edge — it sits in the corner of this box, not against
+              // the bevel.
+              padding: '16px 14px 14px',
             }}
           >
             <p className="font-pixel text-[15px] leading-relaxed text-ink">
               {message?.text}
             </p>
-            {/* Wraps rather than overflowing: two captions plus the 44px tap
-                floor is close to the 360px dialog width on a small phone. */}
-            <div className="mt-4 flex flex-wrap justify-end gap-2">
-              {buttons.map((label, i) => (
-                <button
-                  // Index-keyed: two captions on one line may legitimately
-                  // repeat, and a duplicate label must not collapse them.
-                  key={`${label}-${i}`}
-                  className="win98-btn text-[15px]"
-                  onClick={dismiss}
-                >
-                  {label}
-                </button>
-              ))}
+            {/* Bottom-right, the Win98 convention: the action lives in the
+                corner you close a dialog from. `justify-end` on an auto-width
+                button is what keeps it compact — the button is only as wide as
+                its caption, never stretched to the row. */}
+            <div className="mt-4 flex justify-end">
+              <button
+                type="button"
+                className="win98-btn text-[15px]"
+                onClick={dismiss}
+                style={{
+                  // Ordinary Win98 button padding — snug, not a slab.
+                  padding: '4px 14px',
+                  // Visually compact but still a legal touch target: the 44px
+                  // floor is met by height alone, so the button can stay small
+                  // and wide-enough-for-its-text without being hard to hit.
+                  minHeight: 44,
+                  // Captions are short by contract (see PopupMessage.button),
+                  // so the button stays on one line and sizes to its text.
+                  whiteSpace: 'nowrap',
+                  maxWidth: '100%',
+                }}
+              >
+                {buttonLabel}
+              </button>
             </div>
           </div>
         </div>
