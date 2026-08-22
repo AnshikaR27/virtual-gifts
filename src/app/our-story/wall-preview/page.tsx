@@ -5,7 +5,9 @@ import { OurStoryPreviewClient } from './wall-preview-client';
  * ISOLATED PREVIEW — OUR_STORY's receiver flow.
  *
  *   /our-story/wall-preview
- *   …?skip=1     start past the passcode, straight on the wall
+ *   …?skip=1          start past the gate, straight on the wall
+ *   …?gate=captcha    force the captcha door instead of this gift's GATE
+ *   …?gate=passcode   force the passcode door
  *
  * Nothing here touches the schema, the DB, the gift registry or any
  * sender-side code. The wall runs on the placeholder MEMORIES constant.
@@ -25,13 +27,19 @@ export const dynamic = 'force-dynamic';
 export default function OurStoryWallPreviewPage({
   searchParams,
 }: {
-  searchParams: { skip?: string };
+  searchParams: { skip?: string; gate?: string };
 }) {
   if (process.env.VERCEL_ENV === 'production') {
     notFound();
   }
 
   const skip = searchParams.skip === '1' || searchParams.skip === 'true';
+  // Preview-only override of the gift's own GATE constant, so both doors can
+  // be looked at without editing the gift.
+  const gate =
+    searchParams.gate === 'captcha' || searchParams.gate === 'passcode'
+      ? searchParams.gate
+      : undefined;
 
-  return <OurStoryPreviewClient startUnlocked={skip} />;
+  return <OurStoryPreviewClient startUnlocked={skip} gate={gate} />;
 }

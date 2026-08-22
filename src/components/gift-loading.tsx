@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { Y2KProgressBar } from '@/components/ui/y2k-progress-bar';
 
 /**
  * <GiftLoading> — the Y2K "please wait" dialog: a Win98 window with a
@@ -103,21 +104,7 @@ export function GiftLoading({
             <span className="text-[24px]">📁</span>
           </div>
 
-          <div
-            className="h-[20px] border-2"
-            style={{
-              borderColor:
-                'var(--win-chrome-dark) var(--win-chrome-light) var(--win-chrome-light) var(--win-chrome-dark)',
-            }}
-          >
-            <div
-              className="h-full transition-[width] duration-100"
-              style={{
-                width: `${progress}%`,
-                background: 'linear-gradient(90deg, #FF69B4, #BA55D3)',
-              }}
-            />
-          </div>
+          <Y2KProgressBar value={progress} label="Opening gift" />
           <p className="mt-1 font-pixel text-[13px] text-ink/60">
             {progress}% complete
           </p>

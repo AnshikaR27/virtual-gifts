@@ -14,11 +14,14 @@
  */
 
 import { OurStoryFlow } from '@/gifts/our-story/our-story-flow';
+import type { GateMode } from '@/gifts/shared/gift-gate';
 
 export function OurStoryPreviewClient({
   startUnlocked = false,
+  gate,
 }: {
   startUnlocked?: boolean;
+  gate?: GateMode;
 }) {
-  return <OurStoryFlow startUnlocked={startUnlocked} />;
+  return <OurStoryFlow startUnlocked={startUnlocked} gate={gate} />;
 }

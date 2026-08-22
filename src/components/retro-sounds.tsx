@@ -30,6 +30,92 @@ export function playClick() {
   } catch (e) {}
 }
 
+/**
+ * THE CRASH. A short, harsh error burst for the moment a screen "breaks":
+ * two detuned square waves sliding downward (the sour interval is what a
+ * system error sounds like) under three stutters of bandpassed white noise.
+ *
+ * SYNTHESISED RATHER THAN LOADED. There is no glitch file in /public/sounds
+ * and components/game/sfx.ts is still a no-op until those ship, so this is
+ * built the same way playClick() is — from oscillators, so it works today.
+ *
+ * Kept to ~0.36s on purpose: it is a jolt, not a siren.
+ */
+export function playGlitch() {
+  try {
+    const Ctx = window.AudioContext || (window as any).webkitAudioContext;
+    if (!Ctx) return;
+
+    const ctx = new Ctx();
+    // If the page has had a gesture this is already running; if it has not,
+    // the browser's autoplay policy keeps it suspended and the burst is
+    // silently skipped. Nothing here is load-bearing, so that is fine.
+    void ctx.resume?.().catch?.(() => {});
+
+    const now = ctx.currentTime;
+    const DUR = 0.36;
+
+    const out = ctx.createGain();
+    out.gain.setValueAtTime(0.3, now);
+    out.connect(ctx.destination);
+
+    // ── THE BUZZ ────────────────────────────────────────────────────────
+    [92, 61].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(freq * (i === 0 ? 1.06 : 1), now);
+      osc.frequency.exponentialRampToValueAtTime(freq * 0.55, now + DUR);
+      // Ramps target a tiny non-zero value: exponentialRamp cannot reach 0.
+      g.gain.setValueAtTime(0.0001, now);
+      g.gain.exponentialRampToValueAtTime(0.5, now + 0.006);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + DUR);
+      osc.connect(g);
+      g.connect(out);
+      osc.start(now);
+      osc.stop(now + DUR);
+    });
+
+    // ── THE STATIC CRACKLE ──────────────────────────────────────────────
+    const frames = Math.floor(ctx.sampleRate * DUR);
+    const buf = ctx.createBuffer(1, frames, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < frames; i++) data[i] = Math.random() * 2 - 1;
+
+    const noise = ctx.createBufferSource();
+    noise.buffer = buf;
+
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.setValueAtTime(2600, now);
+    bp.Q.value = 0.7;
+
+    const ng = ctx.createGain();
+    ng.gain.setValueAtTime(0.0001, now);
+    // Three gated bursts, so it reads as a signal breaking up rather than
+    // one flat hiss.
+    [0, 0.09, 0.19].forEach((t) => {
+      ng.gain.setValueAtTime(0.42, now + t);
+      ng.gain.exponentialRampToValueAtTime(0.02, now + t + 0.06);
+    });
+    ng.gain.exponentialRampToValueAtTime(0.0001, now + DUR);
+
+    noise.connect(bp);
+    bp.connect(ng);
+    ng.connect(out);
+    noise.start(now);
+    noise.stop(now + DUR);
+
+    // Release the context once it has finished sounding.
+    window.setTimeout(
+      () => {
+        void ctx.close().catch(() => {});
+      },
+      (DUR + 0.12) * 1000,
+    );
+  } catch (e) {}
+}
+
 function tryPlay(audio: HTMLAudioElement) {
   audio.currentTime = 0;
   audio.play().catch(() => {});

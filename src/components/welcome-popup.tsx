@@ -351,6 +351,40 @@ function pickOne<T>(pool: T[]): T {
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
+/*
+ * ── SILENCING THE GREETING ─────────────────────────────────────────────────
+ * Some gifts open with a scene of their own that this dialog would land on top
+ * of and spoil. The captcha gate is the case that forced this: it opens on a
+ * crashed-looking page and a "this gift does not open for everyone" notice, and
+ * a cheerful "Act surprised!" popping up over that kills the premise before the
+ * recipient has read it.
+ *
+ * A GATE CALLS suppressWelcomePopup() AND KEEPS THE HANDLE. It is a counter
+ * rather than a boolean so nothing has to reason about who turned it off last,
+ * and the returned function restores the count — which matters on a client-side
+ * navigation from a captcha-gated gift to a passcode-gated one, where the
+ * greeting must come back.
+ *
+ * NOT sessionStorage: writing the seen-flag would silence the dialog for the
+ * rest of the session, including on gifts that want it.
+ */
+let suppressCount = 0;
+const suppressListeners = new Set<(n: number) => void>();
+
+/** Silence the greeting while the caller is mounted. Call the result to undo. */
+export function suppressWelcomePopup(): () => void {
+  suppressCount += 1;
+  suppressListeners.forEach((notify) => notify(suppressCount));
+
+  let released = false;
+  return () => {
+    if (released) return;
+    released = true;
+    suppressCount -= 1;
+    suppressListeners.forEach((notify) => notify(suppressCount));
+  };
+}
+
 export function WelcomePopup() {
   const pathname = usePathname();
   const role = getRouteRole(pathname);
@@ -358,11 +392,25 @@ export function WelcomePopup() {
   const [visible, setVisible] = useState(false);
   const [dismissing, setDismissing] = useState(false);
   const [message, setMessage] = useState<PopupMessage | null>(null);
+  /** Non-zero while a gift with its own opening is on screen. */
+  const [suppressed, setSuppressed] = useState(suppressCount);
+
+  useEffect(() => {
+    const notify = (n: number) => setSuppressed(n);
+    suppressListeners.add(notify);
+    // Read again on mount: a gate deeper in the tree may already have
+    // suppressed before this effect ran.
+    setSuppressed(suppressCount);
+    return () => {
+      suppressListeners.delete(notify);
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
     // Mid-build is not a moment to interrupt.
     if (role === 'sender') return;
+    if (suppressed > 0) return;
     if (sessionStorage.getItem(STORAGE_KEYS[role]) === 'true') return;
 
     const pool = role === 'receiver' ? RECEIVER_POPUP_MESSAGES : POPUP_MESSAGES;
@@ -371,8 +419,9 @@ export function WelcomePopup() {
     const timer = setTimeout(() => setVisible(true), APPEAR_DELAY_MS);
     return () => clearTimeout(timer);
     // Re-runs on a client-side role change (browse → receiver), which is how a
-    // recipient who wandered in via the homepage still gets the right dialog.
-  }, [role]);
+    // recipient who wandered in via the homepage still gets the right dialog,
+    // and on suppression changing, which is how a captcha gate silences it.
+  }, [role, suppressed]);
 
   const dismiss = useCallback(() => {
     playClick();
@@ -381,7 +430,7 @@ export function WelcomePopup() {
     setTimeout(() => setVisible(false), DISMISS_MS);
   }, [role]);
 
-  if (role === 'sender' || !visible) return null;
+  if (role === 'sender' || suppressed > 0 || !visible) return null;
 
   const buttonLabel = message?.button ?? DEFAULT_BUTTON[role];
 
