@@ -241,11 +241,10 @@ export const CAPTCHA_GATE_NUDGES = {
  * square is eliminated across the room. Match the couple's look when you swap
  * these — that IS the difficulty setting.
  *
- * PLACEHOLDER SOURCE. i.pravatar.cc serves stable royalty-free portraits by
- * numeric id — seeded, so the same nine squares come back every load and the
- * grid never reshuffles on hydration. SWAP FOR A LICENSED SET before this ships
- * to anyone real; a placeholder avatar service is not a content licence, and
- * this file now depends on WHICH faces come back, not merely that some do.
+ * SOURCE. This block described a deck of nine cast strangers served from
+ * i.pravatar.cc. Nothing here is dealt any more - it survives as the record of
+ * why a lineup of faces was abandoned. The one avatar URL left in this file is
+ * LOOKALIKE_TRAP's, and it is not dealt either.
  *
  * TASTE RULE, UNCHANGED: nothing that could read as a comment on the recipient.
  * Similar is the goal; a caricature of either of them is not.
@@ -307,12 +306,12 @@ export const CAPTCHA_GATE_NUDGES = {
  * puts a stranger back in the grid by the back door, which is the entire thing
  * this version exists to prevent.
  *
- * PLACEHOLDER SOURCES. picsum.photos and i.pravatar.cc both serve stable
- * royalty-free images by numeric id - seeded, so the same squares come back
- * every load and the grid never reshuffles on hydration. SWAP BOTH FOR A
- * LICENSED SET before this ships to anyone real; a placeholder service is not
- * a content licence, and this file depends on WHICH images come back, not
- * merely that some do.
+ * SOURCES. Every dealt square is now a real file in public/gate-fillers/,
+ * committed to the repo and served from the same origin as the page - so the
+ * "stable URL, same picture every load" contract is satisfied by construction
+ * rather than by a placeholder service's goodwill. Worth one look before this
+ * goes to anyone real: the supplied fillers were downloaded rather than shot,
+ * so whatever licence they carry is the one the gift carries.
  *
  * ORDER MATTERS. buildGateGrid fills the grid with take(fillers, n, 0), which
  * WALKS from index 0 rather than sampling - so the first five are what get
@@ -368,28 +367,19 @@ const SOFT_TIGHTEN = 0.62;
 const FILLER_TIGHTEN_CLOSE = 0.56;
 
 /*
- * -- WHERE THE PLACEHOLDER ANIMALS COME FROM -------------------------------
+ * -- THE PLACEHOLDER SERVICES ARE GONE -------------------------------------
  *
- * TWO SERVICES, AND THE SPLIT IS NOT ARBITRARY. picsum is a fixed catalogue of
- * Unsplash photographs addressed by number, so an id is stable forever - but it
- * has essentially no domestic cats in it (three sweeps of ~100 ids each turned
- * up a leopard, a tiger and a lion, and no kittens). cataas is a catalogue of
- * nothing but cats, also addressed by a stable id. So: dogs from one, cats from
- * the other.
+ * picsum.photos and cataas.com used to be helpers here, addressing stock
+ * photographs by id while the deck was placeholder. Every dealt square is a
+ * real file in public/gate-fillers/ now, so both are deleted rather than left
+ * sitting unused - a helper nobody calls is an invitation to reach for a stock
+ * image again, and this file's whole filler contract (stable URL, same picture
+ * every load) is easier to keep when the only source is the repo itself.
  *
- * A THIRD SERVICE WAS TRIED AND REJECTED, and the reason matters more than the
- * service does. loremflickr resolves a TAG rather than an id - /puppy, /kitten
- * - which looks ideal until you see what comes back: of twelve fetched,
- * "kitten" returned a tiger cub and a woman singing into a microphone, and
- * "puppy" returned a man holding a dog. A FILLER WITH A PERSON IN IT BREAKS THE
- * CHALLENGE, not just the mood - the whole puzzle is "find the humans who are
- * us", and a stranger's face that is not the trap makes the grid unanswerable.
- * Every id below has been looked at.
+ * The one remote URL still in this file is LOOKALIKE_TRAP's avatar, and that is
+ * deliberate: the trap is not dealt, and it exists to be recast rather than
+ * used as-is.
  */
-const picsum = (id: number) => `https://picsum.photos/id/${id}/600/600`;
-const cataas = (id: string) =>
-  `https://cataas.com/cat/${id}?width=600&height=600`;
-
 /*
  * -- REAL FILES, WHEN THERE ARE REAL FILES ---------------------------------
  *
@@ -410,49 +400,55 @@ const filler = (file: string) => `/gate-fillers/${file}`;
 /*
  * -- THE FILLER DECK. THIS IS THE BLOCK TO EDIT. ---------------------------
  *
- * The wrong squares: the ones the recipient must NOT tap. Five real files now
- * live in public/gate-fillers/ and are dealt first; the remote placeholders
- * below them are a tail, kept only so the grid can always fill nine squares
- * (see the note on DEFAULT_FILLERS for when that matters).
+ * The wrong squares: the ones the recipient must NOT tap. Every one of them is
+ * now a real file in public/gate-fillers/ - there are no remote placeholders
+ * left in the dealt deck, and picsum/cataas are gone from this file entirely.
  *
- * WHAT A REPLACEMENT HAS TO BE, because two of these are correctness rules
- * rather than taste:
- *   1. NOBODY IN IT. Not a face, not a hand holding the animal. The puzzle is
- *      "find the humans who are us", so a stranger who is not the deliberate
- *      trap makes the grid literally unanswerable.
+ * WHAT A REPLACEMENT HAS TO BE:
+ *   1. NOT IDENTIFIABLE. People are allowed in a filler again - see the note on
+ *      DEFAULT_FILLERS - but a legible, front-facing stranger is not. Backs,
+ *      silhouettes, motion blur, hidden faces. An earlier rule here read
+ *      "NOBODY IN IT" and was correct for a deck of animals; the constraint was
+ *      never really about humans, it was about a stranger LOOKING AT YOU out of
+ *      somebody's love letter.
  *   2. STABLE. The same URL must return the same picture every time - each
  *      tile paints its photograph TWICE (the zoomed crop, and the full frame
  *      that replaces it on a correct tap), so a randomising URL would put two
- *      different animals in one square.
- *   3. CLOSE AND SOFT. A distant animal reads as scenery; a close one reads as
- *      "aww", which is the whole job.
+ *      different pictures in one square.
+ *   3. IN THE SAME MEDIUM AS THE COUPLE'S OWN. Real photographs, warmly lit,
+ *      casually framed. A filler that is obviously a different KIND of image -
+ *      a stock portrait, a drawing, a studio backdrop - is eliminated by
+ *      texture before anybody has looked at a face, and the puzzle is over.
  *
  * Swapping one is one line, and the two forms sit side by side happily:
  *
- *   dogFlower: filler('dog-flower-ear.jpg'),  // a real file
- *   pugInBlush: picsum(1062),                 // a remote placeholder
+ *   hugAwning: filler('couple-hug-awning.jpg'),
+ *   hugAwning: filler('whatever-you-drop-in-next.jpg'),
  *
  * Nothing downstream cares which it is. DEFAULT_FILLERS reads these BY NAME,
  * so the alt text, the focus point and the deal order stay put when a URL
  * changes.
  */
 const OURS = {
-  kitten: filler('kitten-stickers.jpg'), // white kitten, nose to the lens
-  dogFlower: filler('dog-flower-ear.jpg'), // golden retriever, flower on one ear
-  penguin: filler('penguin-tulips.jpg'), // chick holding a bunch of tulips
-  bunny: filler('bunny-flower-crown.jpg'), // lop rabbit wearing a pink bloom
-  capybara: filler('capybara-rose.jpg'), // capybara standing up with one rose
+  hugAwning: filler('couple-hug-awning.jpg'), // a hug under a striped awning
+  twirlSunset: filler('couple-twirl-sunset.jpg'), // twirling on a seafront at dusk
+  carLights: filler('couple-carlights.jpg'), // a blurred, dark, laughing car photo
+  smileyHands: filler('couple-smiley-hands.jpg'), // hands over faces, smiles drawn on
 };
 
 /*
- * THE TAIL. Not dealt into a normal grid - see DEFAULT_FILLERS - and kept only
- * so a gift that supplies one or two photographs of its own can still fill all
- * nine squares. Delete these once there are eight files in public/gate-fillers/.
+ * THE ANIMALS, KEPT. They were the whole deck one revision ago and they are the
+ * tail now: four of the five dealt fillers are the couple photographs above, and
+ * this supplies the fifth plus the reserve. A fifth couple photograph dropped
+ * into OURS pushes the retriever out of the dealt five automatically - the deal
+ * order below is the only thing that decides it.
  */
 const SPARES = {
-  blackLab: picsum(237), // black lab pup on a wooden floor, head down
-  pugInBlush: picsum(1062), // pug swaddled in a blush blanket, half asleep
-  tuxedoKitten: cataas('AbOAHgaV6eqUQZfL'), // tuxedo kitten on a blanket
+  dogFlower: filler('dog-flower-ear.jpg'), // golden retriever, flower on one ear
+  kitten: filler('kitten-stickers.jpg'), // white kitten, nose to the lens
+  penguin: filler('penguin-tulips.jpg'), // chick holding a bunch of tulips
+  bunny: filler('bunny-flower-crown.jpg'), // lop rabbit wearing a pink bloom
+  capybara: filler('capybara-rose.jpg'), // capybara standing up with one rose
 };
 
 /**
@@ -518,96 +514,99 @@ export const LOOKALIKE_TRAP: GatePhoto = {
 /*
  * -- THE DECK, IN DEAL ORDER -----------------------------------------------
  *
- * WHAT THIS USED TO BE, IN ORDER, BECAUSE EACH STEP FIXED THE LAST ONE:
- *   food + scenery     a plate of cookies, coffee on knitted wool, a mug on a
- *                      bed, plus a sky and some hills. Warm, nobody in them,
- *                      and the weakest squares on the screen.
- *   animals + scenery  the food went and three soft animals came in. Better,
- *                      and still half a landscape grid.
- *   stock baby animals stock puppies and kittens, all of it placeholder.
- *   THESE ONES         real files, chosen by hand. See public/gate-fillers/.
+ * WHAT THIS DECK HAS BEEN, IN ORDER, BECAUSE EACH STEP ANSWERED THE LAST:
+ *   food + scenery     cookies, coffee, a mug, a sky, some hills. Warm, nobody
+ *                      in them, and the weakest squares on the screen.
+ *   animals + scenery  the food went, three soft animals came in.
+ *   baby animals       stock puppies and kittens, all placeholder.
+ *   real baby animals  hand-picked files, still animals.
+ *   OTHER COUPLES      here. Four supplied photographs of anonymous couples.
  *
- * EVERY WRONG SQUARE IS AN ANIMAL. There is no human face on this grid that is
- * not the couple's own - the lookalike trap is defined but no longer dealt, and
- * LOOKALIKE_TRAP carries the full argument for why it went.
+ * THIS PUTS THE RECOGNITION TEST BACK, WHICH IS THE WHOLE POINT OF THE CHANGE.
+ * With animals in the wrong squares, "select all squares where we're happy" was
+ * answerable by anyone who can tell a person from a rabbit - the note on
+ * LOOKALIKE_TRAP says so plainly, and calls it a deliberate trade. It is not
+ * traded any more. Every square in this grid is now two people being happy, and
+ * only four of them are THIS couple, so the question is once again "which of
+ * these are yours" rather than "which of these are human".
  *
- * A FILLER IS NOT NEUTRAL FURNITURE, IT IS WHAT THE COUPLE IS BEING PICKED OUT
- * FROM. Nine squares are read in about a second, and whatever the wrong ones
- * are is what the screen is ABOUT for that second. Scenery makes it a travel
- * grid with two people somewhere in it. A kitten, a retriever with a flower on
- * its ear, a penguin holding tulips, a rabbit in a flower crown and a capybara
- * with a rose make it a grid of things nobody can look at without softening -
- * and the couple are then the squares that beat all of that, which is a much
- * better thing for the screen to be saying.
+ * AND IT AVOIDS THE THING THAT KILLED THE OLD TRAP. Five rounds of casting a
+ * lookalike failed because a stranger's FACE in the middle of a love letter
+ * reads as an intrusion however warmly it is lit. These four are not faces:
+ * a hug seen from behind, a silhouette twirling at dusk, a dark blurred car
+ * photo, two people with their hands over their eyes. Nobody in them is
+ * legible as a person you could pick out of a crowd, which is exactly why they
+ * can sit among somebody's own photographs without feeling like strangers in
+ * the room.
  *
- * THE ORDER IS THE DEAL ORDER, AND ONLY THE FIRST FIVE ENTRIES ARE NORMALLY
- * SEEN. take() walks from index 0, and a grid with the usual four photographs
- * of the couple needs five fillers - which is exactly the five real files in
- * public/gate-fillers/. Everything after that is reserve, reached only when the
- * gift supplies fewer than four photos of its own: a one-photo gift needs eight
- * fillers, which is why the deck is eight entries deep. It has to be - take()
- * clamps to the pool length, so a short deck renders a SHORT GRID rather than
- * an error.
+ * WHAT TO MATCH IF THESE ARE EVER SWAPPED: anonymous, atmospheric, no clear
+ * front-facing face. The moment a filler has a legible stranger staring out of
+ * it, this is the old trap again and the old finding applies.
+ *
+ * THE ORDER IS THE DEAL ORDER. take() walks from index 0, and a grid with the
+ * usual four photographs of the couple needs five fillers - so the four couple
+ * photographs plus ONE animal are what a normal grid gets. Supply a fifth
+ * couple photograph and the retriever falls out of the dealt five on its own.
+ * Everything after that is reserve, reached only when the gift supplies fewer
+ * than four photographs of its own: a one-photo gift needs eight fillers, which
+ * is why the deck is nine deep. It has to be - take() clamps to the pool
+ * length, so a short deck renders a SHORT GRID rather than an error.
  */
 export const DEFAULT_FILLERS: GatePhoto[] = [
-  // -- DEALT INTO EVERY GRID -- all five, now that the trap is not taking a
-  // place. See LOOKALIKE_TRAP for the whole argument about the empty seat.
+  // -- DEALT INTO EVERY GRID --
   {
-    src: OURS.kitten,
-    alt: 'A kitten',
-    // Already a tight close-up before this crop touches it, so it is pulled
-    // back harder than the rest - see FILLER_TIGHTEN_CLOSE.
-    //
-    // The aim is HIGH, at 34. On a macro shot the usual mid-frame anchor lands
-    // on the muzzle and slices the eyes off at the top edge - and a face
-    // without eyes stops reading as a face at all, which is the one thing this
-    // square has to do in the half second it gets looked at.
-    focus: { x: 50, y: 34 },
-    tighten: FILLER_TIGHTEN_CLOSE,
-  },
-  {
-    src: OURS.dogFlower,
-    alt: 'A dog wearing a flower',
-    focus: { x: 50, y: 44 },
-    tighten: SOFT_TIGHTEN,
-  },
-  {
-    src: OURS.penguin,
-    alt: 'A baby penguin holding flowers',
-    // The tallest of the five by a distance (675x1200), so the square crop
-    // throws away most of the frame. The aim sits high, on the chick.
-    focus: { x: 50, y: 40 },
-    tighten: SOFT_TIGHTEN,
-  },
-  {
-    src: OURS.bunny,
-    alt: 'A rabbit wearing a flower',
+    src: OURS.hugAwning,
+    alt: 'Two people hugging',
     focus: { x: 50, y: 45 },
     tighten: SOFT_TIGHTEN,
   },
-
   {
-    src: OURS.capybara,
-    alt: 'A capybara holding a rose',
-    focus: { x: 50, y: 46 },
-    tighten: SOFT_TIGHTEN,
-  },
-  // -- RESERVE -- only reached when the gift supplies fewer than four photos.
-  {
-    src: SPARES.blackLab,
-    alt: 'A puppy',
-    focus: { x: 50, y: 44 },
+    src: OURS.twirlSunset,
+    alt: 'Two people dancing at sunset',
+    focus: { x: 50, y: 48 },
     tighten: SOFT_TIGHTEN,
   },
   {
-    src: SPARES.pugInBlush,
-    alt: 'A very sleepy dog',
+    src: OURS.carLights,
+    alt: 'Two people laughing in a car',
     focus: { x: 50, y: 50 },
     tighten: SOFT_TIGHTEN,
   },
   {
-    src: SPARES.tuxedoKitten,
-    alt: 'A little cat',
+    src: OURS.smileyHands,
+    alt: 'Two people covering their faces',
+    focus: { x: 50, y: 46 },
+    tighten: SOFT_TIGHTEN,
+  },
+  {
+    src: SPARES.dogFlower,
+    alt: 'A dog wearing a flower',
+    focus: { x: 50, y: 44 },
+    tighten: SOFT_TIGHTEN,
+  },
+
+  // -- RESERVE -- only reached when the gift supplies fewer than four photos.
+  {
+    src: SPARES.kitten,
+    alt: 'A kitten',
+    focus: { x: 50, y: 34 },
+    tighten: FILLER_TIGHTEN_CLOSE,
+  },
+  {
+    src: SPARES.penguin,
+    alt: 'A baby penguin holding flowers',
+    focus: { x: 50, y: 40 },
+    tighten: SOFT_TIGHTEN,
+  },
+  {
+    src: SPARES.bunny,
+    alt: 'A rabbit wearing a flower',
+    focus: { x: 50, y: 45 },
+    tighten: SOFT_TIGHTEN,
+  },
+  {
+    src: SPARES.capybara,
+    alt: 'A capybara holding a rose',
     focus: { x: 50, y: 46 },
     tighten: SOFT_TIGHTEN,
   },
@@ -869,6 +868,14 @@ const FOCUS_JITTER = 5;
  * the hand out of the LAYOUT is what lets the layout do its one job.
  */
 
+/**
+ * How long the correct-tap particles stay mounted. It is the longest particle
+ * animation (delay + duration) plus a frame or two of slack, and nothing reads
+ * it except the timer that unmounts them - so if a keyframe below is
+ * lengthened, this has to move with it or the particles vanish mid-flight.
+ */
+const POP_MS = 700;
+
 /** How long the full photograph is held before the tick lands. */
 const REVEAL_MS = 1000;
 const REVEAL_MS_REDUCED = 400;
@@ -1124,8 +1131,23 @@ export function CaptchaGate({
   const [shakeAt, setShakeAt] = useState<number | null>(null);
   const [reduced, setReduced] = useState(false);
   const nudgeSeq = useRef(0);
+  /**
+   * WHICH TILES ARE MID-POP. The heart and sparkles are mounted ONLY for the
+   * length of their own animation and then removed.
+   *
+   * THIS IS A PERFORMANCE FIX, NOT TIDINESS. They used to be mounted for as
+   * long as the tile stayed selected - so by the end of a round four tiles were
+   * each holding four finished particles, sixteen promoted compositor layers
+   * doing nothing, and every subsequent tap animated against that. Unmounting
+   * hands the layers back the moment the animation is over.
+   */
+  const [popAt, setPopAt] = useState<Set<number>>(new Set());
   /** Reveal timers, so a gate that unmounts mid-beat cleans up after itself. */
   const revealTimers = useRef<Map<number, ReturnType<typeof setTimeout>>>(
+    new Map(),
+  );
+  /** Same contract for the particle timers. */
+  const popTimers = useRef<Map<number, ReturnType<typeof setTimeout>>>(
     new Map(),
   );
 
@@ -1249,9 +1271,12 @@ export function CaptchaGate({
 
   useEffect(() => {
     const timers = revealTimers.current;
+    const popped = popTimers.current;
     return () => {
       timers.forEach(clearTimeout);
       timers.clear();
+      popped.forEach(clearTimeout);
+      popped.clear();
     };
   }, []);
 
@@ -1308,8 +1333,36 @@ export function CaptchaGate({
             clearTimeout(t);
             revealTimers.current.delete(pos);
           }
+          const pt = popTimers.current.get(pos);
+          if (pt) {
+            clearTimeout(pt);
+            popTimers.current.delete(pos);
+          }
+          setPopAt((pv) => {
+            if (!pv.has(pos)) return pv;
+            const nv = new Set(pv);
+            nv.delete(pos);
+            return nv;
+          });
         } else {
           next.add(pos);
+          /*
+           * THE PARTICLES, FOR EXACTLY AS LONG AS THEY MOVE. Reduced motion
+           * never mounts them at all - there is nothing to see and nothing to
+           * clean up.
+           */
+          {
+            setPopAt((pv) => new Set(pv).add(pos));
+            const pt = setTimeout(() => {
+              popTimers.current.delete(pos);
+              setPopAt((pv) => {
+                const nv = new Set(pv);
+                nv.delete(pos);
+                return nv;
+              });
+            }, POP_MS);
+            popTimers.current.set(pos, pt);
+          }
           // THE REWARD: the full photograph is already fading in via CSS. The
           // tick is held back until it has been seen.
           const t = setTimeout(() => {
@@ -1855,6 +1908,7 @@ export function CaptchaGate({
                         {grid.map((tile, pos) => {
                           const isOn = selected.has(pos);
                           const isTicked = verified.has(pos);
+                          const isPopping = popAt.has(pos);
                           return (
                             /*
                               THE CELL. It used to carry the tilt and the nudge
@@ -1970,10 +2024,59 @@ export function CaptchaGate({
                                 the note on .cg-tile.is-open for the whole
                                 argument about what a correct tap should say.
                               */}
+                                {/*
+                                  THE REWARD, AND IT IS ONE HEART.
+
+                                  Six of them used to fly out of a square on
+                                  every correct tap, on top of a bloom, a
+                                  bounce, a ring and the photograph unfolding -
+                                  the note below records why all of that came
+                                  off. What is here now is the same GESTURE at
+                                  a hundredth of the volume: a single heart
+                                  rising once inside the square that was
+                                  tapped, and gone in 600ms.
+
+                                  It is mounted only while the tile is chosen,
+                                  so a grid nobody has touched carries nine
+                                  fewer nodes and no animations at all.
+                                */}
+                                {/*
+                                  THE MARK ON A CHOSEN SQUARE IS A HEART, NOT A
+                                  CHECK. A tick is the vocabulary of a form that
+                                  has been filled in correctly; this grid is
+                                  somebody finding photographs of themselves.
+                                  The sparkle is what stops the chip reading as
+                                  a badge.
+                                */}
                                 <span className="cg-tick" aria-hidden>
-                                  ✓
+                                  <i className="cg-pxheart" />
+                                  <b className="cg-tick-spark">✦</b>
                                 </span>
                               </button>
+
+                              {/*
+                                THE FLOATING HEART LIVES OUT HERE, ON THE CELL,
+                                AND NOT INSIDE THE BUTTON.
+
+                                .cg-tile is overflow: hidden and has to stay
+                                that way - it is the clip that keeps a crop
+                                zoomed 2-4x from spilling over its neighbours.
+                                Anything mounted inside it is guillotined at the
+                                tile border, which is exactly what was happening
+                                to the old heart. The cell is the first ancestor
+                                that does not clip, so this is the innermost
+                                place the heart can be and still escape.
+
+                                The cell also carries is-lifted (z-index 2) for
+                                the whole time a tile is chosen, so the heart
+                                paints over the neighbouring squares on its way
+                                up rather than sliding under them.
+                              */}
+                              {isPopping ? (
+                                <span className="cg-pop" aria-hidden>
+                                  <i className="cg-pop-heart cg-pxheart" />
+                                </span>
+                              ) : null}
                             </span>
                           );
                         })}
@@ -4202,6 +4305,32 @@ export const CAPTCHA_GATE_CSS = `
   display: flex;
   flex-direction: column;
   gap: 0;
+  /*
+   * THE WHOLE UNIT IS 88% OF THE COLUMN IT SITS IN, CENTRED.
+   *
+   * WHY A WIDTH AND NOT A transform: scale(). A scale would shrink the type
+   * along with everything else, which is the more literal reading of "scale it
+   * down uniformly" - and it would be wrong here, because a transform does not
+   * change LAYOUT size. .cg-steps is sized by the taller of its two panes (see
+   * the note there), so a visually shrunk grid would leave its full-size box
+   * behind: the stage would keep the old height, the unit would float inside a
+   * dead band of it, and the page would still be centred on the old midpoint.
+   * Constraining the width instead makes the grid genuinely shorter, the stage
+   * genuinely shorter, and the breathing room real rather than trapped.
+   *
+   * IT IS STILL PROPORTIONAL, because the grid's columns are 1fr: the tiles
+   * take whatever width the card has and stay square. The band's padding and
+   * type are already vw-clamped, so they come down with it.
+   *
+   * THE NUMBER IS BOUNDED BY THE PHOTOGRAPHS, NOT BY TASTE. On a 390px phone
+   * the column is 358px, so this puts the card at ~315px and each tile at
+   * (315 - 6 gap) / 3 = 103px. That is the floor worth respecting: these
+   * squares are cropped-in faces that have to be RECOGNISED, and at much under
+   * 100px a face at this crop stops being identifiable. It is also still more
+   * than twice the 44px touch minimum.
+   */
+  width: 88%;
+  margin-inline: auto;
 }
 
 /*
@@ -4392,7 +4521,23 @@ export const CAPTCHA_GATE_CSS = `
    * afford to be the quiet object in the middle of a loud screen.
    */
   background: linear-gradient(96deg, #603a80 0%, #6f4691 48%, #7d51a1 100%);
-  border-radius: 16px 16px 0 0;
+  /*
+   * GENTLY ROUNDED - 7px, AND THE UNIT MOVED IN ONE STEP TWICE.
+   *
+   *   16px  pillowy. Read as a soft app card, not as a widget.
+   *   0px   fully square, for the Win98 register. Correct about the era and
+   *         too hard against this particular page: every other surface here is
+   *         a soft gradient, a blurred blob or a drifting pixel heart, and a
+   *         hard rectangle in the middle of that reads as a foreign object
+   *         rather than as a crisp one.
+   *   7px   here. Enough to catch the light at the corner and belong to a
+   *         dreamy page, far too little to read as pillowy.
+   *
+   * The band, the card, the tiles and the button all moved together, because a
+   * rounded header capping a square grid reads as two components built by
+   * different people.
+   */
+  border-radius: 7px 7px 0 0;
   /*
    * THE EDGE IS DRAWN INSIDE, NOT AROUND. A spread ring would paint along the
    * bottom too, and the bottom of this band is not an edge — it is the seam
@@ -4568,13 +4713,23 @@ export const CAPTCHA_GATE_CSS = `
    * the real widget does not have.
    */
   padding: 0;
-  border-radius: 0 0 16px 16px;
+  border-radius: 0 0 7px 7px;
   /*
-   * REQUIRED, NOT TIDINESS. With padding gone the bottom two corner tiles run
-   * straight into the card's 16px radius; without a clip they would square it
-   * off and the card would end in two hard corners under a rounded header.
+   * OVERFLOW IS VISIBLE, AND THE CORNERS ARE HANDLED A DIFFERENT WAY.
+   *
+   * This used to be overflow: hidden, and the note said it was required rather
+   * than tidiness: with the card's padding at 0 the bottom two corner tiles run
+   * straight into the 7px radius, and without a clip they square it off. That
+   * was true and the requirement has not gone away - what changed is that the
+   * clip cost too much. It cut off the floating heart at the card's edge, and a
+   * reward that is cropped on the outer tiles and whole in the middle is worse
+   * than no reward.
+   *
+   * So the two corner tiles carry the radius THEMSELVES (see .cg-cell:nth-child
+   * below) and nothing has to be clipped. The card's top corners need no such
+   * rule: the header band is flush above it and owns that radius.
    */
-  overflow: hidden;
+  overflow: visible;
   box-shadow: 0 12px 30px rgba(116, 60, 96, 0.28);
 }
 
@@ -4626,6 +4781,20 @@ export const CAPTCHA_GATE_CSS = `
 }
 
 /*
+ * THE CARD'S BOTTOM CORNERS, DRAWN BY THE TILES THAT SIT IN THEM. This is what
+ * replaces .cg-grid's overflow: hidden - same silhouette, no clip, so the
+ * floating heart can leave. Only the bottom two, because the header band above
+ * owns the top pair.
+ */
+.cg-cell:nth-child(7) .cg-tile {
+  border-bottom-left-radius: 7px;
+}
+
+.cg-cell:nth-child(9) .cg-tile {
+  border-bottom-right-radius: 7px;
+}
+
+/*
  * A SQUARE OF PHOTOGRAPH AND NOTHING ELSE.
  *
  * WHAT EVERY TILE USED TO BE, AND IT WAS NOT BAD WORK: an 11px-rounded card
@@ -4660,7 +4829,28 @@ export const CAPTCHA_GATE_CSS = `
   /* The clip for the zoomed crop. See the note where the mount used to be. */
   overflow: hidden;
   padding: 0;
-  border-radius: 2px;
+  /*
+   * 3px, NOT THE SHELL'S 7px, AND THE DIFFERENCE IS NOT AN INCONSISTENCY.
+   *
+   * A RADIUS IS READ RELATIVE TO THE OBJECT CARRYING IT. 7px on the 315px card
+   * is a hint; 7px on a 103px tile is a fifteenth of its width, which is nearly
+   * the proportion the 11px-on-117px "pillowy" version had - the thing this is
+   * explicitly not supposed to be. Matching the NUMBER across both would not
+   * match the LOOK.
+   *
+   * AND THE JUNCTIONS ARE THE REAL CONSTRAINT. Four tiles meet at every inner
+   * crossing with only a 3px channel between them. Rounded by 7px, those four
+   * corners open a lozenge of bare cream at each crossing that is wider than
+   * the channel itself, and the block stops reading as a grid and starts
+   * reading as nine separate cards - rendered at 3x and compared side by side,
+   * it is obvious. At 3px the corner is softened and the crossing stays tight.
+   *
+   * THE OUTER SILHOUETTE IS STILL 7px REGARDLESS, because .cg-grid clips with
+   * overflow: hidden - the four corner tiles are cut by the card's radius, not
+   * by their own. So the unit's outline is the shell's, and only the interior
+   * junctions answer to this number.
+   */
+  border-radius: 3px;
   width: 100%;
   /*
    * THE BED A PHOTOGRAPH HAS NOT LOADED INTO YET, and that is now its only
@@ -4813,6 +5003,169 @@ export const CAPTCHA_GATE_CSS = `
  * ::after is a child, so it stacks with the images rather than under them, and
  * z-index 4 puts it over both and under the tick at 5.
  */
+/*
+ * ── THE CORRECT-TAP REWARD ────────────────────────────────────────────────
+ *
+ * THE NOTE THIS SITS UNDER SAYS FIVE THINGS ANSWERING ONE TAP IS NOISE, AND IT
+ * IS STILL RIGHT. What came off was a bloom, a ring that grew, a bounce with an
+ * overshoot AND a kick of rotation, and six hearts - each one competing with
+ * the photograph unfolding, which was the actual reward and the quietest of
+ * them.
+ *
+ * WHAT IS HERE IS ONE MOMENT IN THREE PARTS, SEQUENCED RATHER THAN STACKED.
+ * They do not run against each other; they hand off:
+ *
+ *   0-380ms   the tile springs: a small scale up and back. It is the tile
+ *             saying "yes, that one" in the same instant the thumb lifts.
+ *   0-500ms   the ring flares brighter and settles to its resting violet.
+ *   60-660ms  one heart rises through the square and fades.
+ *   at 1000ms the tick lands (REVEAL_MS), by which point everything above has
+ *             finished and the photograph has been looked at.
+ *
+ * NOTHING OVERLAPS THE PHOTOGRAPH'S OWN BEAT. The crop pulls back to the full
+ * frame over 520ms and that is still the main event; these three are all under
+ * or around it and all gone before the tick.
+ */
+/*
+ * A SQUISH, NOT A SPRING. The previous curve went UP first - scale(1.055) on a
+ * stiff overshoot - which is the motion of a button confirming an input. A soft
+ * thing that is pleased to be touched compresses FIRST and swells back through
+ * its resting size, and that order is the whole difference between mechanical
+ * and cute. Same duration, gentler amplitude, one extra settle.
+ */
+@keyframes cg-tile-pop {
+  0% { transform: scale(1); }
+  22% { transform: scale(0.955); }
+  52% { transform: scale(1.042); }
+  78% { transform: scale(0.992); }
+  100% { transform: scale(1); }
+}
+
+/*
+ * NO fill mode, deliberately - the keyframes end exactly where the resting rule
+ * sits, so the browser hands the tile back to plain CSS at scale(1). A fill of
+ * "both" would pin the transform to the last frame and the squish on a later
+ * tap would have nothing to animate from.
+ */
+.cg-tile.is-open {
+  /*
+   * will-change promotes the tile for the length of the squish. It is declared
+   * on .is-open rather than on .cg-tile because a permanently-promoted layer
+   * per tile is nine layers the compositor has to hold for a screen that is
+   * mostly sitting still - the hint belongs on the state that actually moves.
+   */
+  will-change: transform;
+  animation: cg-tile-pop 460ms cubic-bezier(0.32, 1.4, 0.5, 1);
+}
+
+/*
+ * THE HEART. The gate's own pixel heart, not an emoji, for the reason every
+ * other shape here is drawn: an emoji is a different picture on every phone.
+ *
+ * IT RISES INSIDE THE SQUARE AND DIES BEFORE THE TOP EDGE. .cg-tile is
+ * overflow: hidden, so a heart floating out of the tile would be guillotined at
+ * the border - and letting it escape is worse, not better: with a 3px channel
+ * it would immediately be sitting on the neighbouring photograph, which is the
+ * one thing decoration in this grid may never do. Starting low and fading by
+ * 70% of the way up keeps the whole gesture on the tile it belongs to.
+ */
+/*
+ * ── THE HEART THAT LEAVES ─────────────────────────────────────────────────
+ *
+ * ONE HEART. Not a shower - this screen has thrown six of them before and the
+ * note on .cg-tile.is-open records what that cost. A single object rising out
+ * of the square that was tapped is legible, cheap, and reads as the photograph
+ * being pleased rather than as a particle system.
+ *
+ * IT IS POSITIONED AGAINST THE CELL, NOT THE TILE, so its 0 point is the tile's
+ * own box and translating it negatively carries it up past the top edge and
+ * over whatever is above - see the note in the JSX for why it cannot live
+ * inside the button.
+ *
+ * TRANSFORM AND OPACITY ONLY. No top, no margin, no filter, no shadow
+ * animation: the element is promoted once by will-change and then the
+ * compositor moves it without the main thread touching a pixel. The drop
+ * shadow that used to sit on this heart is gone for the same reason - a filter
+ * on a moving element can re-run every frame.
+ */
+.cg-pop {
+  position: absolute;
+  left: 50%;
+  top: 12%;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0;
+  will-change: transform, opacity;
+  animation: cg-pop-rise 640ms cubic-bezier(0.22, 0.7, 0.3, 1) 40ms;
+}
+
+.cg-pop-heart {
+  display: block;
+  width: 22px;
+}
+
+/*
+ * -60px CARRIES IT WELL CLEAR. The tile is ~103px on a phone, so by the end the
+ * heart is more than half a tile above its own square and has been transparent
+ * for the last third of the trip - it is never seen crossing the tile above it
+ * at full strength.
+ *
+ * The sway is two small x offsets rather than a rotation of the whole element,
+ * which keeps the transform a translate and a scale and nothing else.
+ */
+@keyframes cg-pop-rise {
+  0% { opacity: 0; transform: translate(-50%, 4px) scale(0.5); }
+  22% { opacity: 1; transform: translate(-50%, -8px) scale(1.15); }
+  45% { opacity: 1; transform: translate(-46%, -26px) scale(1); }
+  100% { opacity: 0; transform: translate(-54%, -60px) scale(0.86); }
+}
+
+/*
+ * ── THE FLARE, AND WHY IT IS A SECOND LAYER ───────────────────────────────
+ *
+ * THIS WAS THE JANK. The flare used to be @keyframes cg-tile-glow animating
+ * box-shadow from transparent, through a 30px blur with 10px of spread, down to
+ * the resting ring. box-shadow is a PAINT property: it is not layout, so it
+ * never showed up as reflow - but every single frame the browser had to re-draw
+ * a large blurred shadow across the whole tile and re-upload the texture. Four
+ * of those at once on a phone is exactly the stutter that was reported.
+ *
+ * The fix is the standard one and it is worth stating as a rule: NEVER ANIMATE
+ * A SHADOW. Paint it once, on its own element, and animate that element's
+ * opacity and transform - both of which the compositor can do without touching
+ * the pixels at all.
+ *
+ * So .cg-tile.is-open::after keeps the resting ring as a STATIC shadow, and
+ * this ::before carries the bloom as a STATIC shadow that merely fades and
+ * expands. Same picture, no repaint.
+ */
+.cg-tile.is-open::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  border-radius: inherit;
+  /* Painted once. Nothing in the keyframes below touches it. */
+  box-shadow:
+    inset 0 0 0 2px #ffa8d6,
+    inset 0 0 30px 10px rgba(255, 138, 200, 0.62);
+  opacity: 0;
+  will-change: transform, opacity;
+  animation: cg-tile-flare 620ms ease-out;
+}
+
+/*
+ * A BLOOM RATHER THAN A FLASH. It swells slightly as it fades, which is what
+ * separates "a glow blooming" from "a light being switched on and off", and it
+ * runs the length of the heart's flight so the two read as one moment.
+ */
+@keyframes cg-tile-flare {
+  0% { opacity: 0; transform: scale(1.04); }
+  26% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.015); }
+}
+
 .cg-tile.is-open::after {
   content: '';
   position: absolute;
@@ -4820,9 +5173,34 @@ export const CAPTCHA_GATE_CSS = `
   z-index: 4;
   pointer-events: none;
   border-radius: inherit;
+  /*
+   * A SOFT ROSE GLOW, NOT A HARD VIOLET RECTANGLE.
+   *
+   * This was 3px of flat #8a63cf with a white hairline inside it - a crisp
+   * outline, which is exactly what a real captcha draws and exactly why it read
+   * as clinical. The replacement keeps the same JOB (this square is chosen,
+   * legible at a glance across nine) and changes the voice:
+   *
+   *   a 2px rose rim, thinner and warmer than the violet was
+   *   a white hairline still inside it, because a rim with nothing between it
+   *     and the photograph disappears into a dark one
+   *   an 18px inner bloom, which is the part that makes it read as GLOW rather
+   *     than as OUTLINE - the edge fades into the picture instead of cutting it
+   *
+   * STILL INSET, AND THAT IS NOT NEGOTIABLE. .cg-grid clips with overflow:
+   * hidden for the card's radius, so an outer glow is sliced off on the six
+   * tiles touching the rim and the mark changes depending on where you tapped.
+   * The bloom has to happen inside the square.
+   */
   box-shadow:
-    inset 0 0 0 3px #8a63cf,
-    inset 0 0 0 4px rgba(255, 255, 255, 0.6);
+    inset 0 0 0 2px #ff77bd,
+    inset 0 0 0 3px rgba(255, 255, 255, 0.72),
+    inset 0 0 18px 2px rgba(255, 119, 189, 0.45);
+  /*
+   * NO ANIMATION HERE. This is the resting state and it is painted once; the
+   * arrival flare is .cg-tile.is-open::before, which fades a pre-painted layer
+   * rather than redrawing a shadow every frame.
+   */
 }
 
 /*
@@ -4877,44 +5255,73 @@ export const CAPTCHA_GATE_CSS = `
 .cg-tile.is-open .cg-crop { transform: scale(1) !important; }
 .cg-tile.is-open .cg-full { opacity: 1; }
 
+/*
+ * ── THE CHOSEN MARK: A HEART IN A ROSE CHIP ───────────────────────────────
+ *
+ * IT WAS A WHITE ✓ IN A VIOLET SQUARE, and the note that argued for that is
+ * worth keeping because it was right about everything except what the screen
+ * is: it said one accent stated once, the ring picks the square out and the
+ * mark confirms it in the same colour. Sound reasoning, applied to a widget.
+ *
+ * THIS IS NOT A WIDGET. A tick is the vocabulary of a form that validated - it
+ * says CORRECT. What is actually happening is that somebody has found a
+ * photograph of themselves, and the mark should say AWW rather than CORRECT.
+ * So it is the gate's own pixel heart, in the gate's own pink, with one
+ * sparkle escaping the corner so the chip reads as a little charm rather than
+ * as a badge.
+ *
+ * THE CHIP STAYS, THOUGH, AND IT HAS TO. A bare heart floating on a photograph
+ * is illegible the moment the photograph behind it is pink, or pale, or busy -
+ * and every one of these squares is somebody's real snapshot, which is exactly
+ * the surface you cannot predict. The chip is what guarantees the mark is
+ * readable on all nine.
+ */
 .cg-tick {
   position: absolute;
-  /* Above the photograph and the crop under it; nothing else is layered in
-     the tile any more - see the note on .cg-tile.is-open. */
+  /* Above the photograph and the ring; nothing else is layered in the tile. */
   z-index: 5;
   /* Inside the photograph rather than on the paper lip around it. */
   top: 8px;
   left: 8px;
-  /*
-   * SMALLER, AND THE SAME VIOLET AS THE RING.
-   *
-   * It was a 23px hot-pink chip with a 0.6 pink glow under it, from a version
-   * of this screen that had a bloom and a burst and a bounce to compete with.
-   * With those gone it was the loudest object on a calm cream card, and it was
-   * also a SECOND accent colour on an element whose ring is violet — two
-   * saturated colours saying the same one thing.
-   *
-   * One accent, stated once: the ring picks the square out and the tick
-   * confirms it in the same colour. 20px is still well clear of anything it
-   * has to be legible against, and the shadow is now a plain drop rather than
-   * a glow, because a glow is a light source and nothing on this card is lit.
-   */
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   border-radius: 7px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
-  color: #fff;
-  background: #8a63cf;
+  /*
+   * ROSE, NOT VIOLET, and warm rather than saturated - it is a soft blush chip
+   * with a heart in it, not a status pill. The glow under it is deliberate
+   * where the old note refused one: "a glow is a light source and nothing on
+   * this card is lit" was true of a clinical grid, and this screen is now
+   * explicitly a dreamy one. A little light is the point.
+   */
+  background: linear-gradient(160deg, #fff2f8 0%, #ffdcee 100%);
   border: 1.5px solid #fff;
-  box-shadow: 0 2px 6px rgba(76, 40, 122, 0.38);
+  box-shadow:
+    0 2px 7px rgba(216, 27, 140, 0.32),
+    0 0 12px rgba(255, 105, 180, 0.45);
   opacity: 0;
   transform: scale(0.6);
   transition:
     opacity 160ms ease-out,
-    transform 220ms cubic-bezier(0.34, 1.7, 0.64, 1);
+    transform 260ms cubic-bezier(0.34, 1.7, 0.64, 1);
+}
+
+.cg-tick .cg-pxheart {
+  width: 12px;
+}
+
+/* The sparkle sits half off the corner, which is what keeps the chip from
+   reading as a badge with a symbol in it. */
+.cg-tick-spark {
+  position: absolute;
+  top: -5px;
+  right: -4px;
+  font-size: 10px;
+  line-height: 1;
+  color: #fff3fb;
+  text-shadow: 0 0 6px rgba(255, 105, 180, 0.9);
 }
 
 /* The tick lands only after the photograph has been seen. */
@@ -4931,6 +5338,22 @@ export const CAPTCHA_GATE_CSS = `
   40% { transform: translateX(4px); }
   60% { transform: translateX(-3px); }
   80% { transform: translateX(2px); }
+}
+
+/*
+ * THE VERIFY BUTTON GOES SQUARE TOO, AND ONLY THIS ONE.
+ *
+ * .cg-btn is a 999px pill everywhere in the gate. That is right on the broken
+ * screen, where [try again] and [details] are two soft objects floating on a
+ * page with nothing else on it - and wrong here, where the button sits directly
+ * under a hard-edged rectangle of nine squares and is read as part of the same
+ * unit. So the rule is scoped to .cg-challenge rather than changing .cg-btn:
+ * the other screens are not part of this unit and keep their pills.
+ */
+.cg-challenge .cg-btn {
+  /* The shell's radius: the button is an object of the unit's own scale, not a
+     tile-sized one. */
+  border-radius: 7px;
 }
 
 /*
@@ -5124,6 +5547,17 @@ export const CAPTCHA_GATE_CSS = `
   .cg-buffer-label,
   .cg-broke .cg-btn:not(.cg-btn-love),
   .cg-grid.is-arriving .cg-tile,
+  /*
+   * THE CORRECT-TAP REWARD KEEPS ITS STATE AND LOSES ITS MOTION. The ring is
+   * still drawn and the tick still lands - those are STATES, and they are how
+   * the grid is read. The spring and the glow's flare are motion, so they go.
+   * The heart is nothing BUT motion, so it is removed outright below rather
+   * than left hanging in the middle of a photograph.
+   */
+  .cg-tile.is-open,
+  .cg-tile.is-open::after,
+  .cg-tile.is-open::before,
+  .cg-pop,
   .cg-is-passed .cg-bloom,
   .cg-msg,
   .cg-lower,
@@ -5154,6 +5588,7 @@ export const CAPTCHA_GATE_CSS = `
    * the warm bloom on the payoff: it is a colour, and it is the one piece of
    * celebration that survives having its movement taken away.
    */
+  .cg-tile.is-open::before,
   .cg-dreamies,
   .cg-room,
   .cg-burst,
@@ -5172,6 +5607,22 @@ export const CAPTCHA_GATE_CSS = `
   .cg-warmglow {
     animation: none;
     opacity: 0.45;
+  }
+
+  /*
+   * THE HEART APPEARS AND DOES NOT TRAVEL. The brief is glow plus a static
+   * heart: so the element is still mounted and still visible, it simply sits at
+   * the top of its own square for the length of POP_MS instead of flying. The
+   * bloom behind it is a colour rather than a motion and survives as one - see
+   * .cg-tile.is-open::before, which keeps its opacity and loses its animation.
+   */
+  .cg-pop {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+
+  .cg-tile.is-open::before {
+    opacity: 0.85;
   }
 
   /* The mended heart simply sits whole. */
