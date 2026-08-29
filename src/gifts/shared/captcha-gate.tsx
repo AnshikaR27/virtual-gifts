@@ -735,11 +735,32 @@ export const PASSED_CONFETTI = [
 ] as const;
 
 // ── TUNING ─────────────────────────────────────────────────────────────────
-/** How long the page pretends to load. */
-const BUFFER_MS = 1700;
+/**
+ * THE BEAT OF THE LOADER, and it is the heart's hop — 1.1s, set by cg-hop in
+ * the stylesheet. The buffer is counted in hops rather than in milliseconds
+ * because that bounce is the only clock on screen: a wait is read as "it hopped
+ * twice", never as "1.7 seconds". Retiming cg-hop means retiming this.
+ */
+const BUFFER_BEAT_MS = 1100;
+
+/**
+ * How long the page pretends to load: TWO hops on "loading…" and two more on
+ * "still loading…". One hop each was too quick to land — the second line
+ * arrived before the first had been read, so the stall never registered as a
+ * stall and the crash came out of nowhere.
+ */
+const BUFFER_BEATS_PER_LABEL = 2;
+const BUFFER_MS = BUFFER_BEAT_MS * BUFFER_BEATS_PER_LABEL * 2;
 const BUFFER_MS_REDUCED = 700;
-/** When "loading…" becomes "still loading…". */
-const BUFFER_SLOW_AT = 0.62;
+
+/**
+ * When "loading…" becomes "still loading…" — and this is a value of the EASED
+ * progress, not a fraction of the wait. buffer is 1 - (1 - t)², so the halfway
+ * point in TIME (t = 0.5) sits at 0.75 along the curve. Reading this as "75%
+ * through" is the trap: it is the MIDPOINT, and it is what gives each label its
+ * equal two hops.
+ */
+const BUFFER_SLOW_AT = 0.75;
 
 /**
  * How long the glitch holds if nobody touches it. A SAFETY NET, not the design:
@@ -1166,15 +1187,31 @@ export function CaptchaGate({
    */
   useEffect(() => suppressWelcomePopup(), []);
 
-  /** THE BUFFER. Eased so it slows near the end, the way a real one does. */
+  /**
+   * THE BUFFER. Eased so it slows near the end, the way a real one does.
+   *
+   * READS THE CLOCK; DOES NOT COUNT TICKS. setInterval's delay is a floor, not
+   * a promise — on a slow phone, or while this route's three.js bundle is still
+   * parsing, the callback lands late and a tick-counting version would stretch
+   * the wait well past BUFFER_MS in real time. That matters here because the
+   * heart's hop is a CSS animation running on the compositor's own clock: it
+   * stays exactly 1.1s no matter how busy the main thread is. Drift between the
+   * two would show up as the very thing the beats were tuned to fix — three or
+   * four hops on "loading…" instead of two. performance.now() keeps the label
+   * flip and the bounce on the same clock, so the count holds on any device.
+   *
+   * It also behaves under backgrounding: a phone locked mid-load throttles the
+   * timer, and on return t clamps to 1 and the crash lands at once, rather than
+   * crawling through a wait that has already elapsed.
+   */
   useEffect(() => {
     if (phase !== 'buffering') return;
     const total = reduced ? BUFFER_MS_REDUCED : BUFFER_MS;
     const tick = 40;
-    let elapsed = 0;
+    const startedAt = performance.now();
 
     const id = setInterval(() => {
-      elapsed += tick;
+      const elapsed = performance.now() - startedAt;
       const t = Math.min(1, elapsed / total);
       setBuffer(1 - Math.pow(1 - t, 2));
       if (elapsed >= total) {
