@@ -166,7 +166,7 @@ export function GiftBrowser() {
                         : 'var(--win-chrome-light) var(--win-chrome-darkest) var(--win-chrome-darkest) var(--win-chrome-light)',
                     padding:
                       activeFilter === o.key ? '3px 7px 1px 9px' : '2px 8px',
-                    cursor: 'pointer',
+                    cursor: 'var(--cursor-hand)',
                     whiteSpace: 'nowrap',
                   }}
                 >
@@ -185,7 +185,7 @@ export function GiftBrowser() {
                       : 'var(--win-chrome-light) var(--win-chrome-darkest) var(--win-chrome-darkest) var(--win-chrome-light)',
                   padding:
                     activeFilter === 'all' ? '3px 7px 1px 9px' : '2px 8px',
-                  cursor: 'pointer',
+                  cursor: 'var(--cursor-hand)',
                   whiteSpace: 'nowrap',
                 }}
               >

@@ -174,7 +174,7 @@
     justify-content: center;
     font-size: 10px;
     line-height: 1;
-    cursor: default;
+    cursor: var(--cursor-arrow);
     padding: 0;
   }
 
@@ -199,7 +199,7 @@
     padding: 4px 16px;
     font-family: var(--font-vt323), monospace;
     font-size: 18px;
-    cursor: pointer;
+    cursor: var(--cursor-hand);
     user-select: none;
     white-space: nowrap;
   }
@@ -218,7 +218,7 @@
     padding: 4px 16px;
     font-family: var(--font-vt323), monospace;
     font-size: 18px;
-    cursor: pointer;
+    cursor: var(--cursor-hand);
     user-select: none;
     white-space: nowrap;
     text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.2);
@@ -234,7 +234,7 @@
     flex-direction: column;
     align-items: center;
     gap: 4px;
-    cursor: pointer;
+    cursor: var(--cursor-hand);
     padding: 6px 4px;
     text-decoration: none;
     transition: none;
@@ -402,13 +402,280 @@ html {
   text-size-adjust: 100%;
 }
 
-/* â”€â”€ Y2K custom cursor (desktop only) â”€â”€ */
-@media (min-width: 768px) {
-  body {
-    cursor:
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cpath d='M4 0 L4 22 L9 17 L13 26 L17 24 L13 16 L19 16 Z' fill='white' stroke='black' stroke-width='2' stroke-linejoin='miter'/%3E%3C/svg%3E")
-        4 0,
+/* â€”â€” Y2K custom cursors (mouse-equipped devices only) â€”â€” */
+/*
+ * TWO CURSORS, SMOOTH VECTOR, WEARING THE APP'S OWN DROP SHADOW.
+ *
+ * These started life as the pixel `CURSOR` sprite from passcode-screen.tsx.
+ * Pixel blocks read as genuinely 8-bit but they are a staircase on every
+ * diagonal, which is charming for decor sitting still and busy for something
+ * that moves under your hand all day. So: vector paths, anti-aliased, white
+ * fill, 2.6px black outline.
+ *
+ * THE HAND'S PROBLEM WAS WHERE THE FINGER SAT, not how it was drawn. The
+ * previous version centred the raised finger over the fist, and a finger
+ * centred on a fist is not a pointing hand - it is the other gesture, and once
+ * you have seen it you cannot unsee it. On a real pointer the finger rises
+ * from the LEFT EDGE of the fist, directly above the thumb, with the folded
+ * fingers bunched to its right. It is also shorter, and the fist is wider, so
+ * it reads as a stubby finger on a hand rather than one long finger on a ball.
+ *
+ * THE PINK SHADOW IS NOT DECORATION, IT IS THIS APP'S GRAMMAR. Every card and
+ * button here sits on a hard, un-blurred offset shadow - `0 5px 0
+ * var(--cg-orchid-deep)` under the captcha widget, `3px 4px 0 rgba(26,10,46,.5)`
+ * under the rip handle. The cursor carries the same thing: the identical path,
+ * filled and stroked in --cg-pink-hot (#ff2e9a, taken from the gate rather
+ * than invented), laid down first and offset 1.4/1.6. No blur - a soft shadow
+ * would belong to a different app.
+ *
+ * paint-order: stroke fill IS DOING REAL WORK. A stroke is centred on its path
+ * by default, so half of that 2.6px eats into the white and the shape reads
+ * thin-walled and grey at cursor size. Painting the stroke FIRST and the fill
+ * over it puts the whole outline outside the silhouette: full-strength white
+ * inside, a solid black edge around it.
+ *
+ * ROUND JOINS AND CAPS, not mitre. Mitre spears a thin spike out of sharp
+ * corners, which on the arrow makes the point - and therefore the hotspot -
+ * ambiguous to the eye.
+ *
+ * THE HOTSPOTS WERE MEASURED, NOT DERIVED. Both shapes are curves and arcs, so
+ * there is no grid to count against: the tip and the fingertip land wherever
+ * the path maths puts them. Each SVG was rasterised at 8x and scanned for its
+ * topmost WHITE pixel (white, so the pink shadow underneath cannot be mistaken
+ * for the shape):
+ *
+ *   arrow  3 3   white tip measured at 3, 2.50.
+ *   hand   9 5   topmost white row is y=4.50, and the white on that row
+ *                centres at x=9.31 - the middle of the fingertip. A hand whose
+ *                hotspot is not on the fingertip is the classic way to make
+ *                every click in an app land slightly wrong.
+ *
+ * Both round INTO the white rather than out into the outline, so the click
+ * point is always inside the shape the eye is aiming at.
+ *
+ * SIZES 23x30 and 26x30, shadow included. A little larger than the ~20px
+ * system arrow rather than double it, and far under the 128px ceiling browsers
+ * put on cursor images - so even a 2x display renders rather than silently
+ * falling back to the system cursor.
+ */
+:root {
+  /*
+   * THE FALLBACKS ARE THE MOBILE VALUES. Where the gate below declines, these
+   * resolve to the plain keywords, so the ~forty `var(--cursor-hand)` sites
+   * degrade to `pointer` instead of showing artwork the body rule is not
+   * showing. The artwork is switched on in one place, below.
+   */
+  --cursor-arrow: auto;
+  --cursor-hand: pointer;
+}
+
+/*
+ * "COULD A POINTER EVER APPEAR HERE", AND WE HAVE TO GUESS.
+ *
+ * THE HISTORY, because each rule here was written to fix the last one:
+ *
+ *   min-width: 768px          asked whether the WINDOW was wide, which is not
+ *                             the question. A desktop browser at 700px still
+ *                             has a mouse - and on a 150%-scaled Windows
+ *                             display a window must be 1150 PHYSICAL px to
+ *                             clear 768 CSS px, so this was not a rare corner.
+ *
+ *   (any-hover: hover) and    asked the right question and got a wrong answer.
+ *   (any-pointer: fine)       The any- forms are SUPPOSED to describe every
+ *                             attached device, so a laptop with a trackpad AND
+ *                             a touchscreen should report fine + coarse. In
+ *                             practice a Windows touchscreen laptop reports
+ *                             `any-pointer: coarse` and `any-hover: none`,
+ *                             identical to a phone - the touch digitiser wins
+ *                             and the trackpad is not mentioned at all. This
+ *                             is measurable: emulate a touch-capable desktop
+ *                             and every one of the four pointer/hover features
+ *                             reads the same as it does on a Pixel 7.
+ *
+ * So the pointer features CANNOT distinguish a touchscreen laptop from a
+ * phone, and no combination of them will. The third arm below is what actually
+ * separates the two, and it is the old width test brought back - not as the
+ * primary question, but as the tiebreak for the machines the pointer features
+ * describe wrongly.
+ *
+ * IT IS AN OR, AND IT LEANS PERMISSIVE ON PURPOSE. Over-including costs
+ * nothing: a device with no pointer renders no cursor, so a `cursor` value it
+ * never uses is invisible either way. Under-including costs the whole look on
+ * a real laptop. Given one side of that trade is free, it is not a close call.
+ *
+ *   (any-pointer: fine)   an honest desktop, and any hybrid that reports
+ *                         truthfully. Keeps working at any window width.
+ *   (any-hover: hover)    a device with a hovering input - a mouse on a
+ *                         tablet, an iPad with a trackpad keyboard.
+ *   (min-width: 900px)    the tiebreak. Above a phone in landscape (~844px)
+ *                         and above an iPad in portrait (768/834), so a
+ *                         touchscreen laptop clears it and a phone does not.
+ */
+@media (any-pointer: fine), (any-hover: hover), (min-width: 900px) {
+  :root {
+    --cursor-arrow:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='23' height='30' viewBox='0 0 23 30'%3E%3Cpath d='M3 2.4 L3 23 L8.6 17.9 L12.4 26.4 L16.4 24.5 L12.7 16.4 L19.6 16.4 Z' fill='%23ff2e9a' stroke='%23ff2e9a' stroke-width='2.6' stroke-linejoin='round' stroke-linecap='round' transform='translate%281.4,1.6%29'/%3E%3Cpath d='M3 2.4 L3 23 L8.6 17.9 L12.4 26.4 L16.4 24.5 L12.7 16.4 L19.6 16.4 Z' fill='white' stroke='black' stroke-width='2.6' stroke-linejoin='round' stroke-linecap='round' paint-order='stroke fill'/%3E%3C/svg%3E")
+        3 3,
       auto;
+    --cursor-hand:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='30' viewBox='0 0 26 30'%3E%3Cpath d='M6.6 14.6 L6.6 7.2 A2.8 2.8 0 0 1 12.2 7.2 L12.2 12.2 Q12.6 10.4 15.1 10.4 Q17.6 10.4 17.8 13 Q18.5 11.8 20.4 12.1 Q22.4 12.4 22.4 15 L22.4 21.6 Q22.4 26.4 17.6 26.4 L11.6 26.4 Q7.8 26.4 6.5 23 L3.9 16.8 Q2.9 14.3 5.2 13.7 Q6.2 13.4 6.6 14.6 Z' fill='%23ff2e9a' stroke='%23ff2e9a' stroke-width='2.6' stroke-linejoin='round' stroke-linecap='round' transform='translate%281.4,1.6%29'/%3E%3Cpath d='M6.6 14.6 L6.6 7.2 A2.8 2.8 0 0 1 12.2 7.2 L12.2 12.2 Q12.6 10.4 15.1 10.4 Q17.6 10.4 17.8 13 Q18.5 11.8 20.4 12.1 Q22.4 12.4 22.4 15 L22.4 21.6 Q22.4 26.4 17.6 26.4 L11.6 26.4 Q7.8 26.4 6.5 23 L3.9 16.8 Q2.9 14.3 5.2 13.7 Q6.2 13.4 6.6 14.6 Z' fill='white' stroke='black' stroke-width='2.6' stroke-linejoin='round' stroke-linecap='round' paint-order='stroke fill'/%3E%3C/svg%3E")
+        9 5,
+      pointer;
+  }
+
+  /*
+   * THE FLOOR. `body` sets the arrow and `*` makes every descendant inherit
+   * it, which is what closes the gaps: an element that names no cursor of its
+   * own used to fall back to the UA default - a SYSTEM arrow - and that is the
+   * leak that made the pixel cursor feel like it kept switching off. `html` is
+   * set too, so the strip outside a short body is covered as well.
+   */
+  html,
+  body {
+    cursor: var(--cursor-arrow);
+  }
+
+  *,
+  *::before,
+  *::after {
+    cursor: inherit;
+  }
+
+  /*
+   * THE SAFETY NET, for things that are clickable by their own nature and were
+   * never given a cursor by hand. Element and attribute selectors only, so any
+   * CLASS rule in this codebase still outranks it - `.win98-titlebar-btn`
+   * keeps the arrow it deliberately asks for, and nothing here has to shout
+   * !important to be heard.
+   */
+  a[href],
+  button,
+  summary,
+  select,
+  label[for],
+  [role='button'],
+  [role='link'],
+  [role='checkbox'],
+  [role='radio'],
+  [role='switch'],
+  [role='tab'],
+  [role='option'],
+  [role='menuitem'],
+  input[type='checkbox'],
+  input[type='radio'],
+  input[type='submit'],
+  input[type='button'],
+  input[type='reset'],
+  input[type='file'] {
+    cursor: var(--cursor-hand);
+  }
+
+  /*
+   * TEXT ENTRY KEEPS THE I-BEAM. `*{cursor:inherit}` above would otherwise
+   * hand a text field the arrow, and the caret is a real affordance - it is
+   * how you know a box takes typing before you click it. The gift-creation
+   * forms are the sender's whole job, so this is not a place to trade
+   * usability for consistency.
+   */
+  input:not([type='checkbox']):not([type='radio']):not([type='submit']):not(
+      [type='button']
+    ):not([type='reset']):not([type='file']):not([type='range']):not(
+      [type='color']
+    ),
+  textarea,
+  [contenteditable='true'] {
+    cursor: text;
+  }
+
+  /*
+   * DISABLED IS NOT CLICKABLE, so it takes the arrow back off the safety net
+   * above. Class rules would outrank a bare `button`, so these carry a class-
+   * level selector of their own rather than an !important.
+   */
+  button:disabled,
+  input:disabled,
+  select:disabled,
+  textarea:disabled,
+  [aria-disabled='true'] {
+    cursor: var(--cursor-arrow);
+  }
+}
+
+/*
+ * THE CURSOR TRAIL'S STAGE. See components/cursor-trail.tsx for the pooling
+ * and throttling; this is only the paint.
+ *
+ * NOTHING HERE CAN COST LAYOUT. The host is fixed and zero-interaction, the
+ * particles are absolutely positioned inside it, and every moving value is a
+ * transform or an opacity - the two things a compositor can animate without
+ * waking the main thread. contain: strict is the promise that whatever happens
+ * inside this box cannot reach out and invalidate the page's layout or paint.
+ *
+ * The glyph is centred with left/top of -0.5em inside a 1em box rather than
+ * translate(-50%, -50%), because the drift keyframes own the transform - a
+ * centring translate in there would have to be repeated in every keyframe and
+ * would be one more thing to get wrong.
+ */
+.cursor-trail {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  overflow: hidden;
+  contain: strict;
+  /* Off unless a gate below switches it on - see the note there. */
+  display: none;
+}
+
+.cursor-trail-dot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  will-change: transform;
+}
+
+.cursor-trail-glyph {
+  position: absolute;
+  top: -0.5em;
+  left: -0.5em;
+  width: 1em;
+  height: 1em;
+  line-height: 1em;
+  text-align: center;
+  opacity: 0;
+  will-change: transform, opacity;
+  text-shadow: 0 1px 2px rgba(59, 18, 102, 0.28);
+}
+
+/*
+ * THE TRAIL RIDES ON THE CURSOR'S OWN GATE, and it is written the same way up:
+ * the host is display:none by default and this switches it on. That is not a
+ * style preference. The condition is now a three-arm OR, and negating one of
+ * those in a media query means `not ((a) or (b) or (c))` - a Level 4 form that
+ * silently drops the whole block in any engine that does not parse it, which
+ * would fail OPEN and paint a trail on a phone. Stating it positively means a
+ * parser that does not understand the query leaves the trail off, which is the
+ * safe direction to fail.
+ *
+ * Keep this list identical to the cursor's gate above and to POINTER_QUERY in
+ * components/cursor-trail.tsx - all three describe the same device.
+ */
+@media (any-pointer: fine), (any-hover: hover), (min-width: 900px) {
+  .cursor-trail {
+    display: block;
+  }
+}
+
+/*
+ * BELT AND BRACES, AND IT MUST COME LAST. The component already refuses to
+ * build its pool when this matches, so the rule should never have anything to
+ * hide - it is here so a trail can never be left painted on a device that
+ * asked not to have one. It sits after the gate above because they are the
+ * same specificity, and "reduce" has to be the one that wins.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .cursor-trail {
+    display: none;
   }
 }
 
@@ -432,7 +699,7 @@ html {
   height: 70px;
   transition: transform 1.8s cubic-bezier(0.4, 0, 0.2, 1);
   will-change: transform;
-  cursor: pointer;
+  cursor: var(--cursor-hand);
 }
 
 .desktop-pet-tilter {
@@ -771,7 +1038,7 @@ html {
   position: relative;
   flex: 0 0 auto;
   transform: rotate(var(--card-tilt));
-  cursor: pointer;
+  cursor: var(--cursor-hand);
   transition:
     transform 0.3s ease,
     filter 0.3s ease;
@@ -1073,7 +1340,7 @@ html {
 
 .garland-polaroid {
   width: 100%;
-  cursor: pointer;
+  cursor: var(--cursor-hand);
   -webkit-perspective: 800px;
   perspective: 800px;
   transform-origin: top center;
@@ -1118,7 +1385,7 @@ html {
   border: 2px dashed #c4a882;
   border-radius: 8px;
   padding: 10px 24px;
-  cursor: pointer;
+  cursor: var(--cursor-hand);
   transition:
     background 0.2s,
     border-color 0.2s;

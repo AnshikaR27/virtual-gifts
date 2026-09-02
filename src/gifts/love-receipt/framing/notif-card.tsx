@@ -102,7 +102,7 @@ const styles: Record<string, CSSProperties> = {
     border: `1px solid ${HAIRLINE}`,
     borderRadius: 14,
     padding: '14px 16px 15px',
-    cursor: 'pointer',
+    cursor: 'var(--cursor-hand)',
     // soft shadow, matching the slip's own drop-shadow on this dark field
     boxShadow: '0 14px 30px rgba(0, 0, 0, 0.34)',
   },

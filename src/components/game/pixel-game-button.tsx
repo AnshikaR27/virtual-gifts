@@ -16,7 +16,7 @@ const BASE: CSSProperties = {
   fontSize: 13,
   padding: '5px 12px',
   letterSpacing: '1.5px',
-  cursor: 'pointer',
+  cursor: 'var(--cursor-hand)',
   margin: 3,
   display: 'inline-block',
   textDecoration: 'none',

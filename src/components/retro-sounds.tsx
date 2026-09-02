@@ -206,6 +206,19 @@ export function RetroSounds() {
   useEffect(() => {
     initAudio();
 
+    /*
+     * ONE CHIME PER WINDOW, FOR THE LIFE OF THE PAGE.
+     *
+     * unobserve() alone was not enough to guarantee that. The MutationObserver
+     * below re-runs observeWindows() on every DOM change anywhere under <body>,
+     * and re-observing an element that was already unobserved makes the
+     * IntersectionObserver fire its callback again for anything on screen — so
+     * any component mutating the DOM in a loop (the cursor trail did, once per
+     * particle) turned this into a chime on every mutation. Remembering what
+     * has already sounded makes that impossible regardless of who mutates what.
+     */
+    const played = new WeakSet<Element>();
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -214,6 +227,11 @@ export function RetroSounds() {
             windowOpenAudio.current &&
             unlocked.current
           ) {
+            if (played.has(entry.target)) {
+              observer.unobserve(entry.target);
+              return;
+            }
+            played.add(entry.target);
             tryPlay(windowOpenAudio.current);
             observer.unobserve(entry.target);
           }
@@ -224,12 +242,26 @@ export function RetroSounds() {
 
     const observeWindows = () => {
       document.querySelectorAll('.win98-window').forEach((el) => {
+        if (played.has(el)) return;
         observer.observe(el);
       });
     };
 
     observeWindows();
-    const mutObs = new MutationObserver(observeWindows);
+    /*
+     * Only a mutation that actually ADDED an element can have added a window,
+     * so text churn (the trail's glyph swaps, a live counter, a typing effect)
+     * no longer triggers a rescan at all.
+     */
+    const mutObs = new MutationObserver((records) => {
+      const addedAnElement = records.some((r) =>
+        Array.prototype.some.call(
+          r.addedNodes,
+          (n: Node) => n.nodeType === Node.ELEMENT_NODE,
+        ),
+      );
+      if (addedAnElement) observeWindows();
+    });
     mutObs.observe(document.body, { childList: true, subtree: true });
 
     return () => {

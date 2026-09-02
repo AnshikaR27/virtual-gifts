@@ -1139,7 +1139,7 @@ function Header({
               background: 'transparent',
               border: 'none',
               borderBottom: `1px dashed ${EDIT_HINT}`,
-              cursor: 'pointer',
+              cursor: 'var(--cursor-hand)',
               padding: '2px 0',
             }}
           >
@@ -1445,7 +1445,7 @@ function EditableItem({
           background: 'transparent',
           border: 'none',
           borderBottom: `1px dashed ${EDIT_HINT}`,
-          cursor: 'pointer',
+          cursor: 'var(--cursor-hand)',
           padding: '7px 0',
         }}
       >
@@ -1572,7 +1572,7 @@ function CtrlBtn({
         borderStyle: 'solid',
         borderWidth: 1,
         borderRadius: 4,
-        cursor: disabled ? 'default' : 'pointer',
+        cursor: disabled ? 'var(--cursor-arrow)' : 'var(--cursor-hand)',
         opacity: disabled ? 0.35 : 1,
         ...palette[tone],
       }}
@@ -1669,7 +1669,7 @@ function TotalRow({
           background: 'transparent',
           border: 'none',
           borderBottom: `1px dashed ${EDIT_HINT}`,
-          cursor: 'pointer',
+          cursor: 'var(--cursor-hand)',
           padding: '1px 0',
         }}
       >

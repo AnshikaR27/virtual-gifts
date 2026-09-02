@@ -18,6 +18,7 @@ import { AppViewportLock } from '@/components/app-viewport-lock';
 import { ToastProvider } from '@/components/y2k-toast';
 import { Y2KContextMenu } from '@/components/y2k-context-menu';
 import { WelcomePopup } from '@/components/welcome-popup';
+import { CursorTrail } from '@/components/cursor-trail';
 import { BRAND_NAME, BRAND_TAGLINE } from '@/lib/constants';
 import './globals.css';
 
@@ -108,6 +109,10 @@ export default async function RootLayout({
     >
       <body className="safe-area-pad font-body antialiased">
         <div className="scanline-overlay" aria-hidden />
+        {/* Rides above everything and interacts with nothing. Gates itself on
+            a real pointer and on prefers-reduced-motion, so it costs a phone
+            exactly one empty <div>. */}
+        <CursorTrail />
         <NextIntlClientProvider messages={messages}>
           <AppViewportLock />
           <RetroSounds />

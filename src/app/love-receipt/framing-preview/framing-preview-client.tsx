@@ -181,7 +181,7 @@ function chip(active: boolean, accent: string): CSSProperties {
     font: 'inherit',
     padding: '4px 9px',
     borderRadius: 4,
-    cursor: 'pointer',
+    cursor: 'var(--cursor-hand)',
     border: `1px solid ${accent}`,
     background: active ? accent : 'transparent',
     color: active ? '#14121a' : '#fff',
@@ -222,6 +222,6 @@ const styles: Record<string, CSSProperties> = {
     color: '#fff',
     fontFamily: 'ui-monospace, monospace',
     fontSize: 11,
-    cursor: 'pointer',
+    cursor: 'var(--cursor-hand)',
   },
 };

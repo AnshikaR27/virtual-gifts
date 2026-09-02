@@ -702,7 +702,7 @@ export function TiffinNoteReceiver({ gift }: { gift: GiftData }) {
           zIndex: 10,
           background: 'transparent',
           border: 'none',
-          cursor: 'pointer',
+          cursor: 'var(--cursor-hand)',
         }}
       />
 
@@ -765,7 +765,7 @@ export function TiffinNoteReceiver({ gift }: { gift: GiftData }) {
             fontSize: 15,
             letterSpacing: '1px',
             textDecoration: 'none',
-            cursor: 'pointer',
+            cursor: 'var(--cursor-hand)',
             boxShadow: '2px 2px 0 rgba(26,10,46,.5)',
             border: '2px solid',
             borderColor: '#6cf2a4 #128a44 #128a44 #6cf2a4',
@@ -786,7 +786,7 @@ export function TiffinNoteReceiver({ gift }: { gift: GiftData }) {
             padding: 11,
             fontSize: 15,
             letterSpacing: '1px',
-            cursor: 'pointer',
+            cursor: 'var(--cursor-hand)',
             boxShadow: '2px 2px 0 rgba(26,10,46,.5)',
             border: '2px solid',
             borderColor: '#ffb1d6 #a01060 #a01060 #ffb1d6',

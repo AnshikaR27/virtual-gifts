@@ -300,7 +300,7 @@ const styles: Record<string, CSSProperties> = {
     background: 'transparent',
     borderRadius: 999,
     padding: '11px 22px',
-    cursor: 'pointer',
+    cursor: 'var(--cursor-hand)',
     minHeight: 44,
   },
 };

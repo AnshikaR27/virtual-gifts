@@ -675,7 +675,7 @@ const styles: Record<string, CSSProperties> = {
     fontSize: PASSCODE.keyFont,
     lineHeight: 1,
     letterSpacing: '0.03em',
-    cursor: 'pointer',
+    cursor: 'var(--cursor-hand)',
     userSelect: 'none',
     padding: 0,
   },

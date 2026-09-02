@@ -717,6 +717,18 @@ export const GRID_SPARKLES = ['✦', '♡', '✧', '♡'] as const;
  * way the payoff can feel like a payoff is for it to be the one moment that is
  * genuinely busy. It lasts under two seconds and never comes back.
  */
+/**
+ * THE SHOWER. Twenty-eight, up from fourteen.
+ *
+ * FOURTEEN WAS A SPRINKLE. Spread across the width of a phone that is one
+ * heart every twenty-eight pixels of column, arriving over half a second - it
+ * read as a few things falling rather than as a celebration. Twenty-eight is
+ * the point where the screen reads as full of hearts without any one of them
+ * being hard to look at.
+ *
+ * IT IS ALSO THE CEILING, and the reason is measured rather than aesthetic:
+ * see the note on .cg-confetti about what mounting these used to cost.
+ */
 export const PASSED_CONFETTI = [
   '♡',
   '🩷',
@@ -732,7 +744,87 @@ export const PASSED_CONFETTI = [
   '♡',
   '✦',
   '♡',
+  '✧',
+  '♡',
+  '🩷',
+  '✦',
+  '♡',
+  '✧',
+  '♡',
+  '🩷',
+  '✦',
+  '♡',
+  '♡',
+  '✧',
+  '🩷',
+  '♡',
 ] as const;
+
+/** One spark thrown out of the middle when the payoff lands. */
+export interface PayoffSpark {
+  /** Where it ends up, relative to the centre, in px. */
+  dx: number;
+  dy: number;
+  size: number;
+  rot: number;
+  delay: number;
+  glyph: string;
+}
+
+/**
+ * THE BURST, BUILT ONCE AT MODULE LOAD AND NEVER AGAIN.
+ *
+ * Sixteen sparks thrown outward from the middle of the screen on the frame the
+ * payoff lands - the "ta-da" the shower alone could not give, because falling
+ * hearts arrive from somewhere else and a celebration has to come from the
+ * thing being celebrated.
+ *
+ * NOT Math.random(), and not built in render: the same rule the crops follow,
+ * for the same two reasons - a random value in render disagrees between the
+ * server's HTML and the client's, and a burst rebuilt on re-render would
+ * reshuffle itself halfway through playing.
+ *
+ * THE RING IS DELIBERATELY UNEVEN. Sixteen sparks at exactly 22.5 degrees
+ * apart reads as a clock face; a hashed wobble on both the angle and the
+ * distance turns the same sixteen into something thrown.
+ */
+function buildPayoffBurst(): PayoffSpark[] {
+  const glyphs = ['♡', '✦', '♡', '✧'];
+  const out: PayoffSpark[] = [];
+  for (let i = 0; i < 16; i += 1) {
+    const seed = `pb-${i}`;
+    const angle = (i / 16) * Math.PI * 2 + (hash01(`${seed}-a`) - 0.5) * 0.55;
+    /*
+     * IT HAS TO CLEAR THE CARD. The burst sits BEHIND the panel, like the glow
+     * and the shower before it - that is this screen's rule, the celebration
+     * happens around the line rather than over it. Which means a spark that
+     * does not travel further than the panel's own half-size is never seen at
+     * all: measured on a phone the card is 358 x 529, so anything under 179
+     * across or 264 down dies behind it. The first pass reached 96-200px and
+     * was invisible for exactly that reason.
+     */
+    const reach = 150 + hash01(`${seed}-r`) * 150;
+    out.push({
+      dx: Math.cos(angle) * reach * 1.2,
+      dy: Math.sin(angle) * reach,
+      size: 13 + hash01(`${seed}-s`) * 12,
+      rot: -40 + hash01(`${seed}-o`) * 80,
+      /*
+       * THE 180ms BASE IS NOT PADDING. The steps cross-fade over 320ms, so at
+       * the instant .cg-is-passed lands the payoff line is not on screen yet -
+       * a burst fired then goes off around the OUTGOING grid and is over
+       * before the thing it is celebrating has arrived. This waits for the
+       * line, then throws.
+       */
+      delay: 180 + Math.round(hash01(`${seed}-d`) * 90),
+      glyph: glyphs[i % glyphs.length],
+    });
+  }
+  return out;
+}
+
+/** Sixteen. See buildPayoffBurst, and the note on .cg-confetti for the cap. */
+export const PAYOFF_BURST: PayoffSpark[] = buildPayoffBurst();
 
 // ── TUNING ─────────────────────────────────────────────────────────────────
 /**
@@ -795,133 +887,36 @@ const VERIFYING_MS = 1300;
 const VERIFYING_MS_REDUCED = 500;
 
 /*
- * -- THE HEART CROSSES, BEATS, AND BREAKS -------------------------------
+ * -- THE SWAP -------------------------------------------------------------
  *
- * The checkbox screen does not slide away and the grid does not slide in. The
- * heart that lands when the box is ticked LEAVES THE WIDGET, travels to the
- * middle of the screen, beats twice - thump, THUMP, bigger the second time -
- * and on that second beat throws a ring of soft light out across the page.
- * The grid is what is behind the ring.
+ * The checkbox step fades out, the grid fades in, and that is the whole of it.
  *
- * IT MOVES FIRST BECAUSE THE RIPPLE HAS TO COME FROM THE MIDDLE. A shockwave
- * thrown from where the checkbox happens to sit reaches one corner in half the
- * time it reaches the opposite one, and what should read as a ripple on water
- * reads as a wipe coming in from the side. Centring it costs 340ms and buys a
- * wave that arrives everywhere at once.
+ * IT IS DELIBERATELY THE PLAINEST THING IN THIS FILE. The gate has carried a
+ * slide, a pixel dissolve, a bloom, a flood of hearts, a heartbeat with a
+ * shockwave, and a heart wandering off leaving heart-shaped waves. All of them
+ * were more interesting than this and all of them had to hold sixty frames a
+ * second on a phone WHILE nine photographs arrived underneath. This one has
+ * nothing to spend, so it has nothing to drop.
  *
- * THE REVEAL IS A REAL HOLE, NOT A CROSSFADE TIMED TO LOOK LIKE ONE. A sheet
- * the colour of the screen the recipient is already looking at is laid over
- * everything, with a small round hole punched in it at the centre, and the
- * hole is what grows. Inside it is the grid; outside it is still the lavender
- * that was there a moment ago. So the ring genuinely has the old screen ahead
- * of it and the photographs behind it.
+ * THE TWO STEPS ARE DIFFERENT HEIGHTS AND NOTHING RESIZES ANYWAY. Both panes
+ * live in the same single cell of .cg-steps, which is sized by the taller of
+ * them and is not touched by which one is showing - so the fade cannot lurch,
+ * because there is no measurement anywhere in it. Only opacity moves.
  *
- * AND IT IS ONE TRANSFORM. The sheet is a circle carrying an enormous
- * box-shadow spread - the shadow IS the sheet, and scaling the circle scales
- * the hole while the shadow keeps covering everything outside it. No
- * clip-path, no mask, no repaint: those are paint-time properties, and every
- * frame of the reveal would have to redraw nine photographs on the main
- * thread, which is the exact cost that made earlier versions of this
- * transition stutter.
+ * IT IS NOT A STRAIGHT CROSS-FADE, AND THE OFFSET IS THE POINT. Fading both
+ * panes on the same clock puts them at half opacity together, and a white
+ * widget at 50% over nine photographs at 50% is a muddy frame in the middle of
+ * an otherwise clean transition. The outgoing step leaves over 180ms and the
+ * incoming one starts 100ms in, so they overlap by eighty milliseconds - long
+ * enough that there is never a bare frame, short enough that they are never
+ * both plainly there.
  *
- * EVERY NUMBER BELOW IS ONE BUDGET, and the budget is 1760ms:
- *
- *   0        the heart lifts out of the checkbox
- *   0..340   it crosses to the middle, growing as it goes
- *   340..840 thump, recoil, THUMP - the second beat is half again as big
- *   820      the sheet fades in behind the heart and the rings go out
- *   920      THE SWAP, under a sheet that is by now fully opaque
- *   820..1540 the hole opens from the centre to past the corners
- *   1720     the last ring has faded
- *   1760     the layer unmounts
+ * THE NUMBERS LIVE IN THE STYLESHEET AND NOWHERE ELSE. 180ms out, 220ms in
+ * starting 100ms late - 320ms end to end. There is deliberately no constant
+ * for them up here: nothing in the component reads the timing, the stylesheet
+ * is a plain string that could not read a constant anyway, and a number
+ * declared in two places is a number that drifts.
  */
-/** The crossing. Long enough to be followed, short enough not to be a journey. */
-const HB_TRAVEL_MS = 340;
-/** The two beats, once it has arrived. */
-const HB_BEAT_MS = 500;
-/** When the second beat breaks: the sheet, the rings, the whole shockwave. */
-const HB_SHOCK_AT_MS = 820;
-/**
- * THE SHEET'S TWO LEGS, AND THEY ARE SEPARATE ANIMATIONS ON PURPOSE.
- *
- * They used to be one, with the fade folded into the first 13% of the growth,
- * and the swap timed to land in the sliver between them. That sliver was SIX
- * MILLISECONDS wide - narrower than a frame - so the sheet was still sheer when
- * the steps traded and the trade could be glimpsed through it. The dev guard
- * below passed, because six milliseconds is technically positive.
- *
- * Split, each leg says what it is: the sheet fades up, HOLDS at full opacity
- * with no hole while the steps trade underneath, and only then does the hole
- * start opening.
- *
- * AND THE HOLD IS DELIBERATELY WIDE. A first attempt put the fade at 820ms and
- * the swap thirty milliseconds later, which is under two frames - and every
- * measurement of it disagreed with every other, because two frames is inside
- * the noise of when a page finishes loading and when React commits. The sheet
- * now starts fading on the big beat at 700ms and is opaque by 810, the steps
- * trade at 940, and the hole does not begin until 1060. That is 130ms of
- * margin on one side and 120 on the other: frames, not rounding, and it holds
- * whatever the device does.
- *
- * IT FADING IN ON THE BEAT IS ALSO THE BETTER READ. The checkbox screen is
- * taken by the THUMP rather than quietly a moment afterwards.
- */
-const HB_VEIL_FADE_AT_MS = 700;
-const HB_VEIL_FADE_MS = 110;
-const HB_VEIL_GROW_AT_MS = 1060;
-const HB_VEIL_GROW_MS = 620;
-/**
- * WHEN THE STEPS TRADE: inside the hold. Thirty milliseconds after the sheet
- * is fully opaque and fifty before its hole starts to open, so there is
- * nothing sheer to see through and no hole to see through either.
- */
-const HB_SWAP_AT_MS = 940;
-/** One ring's flight. Three of them go, staggered. */
-const HB_RING_MS = 700;
-const HB_RING_STAGGER_MS = 100;
-const HB_RING_COUNT = 3;
-/** Everything done, layer unmounted, nothing left behind. */
-const HB_TOTAL_MS = 1760;
-
-/*
- * THE THREE THINGS THAT MUST STAY TRUE, CHECKED WHERE THEY CAN BE.
- *
- * HB_VEIL_MS, HB_RING_MS and the beat are ALSO written in the stylesheet,
- * which is a plain string and cannot read a constant - so the coupling is real
- * and nothing but this block will catch it drifting. It costs nothing in
- * production and it is the difference between a mistimed swap being noticed
- * here and being noticed by the recipient.
- */
-if (process.env.NODE_ENV !== 'production') {
-  // The swap has to sit inside the hold - after the sheet is opaque and
-  // before its hole starts opening. Either side of that and the trade is
-  // visible, through a sheer sheet on one side or through the hole on the
-  // other.
-  const opaqueAt = HB_VEIL_FADE_AT_MS + HB_VEIL_FADE_MS;
-  const beatsEnd = HB_TRAVEL_MS + HB_BEAT_MS;
-  const lastRingEnds =
-    HB_SHOCK_AT_MS + (HB_RING_COUNT - 1) * HB_RING_STAGGER_MS + HB_RING_MS;
-  if (HB_SWAP_AT_MS < opaqueAt || HB_SWAP_AT_MS > HB_VEIL_GROW_AT_MS) {
-    console.warn(
-      `CaptchaGate: the steps trade at ${HB_SWAP_AT_MS}ms, outside the sheet's hold of ${opaqueAt}ms..${HB_VEIL_GROW_AT_MS}ms.`,
-    );
-  }
-  if (HB_VEIL_GROW_AT_MS + HB_VEIL_GROW_MS > HB_TOTAL_MS) {
-    console.warn(
-      `CaptchaGate: the hole is still opening at ${HB_VEIL_GROW_AT_MS + HB_VEIL_GROW_MS}ms but the layer unmounts at ${HB_TOTAL_MS}ms.`,
-    );
-  }
-  if (HB_SHOCK_AT_MS > beatsEnd) {
-    console.warn(
-      `CaptchaGate: the shockwave fires at ${HB_SHOCK_AT_MS}ms, after the beats have finished at ${beatsEnd}ms.`,
-    );
-  }
-  if (lastRingEnds > HB_TOTAL_MS) {
-    console.warn(
-      `CaptchaGate: the last ring is still going at ${lastRingEnds}ms but the layer unmounts at ${HB_TOTAL_MS}ms.`,
-    );
-  }
-}
 
 /** How long the heart-pop and the success burst live before they clean up. */
 const BURST_MS = 1000;
@@ -1031,8 +1026,45 @@ const REVEAL_MS = 1000;
 const REVEAL_MS_REDUCED = 400;
 
 /** How long the green tick is admired before the gift takes the screen. */
-const PASSED_MS = 1900;
+/*
+ * THE PAYOFF HOLDS LONGER THAN IT USED TO - 1900ms became 2300. The burst is
+ * over in well under a second by design; the extra four hundred milliseconds
+ * are for the shower to keep falling afterwards, so the moment warms and
+ * lingers rather than being gone the instant it lands.
+ *
+ * IT IS ALSO THE CONFETTI'S OWN DURATION, written again in the stylesheet on
+ * .cg-conf, which is a plain string and cannot read a constant. The last heart
+ * has to still be in the air when the gate hands over, or the shower visibly
+ * stops before the gift arrives.
+ */
+const PASSED_MS = 2300;
 const PASSED_MS_REDUCED = 600;
+
+/*
+ * -- THE DISSOLVE OUT OF THE GATE AND INTO THE GIFT -----------------------
+ *
+ * Every other beat in this flow is a transition; this one was a CUT. The gate
+ * returned its children outright, so the payoff screen was replaced by the
+ * wall in a single frame - and that frame is also the one paying for the
+ * gift's entire first mount, measured at a ~250ms stall. A freeze followed by
+ * a snap is exactly the wrong read: the gate stops dead and something else is
+ * suddenly there.
+ *
+ * THE GIFT IS NOT WRAPPED TO FIX IT, and that is the constraint that decides
+ * the shape of this. A wrapper around the children would put a div between the
+ * gate and whatever the gift expects to be its parent, and the wall lays itself
+ * out against that. So instead the payoff's own colour is left lying OVER the
+ * top for a beat and faded off it - the gift is revealed rather than swapped
+ * in, and the mount's stall happens BEHIND the cover where it reads as the
+ * celebration holding a moment longer.
+ *
+ * IT HOLDS BEFORE IT FADES. The stall is synchronous, so it lands in the same
+ * commit the cover mounts and the browser paints them together - but the wall
+ * keeps working after that first frame, and the hold is what covers the rest
+ * of it. 110ms of full opacity, then it goes.
+ */
+const OUTRO_MS = 620;
+const OUTRO_MS_REDUCED = 200;
 
 /** How long a nudge stays up. */
 const NUDGE_MS = 1800;
@@ -1150,17 +1182,6 @@ function hash01(seed: string): number {
   return (h >>> 0) / 4294967295;
 }
 
-/**
- * THE RINGS. Three, and three is the count that reads as a pulse rather than
- * as one lonely circle or as a stack of them - each a little behind the last,
- * each a little fainter, so the shockwave has a leading edge and a wake.
- *
- * There is no table to build here and nothing hashed: unlike every other
- * effect this gate has carried, the shockwave is perfectly regular. A ripple
- * that wobbled would not read as a ripple.
- */
-const HB_RINGS = Array.from({ length: HB_RING_COUNT }, (_, i) => i);
-
 /** `count` items from a pool, walked rather than sampled so none repeat. */
 function take<T>(pool: T[], count: number, offset: number): T[] {
   const n = Math.min(count, pool.length);
@@ -1262,6 +1283,8 @@ export function CaptchaGate({
 }: CaptchaGateProps) {
   const [phase, setPhase] = useState<Phase>(startOpen ? 'open' : 'buffering');
   const [buffer, setBuffer] = useState(0);
+  /** The payoff colour still lying over the gift, on its way out. */
+  const [outro, setOutro] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   /** Little hearts popping out of the checkbox, just after it is ticked. */
   const [tickBurst, setTickBurst] = useState(false);
@@ -1284,20 +1307,6 @@ export function CaptchaGate({
    * one beat and then taking it away leaves the tiles with nothing to replay.
    */
   const [tilesArriving, setTilesArriving] = useState(false);
-  /**
-   * True for the length of the heartbeat and the shockwave. It owns the swap
-   * while it is up: the phase stays on 'verifying' so the checkbox screen is
-   * still the thing the sheet matches, and the steps trade on the shockwave's
-   * clock rather than the phase timer's.
-   */
-  const [shock, setShock] = useState(false);
-  /** Where the checkbox's heart actually is, so the beat starts on it. */
-  const [origin, setOrigin] = useState<{
-    x: number;
-    y: number;
-    dx: number;
-    dy: number;
-  } | null>(null);
   /** Tapped correctly — the crop has pulled back to the full photograph. */
   const [selected, setSelected] = useState<Set<number>>(new Set());
   /** Finished the reveal beat — the tick has landed. */
@@ -1423,66 +1432,15 @@ export function CaptchaGate({
     if (phase !== 'verifying') return;
     const t = setTimeout(
       () => {
-        if (reduced) {
-          // No beat, no shockwave, no tile wave: the grid is simply there.
-          setPhase('challenge');
-          return;
-        }
-        // The phase deliberately does NOT change here. The checkbox screen has
-        // to still be the thing on screen for the sheet to match it; the
-        // shockwave effect below trades the steps once it is covered.
-        setShock(true);
+        // Under reduced motion the fade is off in the stylesheet, so this same
+        // line is an instant swap; there is no second path to keep in step.
+        if (!reduced) setTilesArriving(true);
+        setPhase('challenge');
       },
       reduced ? VERIFYING_MS_REDUCED : VERIFYING_MS,
     );
     return () => clearTimeout(t);
   }, [phase, reduced]);
-
-  /**
-   * THE SHOCKWAVE'S OWN CLOCK, and it runs the swap.
-   *
-   * It measures where the checkbox's heart actually is and hands that to the
-   * stylesheet, so the beat happens on the real box rather than at a guess of
-   * where the box tends to sit - and so the hole opens from the heart itself
-   * rather than from the middle of the page. getBoundingClientRect is read
-   * once, in the same commit the layer mounts; the widget is long settled and
-   * nothing under it moves again.
-   *
-   * Then two timers. The steps trade at HB_SWAP_AT_MS, under a sheet that is
-   * by then fully opaque and whose hole is still small. The layer comes down
-   * at HB_TOTAL_MS - and unmounting IS the cleanup, since the heart, the sheet
-   * and all three rings go with it and nothing accumulates however many times
-   * this runs.
-   */
-  useEffect(() => {
-    if (!shock) return;
-    const box = document.querySelector('.cg-check');
-    if (box) {
-      const r = box.getBoundingClientRect();
-      const x = r.left + r.width / 2;
-      const y = r.top + r.height / 2;
-      // The crossing is expressed as a DELTA, not as a destination, because
-      // the heart is animated with transform and a transform moves an element
-      // from where it already is. Handing the stylesheet the centre would mean
-      // translating by the centre's coordinates on top of the origin's, and
-      // the heart would fly off the bottom-right of the page.
-      setOrigin({
-        x,
-        y,
-        dx: window.innerWidth / 2 - x,
-        dy: window.innerHeight / 2 - y,
-      });
-    }
-    const swap = setTimeout(() => {
-      setTilesArriving(true);
-      setPhase('challenge');
-    }, HB_SWAP_AT_MS);
-    const done = setTimeout(() => setShock(false), HB_TOTAL_MS);
-    return () => {
-      clearTimeout(swap);
-      clearTimeout(done);
-    };
-  }, [shock]);
 
   /** Retire the tile wave once every square has landed. */
   useEffect(() => {
@@ -1643,6 +1601,9 @@ export function CaptchaGate({
     if (phase !== 'passed') return;
     const t = setTimeout(
       () => {
+        // The cover goes up in the SAME commit the gift mounts, so there is
+        // never a frame where the wall is bare.
+        setOutro(true);
         setPhase('open');
         onOpen?.();
       },
@@ -1650,6 +1611,38 @@ export function CaptchaGate({
     );
     return () => clearTimeout(t);
   }, [phase, reduced, onOpen]);
+
+  /** The cover is only ever on screen for its own fade. */
+  useEffect(() => {
+    if (!outro) return;
+    const t = setTimeout(
+      () => setOutro(false),
+      reduced ? OUTRO_MS_REDUCED : OUTRO_MS,
+    );
+    return () => clearTimeout(t);
+  }, [outro, reduced]);
+
+  /*
+   * NO SCREEN-LEVEL CURSOR-TRAIL RULE HERE ANY MORE, and the argument that
+   * used to be is worth keeping because it was half right.
+   *
+   * 'challenge' used to suppress the trail wholesale, on the grounds that this
+   * is the one screen in the gate that asks the recipient to LOOK - to read
+   * nine photographs and find themselves in them - and hearts drifting across
+   * that compete with the thing the decoration is there to serve.
+   *
+   * THE INSTINCT WAS RIGHT AND THE INSTRUMENT WAS FAR TOO BLUNT. This screen
+   * is mostly not the grid: the card sits in the middle of a lot of lilac, and
+   * over that lilac there is nothing to squint at and the sprinkle was doing no
+   * harm at all. Killing it for the whole phase paid for nine quiet squares
+   * with a dead screen.
+   *
+   * The trail now stands down wherever the HAND cursor is showing, which it
+   * works out for itself from whatever is under the pointer - see
+   * components/cursor-trail.tsx. On this screen that lands exactly where the
+   * old rule was aiming, and only there: quiet over the nine squares, alive
+   * everywhere around them. No phase in this file has to know it exists.
+   */
 
   /**
    * THE GUARD. The photographs ARE the puzzle — with none there is nothing to
@@ -1665,7 +1658,25 @@ export function CaptchaGate({
     return null;
   }
 
-  if (phase === 'open') return <>{children}</>;
+  if (phase === 'open') {
+    return (
+      <>
+        {children}
+        {outro ? (
+          <>
+            {/*
+              THE STYLESHEET COMES WITH IT. Everything below this branch is
+              skipped once the gate is open, and that includes the one <style>
+              tag the gate injects - so the cover has to bring its own or it
+              would mount as an unstyled div and do nothing at all.
+            */}
+            <style dangerouslySetInnerHTML={{ __html: CAPTCHA_GATE_CSS }} />
+            <div className="cg-outro" aria-hidden />
+          </>
+        ) : null}
+      </>
+    );
+  }
 
   const twist = GATE_TWISTS[twistIdx];
   /**
@@ -1728,56 +1739,6 @@ export function CaptchaGate({
         nothing but their two delays - the shapes, colours and animations are
         all in the stylesheet, shared by every one of them.
       */}
-      {shock && origin ? (
-        <div
-          className="cg-shock"
-          aria-hidden
-          style={
-            {
-              '--ox': `${origin.x}px`,
-              '--oy': `${origin.y}px`,
-              '--dx': `${origin.dx.toFixed(1)}px`,
-              '--dy': `${origin.dy.toFixed(1)}px`,
-            } as CSSProperties
-          }
-        >
-          {/*
-            THE SHEET, AND IT IS THE REVEAL. A circle with an enormous shadow
-            spread: the shadow covers the page, the circle is the hole in it.
-            Centred on the SCREEN rather than on the checkbox, because by the
-            time it appears the heart has crossed and the wave has to leave
-            from where the heart now is. It is under the rings and under the
-            heart, so both stay visible across it, and it is the SAME lavender
-            the verifying screen is already wearing - which is why it can
-            appear over a live screen without anything seeming to happen.
-          */}
-          <span className="cg-shock-veil" />
-
-          {/*
-            THE RINGS. Behind the heart, ahead of nothing - they are the first
-            thing the beat throws and the last thing to fade.
-          */}
-          {HB_RINGS.map((n) => (
-            <span
-              key={n}
-              className="cg-shock-ring"
-              style={
-                {
-                  '--rd': `${HB_SHOCK_AT_MS + n * HB_RING_STAGGER_MS}ms`,
-                } as CSSProperties
-              }
-            />
-          ))}
-
-          {/*
-            THE HEART ITSELF, laid over the one in the checkbox at the size
-            the widget draws it, so the first frame is indistinguishable from
-            the box - and what the eye follows is that heart lifting out of it,
-            crossing to the middle, and beginning to beat there.
-          */}
-          <span className="cg-shock-heart cg-pxheart" />
-        </div>
-      ) : null}
 
       {/*
         THE MARGINS, AND ONLY THE MARGINS.
@@ -1856,18 +1817,49 @@ export function CaptchaGate({
       {/* THE PAYOFF. A warm bloom of light, then a shower of hearts.
           BOTH SIT BEHIND THE CONTENT — the celebration happens around the line
           that is being celebrated, never on top of it. */}
-      {phase === 'passed' ? (
-        <>
-          <div className="cg-warmglow" aria-hidden />
-          <div className="cg-confetti" aria-hidden>
-            {PASSED_CONFETTI.map((h, i) => (
-              <span key={i} className={`cg-conf cg-conf-${i + 1}`}>
-                {h}
-              </span>
-            ))}
-          </div>
-        </>
-      ) : null}
+      {/*
+        THE PAYOFF LAYERS, AND THEY ARE MOUNTED FROM THE START.
+
+        They used to appear with the phase, which meant every one of them was
+        inserted into the page on the single frame [verify] was pressed -
+        measured at 228ms of layout in ONE reflow with only fifteen elements,
+        and this is now forty-five. They cost nothing sitting here: their
+        animation-name is none until .cg-is-passed, so there is no animation to
+        run and no layer to promote, and everything opens on opacity 0 so there
+        is nothing to see either. The press is a class change, not a DOM
+        insertion.
+      */}
+      <div className="cg-warmglow" aria-hidden />
+
+      {/* The burst: sixteen sparks thrown out of the middle as the line lands. */}
+      <div className="cg-popburst" aria-hidden>
+        {PAYOFF_BURST.map((sp, i) => (
+          <span
+            key={i}
+            className={`cg-pb${i % 2 ? ' is-alt' : ''}`}
+            style={
+              {
+                '--bx': `${sp.dx.toFixed(1)}px`,
+                '--by': `${sp.dy.toFixed(1)}px`,
+                '--w': `${sp.size.toFixed(1)}px`,
+                '--r': `${sp.rot.toFixed(1)}deg`,
+                '--d': `${sp.delay}ms`,
+              } as CSSProperties
+            }
+          >
+            {sp.glyph}
+          </span>
+        ))}
+      </div>
+
+      {/* The shower: twenty-eight hearts falling the width of the page. */}
+      <div className="cg-confetti" aria-hidden>
+        {PASSED_CONFETTI.map((h, i) => (
+          <span key={i} className={`cg-conf cg-conf-${i + 1}`}>
+            {h}
+          </span>
+        ))}
+      </div>
 
       {/*
         THE CRASH LAYER. Four things at once for CRASH_MS and then gone: a hard
@@ -2153,11 +2145,22 @@ export function CaptchaGate({
                       </span>
                     </div>
 
-                    {boxPhase === 'twist' ? (
-                      <p className="cg-hint font-pixel">
-                        {CAPTCHA_GATE_COPY.tickHint}
-                      </p>
-                    ) : null}
+                    {/*
+                      ALWAYS RENDERED, NEVER UNMOUNTED. It used to be dropped
+                      the moment the box was ticked, and that took 27px out of
+                      a column which is vertically CENTRED - so the whole step,
+                      checkbox included, re-settled about four pixels lower on
+                      the frame the recipient tapped it. Small, but it is the
+                      one moment they are looking straight at the thing that
+                      moves. Keeping the element and hiding it holds the height.
+                    */}
+                    <p
+                      className={`cg-hint font-pixel${
+                        boxPhase === 'twist' ? '' : ' is-spent'
+                      }`}
+                    >
+                      {CAPTCHA_GATE_COPY.tickHint}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -2571,6 +2574,85 @@ export const CAPTCHA_GATE_CSS = `
  */
 .cg-is-challenge { background: var(--cg-lav); }
 .cg-is-passed { background: #d3a8f0; }
+
+/*
+ * THE COVER. The payoff's own #d3a8f0, held over the gift and faded off it.
+ *
+ * position: fixed RATHER THAN absolute, because by now there is no .cg-page to
+ * be absolute inside - the gate has returned its children and this is laid over
+ * the gift itself, in viewport coordinates.
+ *
+ * pointer-events: none THROUGHOUT, so the wall is live under it from the first
+ * frame even while it is still fully opaque. Nothing about this cover can be
+ * tapped, scrolled or focused; it is a sheet of colour and nothing else.
+ *
+ * OPACITY ONLY. It never moves and never resizes - there is nothing here that
+ * could cost the wall a frame while the wall is the thing trying to arrive.
+ */
+.cg-outro {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  background: #d3a8f0;
+  will-change: opacity;
+  animation: cg-outro-fade 620ms ease-out both;
+}
+
+/*
+ * THE HOLD IS 18% - about 110ms - AND IT IS THE POINT OF THE WHOLE THING. The
+ * gift's first mount is what this exists to hide, and a cover that starts
+ * fading immediately is already translucent while the wall is still settling.
+ * Holding first means the expensive frames happen behind something solid, and
+ * only then does the reveal begin.
+ */
+@keyframes cg-outro-fade {
+  0% {
+    opacity: 1;
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/*
+ * REDUCED MOTION KEEPS THE COVER AND SHORTENS IT. This is the one place in the
+ * gate where the effect is not decoration - it is hiding a stall - so taking it
+ * away entirely would give these users the hard cut and the freeze. They get a
+ * brief cover instead: OUTRO_MS_REDUCED in the component, and the same number
+ * here, because the stylesheet cannot read a constant.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .cg-outro {
+    animation-duration: 200ms;
+  }
+
+  /*
+   * THE CELEBRATION IS MOTION AND NOTHING BUT, so for these users it simply
+   * does not happen: no shower, no burst, no spring. The payoff still arrives
+   * and still says what it says - the glow is left alone as a STATE rather
+   * than an animation, so the moment is still warm, it just does not move.
+   */
+  .cg-conf,
+  .cg-pb {
+    display: none;
+  }
+
+  /*
+   * .cg-page IS IN THE SELECTOR ON PURPOSE. This block sits EARLIER in the
+   * stylesheet than .cg-is-passed .cg-warmglow, and at equal specificity the
+   * later rule wins - so the plain two-class version lost, and reduced-motion
+   * users were still getting the bloom animation while the opacity override
+   * beside it appeared to work. Three classes beats two wherever it is written.
+   */
+  .cg-page.cg-is-passed .cg-warmglow {
+    animation: none;
+    opacity: 0.5;
+  }
+}
 
 /*
  * ── THE GRID PAGE'S OWN GROUND: DUSK, WHERE EVERY OTHER SCREEN IS LAVENDER ──
@@ -3437,7 +3519,20 @@ export const CAPTCHA_GATE_CSS = `
   color: var(--cg-pink);
   text-shadow: 0 2px 8px rgba(216, 27, 140, 0.45);
   opacity: 0;
-  animation: cg-conf-fall 1900ms cubic-bezier(0.3, 0.2, 0.5, 1) both;
+  will-change: transform, opacity;
+  animation: cg-conf-fall 2300ms cubic-bezier(0.3, 0.2, 0.5, 1) both;
+  /*
+   * NAME, NOT THE SHORTHAND, AND THE DIFFERENCE MATTERS. Re-declaring the
+   * animation shorthand under .cg-is-passed would reset every sub-property
+   * with it - including the animation-delay each .cg-conf-N sets, which IS the
+   * stagger. Switching the name alone leaves all twenty-eight delays where
+   * they are.
+   */
+  animation-name: none;
+}
+
+.cg-is-passed .cg-conf {
+  animation-name: cg-conf-fall;
 }
 
 /*
@@ -3459,18 +3554,115 @@ export const CAPTCHA_GATE_CSS = `
   pointer-events: none;
   background: radial-gradient(
     closest-side circle at 50% 46%,
-    rgba(255, 160, 214, 0.35) 0%,
-    rgba(255, 105, 180, 0.6) 46%,
-    rgba(255, 46, 154, 0.35) 62%,
-    transparent 80%
+    rgba(255, 214, 170, 0.4) 0%,
+    rgba(255, 150, 205, 0.78) 40%,
+    rgba(255, 86, 170, 0.5) 60%,
+    rgba(214, 120, 246, 0.28) 72%,
+    transparent 84%
   );
-  animation: cg-bloom-burst 1500ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
+  opacity: 0;
+  will-change: transform, opacity;
+  animation: cg-bloom-burst 1600ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
+  animation-name: none;
 }
 
+.cg-is-passed .cg-warmglow {
+  animation-name: cg-bloom-burst;
+}
+
+/*
+ * IT FLARES, THEN SETTLES INTO AN AFTERGLOW. The old curve went up once and
+ * eased down to 0.4 - warm, but flat, and the brief was that this moment felt
+ * flat. Now there is a hard bright peak in the first fifth, a fall back, and
+ * then it HOLDS at 0.5 rather than continuing to fade, so the payoff keeps
+ * sitting in warm light for as long as it is on screen instead of cooling off
+ * under the words.
+ */
 @keyframes cg-bloom-burst {
-  0% { opacity: 0; transform: scale(0.5); }
-  35% { opacity: 0.9; }
-  100% { opacity: 0.4; transform: scale(1.3); }
+  0% { opacity: 0; transform: scale(0.42); }
+  18% { opacity: 1; transform: scale(1.02); }
+  38% { opacity: 0.72; transform: scale(1.16); }
+  100% { opacity: 0.5; transform: scale(1.34); }
+}
+
+/*
+ * -- THE BURST ------------------------------------------------------------
+ *
+ * Sixteen sparks thrown out of the middle on the frame the payoff lands. It is
+ * what the shower could not do on its own: falling hearts arrive from
+ * somewhere else, and a celebration has to come out of the thing being
+ * celebrated.
+ *
+ * QUICK AND THEN GONE - 620ms against the shower's 2300. The burst is the
+ * "ta-da" and the shower is the warmth that follows it; a burst that lingered
+ * would blur the two into one long busy moment.
+ */
+.cg-popburst {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/*
+ * Each spark is pinned to the centre and thrown to its own --bx/--by. The
+ * centring lives in the keyframes rather than on the element: a transform
+ * declared here would be replaced outright the moment the animation touched
+ * transform, and every spark would jump by half its own size.
+ */
+.cg-pb {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  font-size: var(--w);
+  line-height: 1;
+  color: #fff2fa;
+  text-shadow:
+    0 0 10px rgba(255, 105, 180, 0.95),
+    0 0 22px rgba(255, 180, 220, 0.7);
+  opacity: 0;
+  will-change: transform, opacity;
+  animation: cg-pb-throw 620ms cubic-bezier(0.16, 0.8, 0.3, 1) var(--d) both;
+  animation-name: none;
+}
+
+/* Every other one takes the gate's pink instead of white. */
+.cg-pb.is-alt {
+  color: var(--cg-pink);
+  text-shadow:
+    0 0 10px rgba(255, 46, 154, 0.9),
+    0 0 20px rgba(255, 255, 255, 0.55);
+}
+
+.cg-is-passed .cg-pb {
+  animation-name: cg-pb-throw;
+}
+
+/*
+ * OUT FAST, THEN DRIFTS THE LAST OF THE WAY. Most of the distance is covered
+ * in the first third - that is what makes it read as thrown rather than as
+ * expanding - and the remainder eases out while it fades, so nothing stops
+ * dead on screen.
+ */
+@keyframes cg-pb-throw {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) translate(0, 0) scale(0.3) rotate(0deg);
+  }
+  22% {
+    opacity: 1;
+  }
+  38% {
+    transform: translate(-50%, -50%)
+      translate(calc(var(--bx) * 0.72), calc(var(--by) * 0.72)) scale(1.12)
+      rotate(calc(var(--r) * 0.6));
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) translate(var(--bx), var(--by)) scale(0.62)
+      rotate(var(--r));
+  }
 }
 
 @keyframes cg-conf-fall {
@@ -3483,20 +3675,34 @@ export const CAPTCHA_GATE_CSS = `
   }
 }
 
-.cg-conf-1 { left: 6%; --r: 200deg; animation-delay: 0ms; font-size: 16px; }
-.cg-conf-2 { left: 14%; --r: -160deg; animation-delay: 170ms; color: #d98cf5; }
-.cg-conf-3 { left: 22%; --r: 140deg; animation-delay: 60ms; font-size: 13px; }
-.cg-conf-4 { left: 30%; --r: -220deg; animation-delay: 300ms; font-size: 21px; }
-.cg-conf-5 { left: 38%; --r: 180deg; animation-delay: 120ms; color: #d98cf5; }
-.cg-conf-6 { left: 46%; --r: -130deg; animation-delay: 380ms; font-size: 15px; }
-.cg-conf-7 { left: 54%; --r: 240deg; animation-delay: 30ms; }
-.cg-conf-8 { left: 62%; --r: -190deg; animation-delay: 250ms; font-size: 13px; }
-.cg-conf-9 { left: 70%; --r: 160deg; animation-delay: 90ms; color: #d98cf5; }
-.cg-conf-10 { left: 78%; --r: -210deg; animation-delay: 330ms; font-size: 20px; }
-.cg-conf-11 { left: 86%; --r: 130deg; animation-delay: 200ms; }
-.cg-conf-12 { left: 92%; --r: -170deg; animation-delay: 420ms; font-size: 14px; }
-.cg-conf-13 { left: 2%; --r: 220deg; animation-delay: 460ms; color: #d98cf5; }
-.cg-conf-14 { left: 50%; --r: -150deg; animation-delay: 520ms; font-size: 17px; }
+.cg-conf-1 { left: 1.5%; --r: 130deg; animation-delay: 0ms; font-size: 13px; }
+.cg-conf-2 { left: 3.2%; --r: -167deg; animation-delay: 137ms; font-size: 20px; color: #d98cf5; }
+.cg-conf-3 { left: 4.9%; --r: 204deg; animation-delay: 274ms; font-size: 16px; }
+.cg-conf-4 { left: 6.7%; --r: -241deg; animation-delay: 411ms; font-size: 22px; color: #ffd166; }
+.cg-conf-5 { left: 8.4%; --r: 148deg; animation-delay: 548ms; font-size: 15px; color: #d98cf5; }
+.cg-conf-6 { left: 10.1%; --r: -185deg; animation-delay: 65ms; font-size: 18px; }
+.cg-conf-7 { left: 11.8%; --r: 222deg; animation-delay: 202ms; font-size: 14px; }
+.cg-conf-8 { left: 13.5%; --r: -259deg; animation-delay: 339ms; font-size: 21px; color: #d98cf5; }
+.cg-conf-9 { left: 15.3%; --r: 166deg; animation-delay: 476ms; font-size: 13px; }
+.cg-conf-10 { left: 17.0%; --r: -203deg; animation-delay: 613ms; font-size: 20px; }
+.cg-conf-11 { left: 18.7%; --r: 240deg; animation-delay: 130ms; font-size: 16px; color: #d98cf5; }
+.cg-conf-12 { left: 20.4%; --r: -147deg; animation-delay: 267ms; font-size: 22px; }
+.cg-conf-13 { left: 22.1%; --r: 184deg; animation-delay: 404ms; font-size: 15px; }
+.cg-conf-14 { left: 23.9%; --r: -221deg; animation-delay: 541ms; font-size: 18px; color: #d98cf5; }
+.cg-conf-15 { left: 25.6%; --r: 258deg; animation-delay: 58ms; font-size: 14px; }
+.cg-conf-16 { left: 27.3%; --r: -165deg; animation-delay: 195ms; font-size: 21px; }
+.cg-conf-17 { left: 29.0%; --r: 202deg; animation-delay: 332ms; font-size: 13px; color: #d98cf5; }
+.cg-conf-18 { left: 30.7%; --r: -239deg; animation-delay: 469ms; font-size: 20px; color: #ffd166; }
+.cg-conf-19 { left: 32.5%; --r: 146deg; animation-delay: 606ms; font-size: 16px; }
+.cg-conf-20 { left: 34.2%; --r: -183deg; animation-delay: 123ms; font-size: 22px; color: #d98cf5; }
+.cg-conf-21 { left: 35.9%; --r: 220deg; animation-delay: 260ms; font-size: 15px; }
+.cg-conf-22 { left: 37.6%; --r: -257deg; animation-delay: 397ms; font-size: 18px; }
+.cg-conf-23 { left: 39.3%; --r: 164deg; animation-delay: 534ms; font-size: 14px; color: #d98cf5; }
+.cg-conf-24 { left: 41.1%; --r: -201deg; animation-delay: 51ms; font-size: 21px; }
+.cg-conf-25 { left: 42.8%; --r: 238deg; animation-delay: 188ms; font-size: 13px; color: #ffd166; }
+.cg-conf-26 { left: 44.5%; --r: -145deg; animation-delay: 325ms; font-size: 20px; color: #d98cf5; }
+.cg-conf-27 { left: 46.2%; --r: 182deg; animation-delay: 462ms; font-size: 16px; }
+.cg-conf-28 { left: 47.9%; --r: -219deg; animation-delay: 599ms; font-size: 22px; }
 
 /* The page warms up for the payoff and settles back. */
 .cg-is-passed .cg-bloom {
@@ -4019,11 +4225,12 @@ export const CAPTCHA_GATE_CSS = `
 /*
  * -- THE TWO STEPS, AND THEY NO LONGER TRAVEL -----------------------------
  *
- * THE SWAP IS NOT AN ANIMATION ANY MORE. It is a 200ms cross-fade, and it is
- * deliberately the dullest transition in this file, because it happens at
- * HB_SWAP_AT_MS - under a sheet that is by then completely opaque and whose
- * hole has barely started to open. Nobody sees it. The interesting thing is
- * the layer on top.
+ * THE SWAP IS A CROSS-FADE AND NOTHING ELSE - 320ms end to end. Nothing
+ * covers it, nothing distracts from it, and nothing moves: the panel does not
+ * travel, does not resize and does not scale, it simply stops being the
+ * checkbox and starts being the photographs. See the note at the head of this
+ * file's tuning block for why
+ * the two halves are offset rather than run together.
  *
  * WHY A FADE AT ALL RATHER THAN A HARD CUT. The burst fills the screen but it
  * does not TILE it - there are gaps between hearts, and a hard swap glimpsed
@@ -4060,17 +4267,35 @@ export const CAPTCHA_GATE_CSS = `
    * have to stay the same number.
    */
   visibility: hidden;
+  /*
+   * THE OUTGOING HALF. Eased IN - slow to let go, quick to finish - so the
+   * step the recipient has been looking at does not vanish the instant they
+   * tick the box.
+   *
+   * visibility, and the delay on it, keeps the parked step out of the tab
+   * order and out of the accessibility tree WITHOUT taking it out of the
+   * layout: display:none or unmounting would collapse the cell and bring back
+   * the resize the whole stage exists to avoid. The delay matches the fade so
+   * the outgoing step stays readable for the whole of it.
+   */
   transition:
-    opacity 200ms ease-out,
-    visibility 0s linear 200ms;
+    opacity 180ms cubic-bezier(0.4, 0, 1, 1),
+    visibility 0s linear 180ms;
   will-change: opacity;
 }
 
 .cg-pane.is-showing {
   opacity: 1;
   visibility: visible;
+  /*
+   * THE INCOMING HALF, and the 100ms delay is the whole reason this is not a
+   * plain cross-fade. It starts while the outgoing step is still at about
+   * forty percent, so the two overlap for eighty milliseconds - never a bare
+   * frame, never a frame where both are plainly there. Eased OUT, so the grid
+   * arrives quickly and settles rather than creeping in.
+   */
   transition:
-    opacity 200ms ease-out,
+    opacity 220ms cubic-bezier(0, 0, 0.2, 1) 100ms,
     visibility 0s linear 0s;
 }
 
@@ -4087,222 +4312,28 @@ export const CAPTCHA_GATE_CSS = `
  * Absolute would resolve those against this layer's own box and everything
  * would land somewhere near the checkbox, which is worse than landing nowhere.
  */
-.cg-shock {
-  position: absolute;
-  inset: 0;
-  /* Over the panel (.cg-inner is 4) and under the crash layer (20). */
-  z-index: 12;
-  pointer-events: none;
-}
-
 /*
- * THE SHEET, AND THE TRICK IS THE SHADOW RATHER THAN THE CIRCLE.
+ * -- THE DRIFT ------------------------------------------------------------
  *
- * box-shadow with a spread and no blur paints a solid slab in every direction
- * outside the element's own box - so this is a small circle wearing a slab big
- * enough to cover any screen, and the circle itself is the hole. Scaling it up
- * opens the hole from the heart outward while the slab keeps covering
- * everything the hole has not reached yet.
+ * Six elements: one heart and five expanding waves. TRANSFORM AND
+ * OPACITY ONLY - there is not a layout property or a paint-time property
+ * animated anywhere in here, which is what lets the whole thing run on the
+ * compositor while nine photographs are arriving underneath it.
  *
- * IT IS THE VERIFYING SCREEN'S OWN LAVENDER, and that is what lets it appear
- * over a live screen without a visible cut: at the instant it fades in, the
- * only thing that changes is that the widget beneath it is gone, and that
- * happens under the largest beat of the heart.
- *
- * SEE THE KEYFRAMES for why the end scale is 400: the hole is three pixels of
- * radius at rest, and it has to finish past the furthest corner of the page.
+ * BOTH ARE position: fixed AND PINNED TO --x/--y, because the origin was
+ * measured with getBoundingClientRect and that is in viewport coordinates.
+ * Absolute would resolve those against this layer's own box and everything
+ * would land somewhere near the checkbox, which is worse than landing nowhere.
  */
-.cg-shock-veil {
-  position: fixed;
-  left: 50%;
-  top: 50%;
-  /*
-   * TWO PIXELS, NOT TWO PERCENT, AND THAT IS THE WHOLE FIX.
-   *
-   * The hole is this element's own box, so at rest it has to be small enough
-   * to be nothing - a 4vmax disc was a thirty-four pixel PEEPHOLE onto the
-   * page, sitting dead centre through the hold, at exactly the moment the
-   * steps trade behind it. Measured, not guessed: it photographed as a clean
-   * circle of the screen underneath.
-   *
-   * AND IT CANNOT BE FIXED BY SCALING THE ELEMENT DOWN, which was the first
-   * thing tried: a transform scales the box-shadow with everything else, so a
-   * sheet shrunk to close its hole stops being a sheet and becomes a patch.
-   * The shadow has to stay at full spread the entire time, which means the
-   * hole has to be small in its OWN units and grow only by transform.
-   *
-   * SIX PIXELS WAS STILL VISIBLE - it photographed as a pinprick of the page
-   * at dead centre during the hold. Two is under a device pixel on anything
-   * that matters.
-   */
-  width: 2px;
-  height: 2px;
-  border-radius: 50%;
-  box-shadow: 0 0 0 200vmax var(--cg-lav);
-  opacity: 0;
-  z-index: 1;
-  will-change: transform, opacity;
-  /*
-   * TWO ANIMATIONS, AND THEY DO NOT FIGHT because they touch different
-   * properties: one owns opacity, the other owns transform. That is the only
-   * reason this can be split at all - two animations both animating transform
-   * would have the second replace the first outright.
-   */
-  animation:
-    cg-shock-veil-fade 110ms linear 700ms both,
-    cg-shock-veil-grow 620ms cubic-bezier(0.24, 0.66, 0.3, 1) 1060ms both;
-}
-
 /*
- * THE FADE HAPPENS BEFORE THE GROWTH, AND THEN NOTHING HAPPENS FOR A MOMENT.
- *
- * The gap between the two is not slack - it is where the steps trade. Overlap
- * them and the recipient sees the grid through a half-transparent sheet before
- * the ring has reached it, which gives away that there was a second screen
- * underneath all along.
- *
- * The grow keyframes carry backwards fill, so through its 990ms delay the
- * sheet already sits at scale 1 rather than untransformed - which is the same
- * thing here, but explicit.
- */
-@keyframes cg-shock-veil-fade {
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes cg-shock-veil-grow {
-  from {
-    transform: translate(-50%, -50%) scale(1);
-  }
-  /*
-   * 1200, BECAUSE THE HOLE STARTS AT ONE PIXEL OF RADIUS. That reaches 1200px,
-   * and the furthest corner of a viewport is half its diagonal - 465px on a
-   * tall phone, 1101px on a desktop. Both are inside it. The shadow grows with
-   * the scale too, which is harmless: it was already covering everything.
-   */
-  to {
-    transform: translate(-50%, -50%) scale(1200);
-  }
-}
-
-/*
- * THE RINGS, AND THEY START BIG AND BARELY SCALE.
- *
- * The obvious way round - a tiny ring scaled up enormously - is wrong, because
- * a transform scales the BORDER with everything else: a 1vmax edge at scale 30
- * is a thirty-vmax band, and the ring stops being a ring and becomes a filled
- * disc. Starting near full size and travelling only from 0.06 to 1.9 keeps the
- * edge between about half a pixel and fifteen, which is a ripple.
- */
-.cg-shock-ring {
-  position: fixed;
-  left: 50%;
-  top: 50%;
-  width: 60vmax;
-  height: 60vmax;
-  border-radius: 50%;
-  border: 1vmax solid rgba(255, 143, 200, 0.55);
-  box-shadow:
-    0 0 5vmax rgba(255, 105, 180, 0.45),
-    inset 0 0 3vmax rgba(255, 255, 255, 0.5);
-  opacity: 0;
-  z-index: 2;
-  will-change: transform, opacity;
-  animation: cg-shock-ring 700ms cubic-bezier(0.16, 0.75, 0.3, 1) var(--rd) both;
-}
-
-@keyframes cg-shock-ring {
-  0% {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.06);
-  }
-  16% {
-    opacity: 0.95;
-  }
-  100% {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(1.9);
-  }
-}
-
-/*
- * THE CROSSING AND THE BEAT, IN ONE ANIMATION.
- *
- * THEY HAVE TO BE ONE. Two animations on the same element both touching
- * transform means the second replaces the first outright the moment it starts,
- * and the heart would snap back to the checkbox to begin beating. So the
- * translate is carried through EVERY keyframe after the crossing - the
- * arrival's position is simply held while the scale does the beating on top of
- * it.
- *
- * THE RHYTHM IS THE POINT. Thump, recoil, THUMP - and the second is half again
- * as big as the first, because a heartbeat that repeats at one size reads as a
- * pulse animation rather than as something getting excited. The recoil between
- * them is what makes it two beats instead of one: without a frame where the
- * heart comes back down, the eye reads a single ramp.
- *
- * AND IT KEEPS GROWING after the second beat rather than settling, fading as it
- * goes - the heart is not left sitting on the grid, it becomes the shockwave.
- *
- * THE PERCENTAGES ARE OF 1240ms, and they are what the constants describe:
- * 27% is HB_TRAVEL_MS, the beats run to 68% (HB_TRAVEL_MS + HB_BEAT_MS), and
- * the swell crosses HB_SHOCK_AT_MS at 66% with the rings going out under it.
- */
-.cg-shock-heart {
-  position: fixed;
-  left: var(--ox);
-  top: var(--oy);
-  width: 30px;
-  z-index: 3;
-  filter: drop-shadow(0 0 14px rgba(255, 105, 180, 0.85));
-  will-change: transform, opacity;
-  animation: cg-shock-beat 1240ms cubic-bezier(0.3, 0.7, 0.35, 1) both;
-}
-
-@keyframes cg-shock-beat {
-  /* -- the crossing -------------------------------------------------- */
-  0% {
-    opacity: 1;
-    transform: translate(-50%, -50%) translate(0, 0) scale(1);
-  }
-  27% {
-    opacity: 1;
-    transform: translate(-50%, -50%) translate(var(--dx), var(--dy)) scale(1.7);
-  }
-  /* -- thump ---------------------------------------------------------- */
-  34% {
-    transform: translate(-50%, -50%) translate(var(--dx), var(--dy)) scale(2.7);
-  }
-  42% {
-    transform: translate(-50%, -50%) translate(var(--dx), var(--dy)) scale(1.9);
-  }
-  /* -- THUMP ---------------------------------------------------------- */
-  56% {
-    transform: translate(-50%, -50%) translate(var(--dx), var(--dy)) scale(4.4);
-  }
-  62% {
-    opacity: 1;
-    transform: translate(-50%, -50%) translate(var(--dx), var(--dy)) scale(3.1);
-  }
-  /* -- and it becomes the wave ---------------------------------------- */
-  72% {
-    opacity: 0.85;
-    transform: translate(-50%, -50%) translate(var(--dx), var(--dy)) scale(7);
-  }
-  100% {
-    opacity: 0;
-    transform: translate(-50%, -50%) translate(var(--dx), var(--dy)) scale(10);
-  }
-}
-
-/*
- * REDUCED MOTION GETS NONE OF IT - not a shorter beat. The layer is never
- * mounted (see the verifying effect), and with the transition gone the two
- * steps trade places on the frame the phase changes.
+ * REDUCED MOTION GETS NO FADE AT ALL - not a shorter one. With the transitions
+ * off, both halves collapse to their end states on the frame the phase
+ * changes, which is an instant swap. The tile wave is already skipped for
+ * these users by the verifying effect, so there is nothing else to turn off.
  */
 @media (prefers-reduced-motion: reduce) {
-  .cg-pane {
+  .cg-pane,
+  .cg-pane.is-showing {
     transition: none;
   }
 }
@@ -4375,13 +4406,28 @@ export const CAPTCHA_GATE_CSS = `
   100% { opacity: 1; transform: none; }
 }
 
+/*
+ * THE LANDING, AND IT IS A REAL SPRING NOW.
+ *
+ * It used to be one overshoot to 1.04 and done, which is a pop rather than a
+ * ta-da. This overshoots harder, comes back PAST its resting size, and settles
+ * on a second smaller bounce - three stages instead of one, which is what the
+ * eye reads as springy rather than merely quick.
+ *
+ * 720ms, up from 560. A spring needs room to ring; shorten it and the second
+ * bounce turns into a wobble.
+ */
 .cg-lower.is-payoff {
-  animation: cg-pop-in 560ms cubic-bezier(0.34, 1.6, 0.64, 1) both;
+  will-change: transform, opacity;
+  animation: cg-pop-in 720ms cubic-bezier(0.3, 1.2, 0.5, 1) both;
 }
 
 @keyframes cg-pop-in {
-  0% { opacity: 0; transform: scale(0.86); }
-  60% { opacity: 1; transform: scale(1.04); }
+  0% { opacity: 0; transform: scale(0.72); }
+  38% { opacity: 1; transform: scale(1.11); }
+  58% { transform: scale(0.965); }
+  76% { transform: scale(1.032); }
+  90% { transform: scale(0.994); }
   100% { opacity: 1; transform: none; }
 }
 
@@ -4462,6 +4508,26 @@ export const CAPTCHA_GATE_CSS = `
   animation: cg-pulse 2.4s ease-in-out infinite;
 }
 
+/*
+ * SPENT, NOT GONE. Once the box is ticked the hint has said its piece, but it
+ * keeps its box - visibility rather than display, so the line still occupies
+ * its 27px and the centred column above it does not re-settle underneath the
+ * recipient's own thumb.
+ *
+ * It fades rather than blinking out, and the visibility flip is delayed to the
+ * end of that fade so the text is readable for the whole of it. The pulse is
+ * stopped at the same time: an invisible element with an infinite animation is
+ * a compositor layer being kept alive for nothing.
+ */
+.cg-hint.is-spent {
+  opacity: 0;
+  visibility: hidden;
+  animation: none;
+  transition:
+    opacity 160ms ease-out,
+    visibility 0s linear 160ms;
+}
+
 @keyframes cg-pulse {
   0%, 100% { opacity: 0.7; }
   50% { opacity: 1; }
@@ -4481,8 +4547,9 @@ export const CAPTCHA_GATE_CSS = `
 .cg-widget {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 11px;
-  padding: 13px;
+  padding: 13px 15px 13px 13px;
   background: #fff;
   border: 2px solid var(--cg-pink);
   border-radius: 18px;
@@ -4501,6 +4568,30 @@ export const CAPTCHA_GATE_CSS = `
     0 14px 30px rgba(34, 197, 94, 0.35);
 }
 
+/*
+ * SMALL PHONES: HOLD THE HEIGHT, BECAUSE DOWN HERE THE LABEL WRAPS.
+ *
+ * The card is 70.7px tall and it is the BADGE that sets that, not the label —
+ * 40.7px of stacked badge plus 26px of padding plus 4px of border. So the
+ * one-line label costs nothing and the widget is the same height in all three
+ * phases. Measured, the label goes to two lines somewhere between 355px and
+ * 365px of viewport, and there the twist phase becomes 75px while "verifying…"
+ * and the passed line stay at 70.7.
+ *
+ * That 4.3px matters more than it sounds: .cg-lower is vertically CENTRED in
+ * .cg-pane, so a widget that changes height on the exact frame the recipient
+ * taps it drags the whole step up by half of it. Same failure the always-
+ * rendered .cg-hint below exists to prevent. Pinning the floor to the wrapped
+ * height means every phase on a small phone is 75px and nothing moves.
+ *
+ * 374px rather than 364: it takes in every phone narrower than the 390pt
+ * class, so a device whose font metrics round the other way from this one's
+ * cannot land in a gap, and above the wrap point the pin is simply inert.
+ */
+@media (max-width: 374px) {
+  .cg-widget { min-height: 75px; }
+}
+
 .cg-check {
   position: relative;
   flex: 0 0 auto;
@@ -4512,7 +4603,7 @@ export const CAPTCHA_GATE_CSS = `
   box-shadow:
     inset 0 -3px 0 rgba(255, 105, 180, 0.28),
     0 2px 0 rgba(142, 47, 176, 0.3);
-  cursor: pointer;
+  cursor: var(--cursor-hand);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -4577,7 +4668,7 @@ export const CAPTCHA_GATE_CSS = `
     0 0 0 rgba(142, 47, 176, 0.3);
 }
 
-.cg-check:disabled { cursor: default; }
+.cg-check:disabled { cursor: var(--cursor-arrow); }
 
 /* ── THE TICK: A HEART DROPS IN ─────────────────────────────────────────── */
 /*
@@ -4671,15 +4762,38 @@ export const CAPTCHA_GATE_CSS = `
 }
 
 /*
+ * THE LABEL TAKES THE SLACK, WHICH IS WHAT PARKS THE BADGE ON THE RIGHT EDGE.
+ *
+ * AND 15px RATHER THAN 17px IS A MEASUREMENT, NOT A PREFERENCE. At 17 the line
+ * renders 197.2px wide into 198.8px of room, so it ended one and a half pixels
+ * short of the badge and the two read as one clump in the middle-right of the
+ * card — the badge was already hard against the edge, there was simply no gap
+ * in front of it. 15px renders 174px and leaves 24.8px of slack, which lands
+ * on the badge's side because the label is the flex item that grows. With the
+ * badge's own 14px gutter that is a 38.8px channel between the last word and
+ * the heart: the badge reads as sitting in the corner on its own.
+ *
+ * THE LINE DOES NOT WRAP AND MUST NOT — see CAPTCHA_GATE_COPY.checkbox, where
+ * the two halves are only allowed to sit together BECAUSE they share a line.
+ * But there is no white-space: nowrap either: on a 320px phone 174px genuinely
+ * does not fit, and a second line is a far better failure than an ellipsis
+ * that eats "I'm the one".
+ */
 .cg-check-label {
   flex: 1 1 auto;
-  font-size: 17px;
+  min-width: 0;
+  font-size: 15px;
   color: #2b2233;
 }
 
-/* Drab on purpose — it is the part of a real widget nobody looks at. */
+/* Drab on purpose — it is the part of a real widget nobody looks at. It also
+   sits where the real one sits: hard against the right edge of the card, with
+   only the card's own padding between it and the border. margin-left: auto eats
+   every spare pixel in the row so it cannot drift back toward the label. */
 .cg-badge {
   flex: 0 0 auto;
+  margin-left: auto;
+  padding-left: 14px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -4706,7 +4820,7 @@ export const CAPTCHA_GATE_CSS = `
   font-size: 19px;
   padding: 7px 22px;
   min-height: 44px;
-  cursor: pointer;
+  cursor: var(--cursor-hand);
   user-select: none;
   white-space: nowrap;
   background: linear-gradient(180deg, #ffffff, #f6e7ff);
@@ -4782,7 +4896,7 @@ export const CAPTCHA_GATE_CSS = `
   70% { transform: rotate(1.2deg) scale(1.02); }
 }
 
-.cg-btn:disabled { opacity: 0.6; cursor: default; animation: none; }
+.cg-btn:disabled { opacity: 0.6; cursor: var(--cursor-arrow); animation: none; }
 
 /*
  * A SOFT RING INSTEAD OF THE BROWSER'S BLACK ONE. [try again] is autofocused,
@@ -5391,7 +5505,7 @@ export const CAPTCHA_GATE_CSS = `
    * never be a dark rectangle.
    */
   background: #fffdf8;
-  cursor: pointer;
+  cursor: var(--cursor-hand);
   display: block;
   transition:
     transform 320ms cubic-bezier(0.34, 1.45, 0.64, 1),
@@ -5432,6 +5546,29 @@ export const CAPTCHA_GATE_CSS = `
 .cg-grid.is-arriving .cg-tile {
   animation: cg-tile-in 340ms cubic-bezier(0.34, 1.32, 0.64, 1) var(--d, 0ms)
     backwards;
+  /*
+   * AND THIS IS WHAT KEEPS THE FADE SMOOTH, which is not the same as the wave
+   * being wrong. Measured on a 6x-throttled phone profile, across the frames
+   * the panes are cross-fading: without these two lines the grid manages two
+   * frames, the worst of them 883ms long. With them, nineteen - the same
+   * number it manages with the wave switched off entirely. The wave is not
+   * expensive; it was only ever being paid for in the wrong place.
+   *
+   * WHAT WAS ACTUALLY HAPPENING: nine squares scaling, each holding a
+   * photograph, none of them promoted - so every frame repainted nine images
+   * into the PANE'S own layer, and the pane is the thing that is fading.
+   * will-change hands each square its own layer so the scale is composited;
+   * contain: paint is what keeps that layer from having to consult its subtree
+   * to know its bounds. The tile is already overflow: hidden, so it promises
+   * nothing new.
+   *
+   * IT IS SCOPED TO .is-arriving, AND THAT IS THE POINT. Promotion is not free
+   * and it is not a hint you leave on - the same rule popAt follows one layer
+   * up. The class comes off after TILES_IN_MS and the nine layers go with it,
+   * long before a thumb can reach a square.
+   */
+  will-change: transform, opacity;
+  contain: paint;
 }
 
 /*

@@ -199,7 +199,7 @@ const styles: Record<string, CSSProperties> = {
     borderRadius: 999,
     padding: '12px 32px',
     minHeight: 44,
-    cursor: 'pointer',
+    cursor: 'var(--cursor-hand)',
     boxShadow: '0 6px 14px rgba(61, 40, 23, 0.14)',
   },
 };

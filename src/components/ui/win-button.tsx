@@ -22,7 +22,7 @@ const BASE: CSSProperties = {
   borderWidth: 2,
   borderRadius: 0,
   boxShadow: '1px 1px 0 0 #000',
-  cursor: 'pointer',
+  cursor: 'var(--cursor-hand)',
   whiteSpace: 'nowrap',
 };
 

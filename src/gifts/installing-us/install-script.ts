@@ -70,10 +70,10 @@ export interface InstallPhoto {
 }
 
 /**
- * Five of the eight. Four or five is the right number: fewer and the install is
+ * Five of the ten. Four or five is the right number: fewer and the install is
  * over before it has a rhythm, more and a recipient starts waiting instead of
- * watching. The three left out (brick-wall-night, chandelier-selfie,
- * childhood-kurta) are still on the memory wall.
+ * watching. The five left out (brick-wall-night, chandelier-selfie,
+ * childhood-kurta, waterfall, turban-kurta) are still on the memory wall.
  */
 export const PHOTOS: InstallPhoto[] = [
   {
@@ -87,27 +87,44 @@ export const PHOTOS: InstallPhoto[] = [
     ],
   },
   {
-    src: photo('waterfall.jpg'),
-    filename: 'the_trip.jpg',
-    alt: 'Him in sunglasses in front of the waterfall',
-    // He sits low in the frame - imgY 73%, which is 81% of the visible band.
-    // This is the photograph the old blind crop kept turning into a waterfall.
-    faces: [{ who: 'him', x: 42, y: 81 }],
+    src: photo('grid3.jpeg'),
+    filename: 'the_usual.jpg',
+    alt: 'The two of us outside at night, arms around each other',
+    // 1280x1039, so this one is cropped on the SIDES: the visible band is
+    // imgX 9.4%-90.6%, and the points below are already converted - he sits at
+    // imgX 38, which is boxX 35, and she at imgX 54, which is boxX 55.
+    //
+    // BOTH FACES ARE LISTED, WHICH THE PHOTOGRAPH THIS REPLACED COULD NOT
+    // MANAGE. grid1.jpeg put him at boxX 89, hard against the edge the cover
+    // crop had already cut through, so it was only ever worth one square and
+    // was listed with one face. Here the pair sit in the middle of the band
+    // with room either side, and the picture is worth the two squares the
+    // model was built to get out of a photograph of the two of them.
+    //
+    // TIGHTEN BECAUSE IT IS NOT A SELFIE. Shot from a few feet back at about
+    // three-quarter length, so a face is roughly half the share of the frame
+    // it takes in cafe-selfie. Left at 1 these squares come out as two people
+    // in a courtyard rather than as a face - which is the exact tell
+    // GatePhoto.tighten exists to remove.
+    faces: [
+      { who: 'him', x: 35, y: 31, tighten: 1.4 },
+      { who: 'her', x: 55, y: 30, tighten: 1.4 },
+    ],
   },
   {
-    src: photo('turban-kurta.jpg'),
-    filename: 'the_fit.jpg',
-    alt: 'Him in the orange turban and kurta, fully committed to the outfit',
-    // A full-length photograph: his face is a fraction of the size it is in a
-    // selfie, so without this the square shows turban-to-waist and is the only
-    // tile in the grid that is not a face. See GatePhoto.tighten.
-    faces: [{ who: 'him', x: 43, y: 46, tighten: 2.2 }],
-  },
-  {
-    src: photo('canoe-lake.jpg'),
-    filename: 'the_lake.jpg',
-    alt: 'Him turning around on the boat, with the lake behind him',
-    faces: [{ who: 'him', x: 46, y: 37, tighten: 1.3 }],
+    src: photo('grid2.jpeg'),
+    filename: 'the_night_walk.jpg',
+    alt: 'The two of us cheek to cheek under the trees at night',
+    // 900x1600, a tall one: the visible band is imgY 21.9%-78.1%, so the two
+    // points below are already converted - her face sits at imgY 47%, which is
+    // boxY 45, and his at imgY 52%, which is boxY 54.
+    //
+    // Both faces are well inside the band and far enough apart that the two
+    // squares are genuinely one person each.
+    faces: [
+      { who: 'her', x: 36, y: 45 },
+      { who: 'him', x: 63, y: 54 },
+    ],
   },
   {
     src: photo('lanterns-hug.jpg'),
@@ -120,6 +137,23 @@ export const PHOTOS: InstallPhoto[] = [
       { who: 'her', x: 66, y: 49 },
       { who: 'him', x: 39, y: 43 },
     ],
+  },
+  /*
+   * THE LAKE IS LAST, AND IT IS LAST ON PURPOSE. The gate deals the FIRST FOUR
+   * entries gatePhotosFrom hands back, so the tail of this list is the part
+   * that does not reach the grid - and this is the only photograph here with a
+   * single face and nothing else to offer a square. Moved above the lanterns it
+   * takes their place in the deal, which is how it got into the grid once
+   * already: grid1 supplies a "her", that pushed the lanterns past fourth, and
+   * the him queue reached down here for the next name it had not spent.
+   *
+   * The installer does not care where this sits; only the gate does.
+   */
+  {
+    src: photo('canoe-lake.jpg'),
+    filename: 'the_lake.jpg',
+    alt: 'Him turning around on the boat, with the lake behind him',
+    faces: [{ who: 'him', x: 46, y: 37, tighten: 1.3 }],
   },
 ];
 

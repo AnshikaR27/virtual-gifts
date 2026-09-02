@@ -917,7 +917,7 @@ function disclosureStyle(open: boolean): React.CSSProperties {
     borderBottomColor: 'var(--win-chrome-light)',
     padding: '6px 8px',
     fontSize: 12,
-    cursor: 'pointer',
+    cursor: 'var(--cursor-hand)',
     marginBottom: open ? 8 : 12,
   };
 }

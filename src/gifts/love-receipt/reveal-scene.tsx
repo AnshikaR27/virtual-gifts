@@ -841,6 +841,6 @@ const styles: Record<string, CSSProperties> = {
     border: `2px solid ${INK_DARK}`,
     borderRadius: 9,
     boxShadow: `3px 4px 0 rgba(26,10,46,.5)`,
-    cursor: 'pointer',
+    cursor: 'var(--cursor-hand)',
   },
 };

@@ -408,7 +408,7 @@ const styles: Record<string, CSSProperties> = {
     border: `2px solid ${INK_DARK}`,
     borderRadius: 8,
     boxShadow: `3px 4px 0 rgba(26,10,46,.5)`,
-    cursor: 'pointer',
+    cursor: 'var(--cursor-hand)',
   },
 
   // ── beat 2: the real receipt, printing down ──
@@ -437,7 +437,7 @@ const styles: Record<string, CSSProperties> = {
     background: 'transparent',
     border: 'none',
     borderBottom: `1px dashed ${INK_DARK}`,
-    cursor: 'pointer',
+    cursor: 'var(--cursor-hand)',
     padding: '1px 2px',
     opacity: 0.75,
   },
