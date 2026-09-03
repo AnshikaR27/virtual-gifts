@@ -1288,6 +1288,16 @@ export function CaptchaGate({
   const [detailsOpen, setDetailsOpen] = useState(false);
   /** Little hearts popping out of the checkbox, just after it is ticked. */
   const [tickBurst, setTickBurst] = useState(false);
+  /*
+   * THE SECOND BURST, AND IT IS A SECOND ONE ON PURPOSE.
+   *
+   * tickBurst fires on the click and lives INSIDE the checkbox button, which
+   * is right: the button drifts, and a pop that answers a click has to travel
+   * with the thing that was clicked. This one fires 1300ms later, at the swap,
+   * and has to stay where the button WAS - so it hangs off the stage instead.
+   * Two bursts, two anchors, for two different jobs.
+   */
+  const [swapBurst, setSwapBurst] = useState(false);
   /**
    * Which twist is shown. Chosen in an effect rather than during render: a
    * Math.random() in render would put one message in the server HTML and a
@@ -1423,10 +1433,31 @@ export function CaptchaGate({
   }, [phase, detailsOpen, reduced]);
 
   /**
-   * Tick → spinner → BURST → grid. Nothing sits in between; see the note up
-   * top. The sequence the recipient has been trained on is untouched — the
-   * burst happens INSIDE the step where a real captcha would simply have
-   * swapped, so nothing has been inserted into the rhythm.
+   * Tick → burst → spinner → BURST AGAIN → grid, and the second one is new.
+   *
+   * WHAT THIS FILE USED TO CLAIM, AND WHY IT WAS WRONG. Three notes in here
+   * said the burst covered the swap - that it "carries the eye", and that a
+   * fade beat a hard cut because a cut "glimpsed through one of the gaps
+   * between hearts reads as a glitch". None of it was true any more. The burst
+   * is fired by tickBox, on the CLICK; it is visible from about 200ms to
+   * 800ms and unmounted by 1220ms, and the swap does not start until 1300ms.
+   * Measured on a running build, the hearts were gone a full half-second
+   * before the thing they were said to be covering.
+   *
+   * So the swap was bare, and the panes had been given permission to do "the
+   * cheapest possible thing" on the strength of cover that was not there.
+   *
+   * NOW IT FIRES IN THE SAME BREATH AS THE GRID. Same six hearts, same
+   * animation, from the point the grid blooms out of - see the transform
+   * origin on .cg-pane-grid, which is the checkbox's own centre. The hearts
+   * spray out of the tick while the grid grows out of the tick, so the whole
+   * beat has one source instead of a pop at 0ms and an unrelated arrival at
+   * 1300ms.
+   *
+   * REDUCED MOTION GETS NEITHER. The swap is a cut there and a cut needs no
+   * covering; six hearts flying out of a stationary widget would be the only
+   * moving thing on the screen, which is precisely what the setting is asking
+   * us not to do.
    */
   useEffect(() => {
     if (phase !== 'verifying') return;
@@ -1435,6 +1466,7 @@ export function CaptchaGate({
         // Under reduced motion the fade is off in the stylesheet, so this same
         // line is an instant swap; there is no second path to keep in step.
         if (!reduced) setTilesArriving(true);
+        if (!reduced) setSwapBurst(true);
         setPhase('challenge');
       },
       reduced ? VERIFYING_MS_REDUCED : VERIFYING_MS,
@@ -1454,6 +1486,13 @@ export function CaptchaGate({
     const t = setTimeout(() => setTickBurst(false), BURST_MS);
     return () => clearTimeout(t);
   }, [tickBurst]);
+
+  /** The swap's burst, retired on the same clock as the tick's. */
+  useEffect(() => {
+    if (!swapBurst) return;
+    const t = setTimeout(() => setSwapBurst(false), BURST_MS);
+    return () => clearTimeout(t);
+  }, [swapBurst]);
 
   const grid = useMemo(
     () => buildGateGrid(photos, fillers, 'gate'),
@@ -1972,6 +2011,28 @@ export function CaptchaGate({
 
         {inStage ? (
           <div className="cg-stage">
+            {/*
+              THE SWAP'S BURST, AND IT SITS HERE RATHER THAN IN A PANE FOR ONE
+              REASON: everything inside .cg-steps is either the step that is
+              leaving or the step that is arriving, and both of them are mid
+              opacity transition at exactly the moment these hearts are needed.
+              Put this in the outgoing pane and it fades out on the 180ms curve
+              while it plays; put it in the incoming one and it fades IN, which
+              is worse - cover that arrives at forty percent is not cover.
+
+              It is also OUTSIDE .cg-steps deliberately. That box is
+              overflow: hidden so the panes can be clipped, and hearts that
+              spray thirty pixels would be sliced off at its edge.
+            */}
+            {swapBurst ? (
+              <span className="cg-burst cg-burst-swap" aria-hidden>
+                {BURST.map((h, i) => (
+                  <i key={i} className={`cg-burst-${i + 1}`}>
+                    {h}
+                  </i>
+                ))}
+              </span>
+            ) : null}
             {/*
               TWO STEPS, ONE BOX THAT NEVER CHANGES SIZE.
 
@@ -4123,6 +4184,12 @@ export const CAPTCHA_GATE_CSS = `
 .cg-stage {
   display: flex;
   flex-direction: column;
+  /*
+   * THE ANCHOR FOR THE SWAP'S BURST, and it costs nothing: position: relative
+   * with no offsets moves nothing and changes no layout, it only makes this
+   * the box an absolutely-positioned child measures itself against.
+   */
+  position: relative;
 }
 
 /*
@@ -4232,15 +4299,26 @@ export const CAPTCHA_GATE_CSS = `
  * file's tuning block for why
  * the two halves are offset rather than run together.
  *
- * WHY A FADE AT ALL RATHER THAN A HARD CUT. The burst fills the screen but it
- * does not TILE it - there are gaps between hearts, and a hard swap glimpsed
- * through one of them reads as a glitch on a screen that has already used a
- * glitch for something else. Two hundred milliseconds of fade seen through a
- * gap reads as nothing at all.
+ * WHY A FADE AT ALL RATHER THAN A HARD CUT. The burst does not TILE the
+ * screen - there are gaps between hearts, and a hard swap glimpsed through one
+ * of them reads as a glitch on a screen that has already used a glitch for
+ * something else. Two hundred milliseconds of fade seen through a gap reads as
+ * nothing at all.
  *
  * WHAT THIS REPLACED: a 520ms translateY slide, with a ghost copy of the
  * outgoing panel before that. Both existed to carry the eye across the swap.
- * The burst carries it now, so the panes can do the cheapest possible thing.
+ *
+ * AND FOR A LONG WHILE NOTHING DID. This note used to end "the burst carries
+ * it now, so the panes can do the cheapest possible thing" - which was false
+ * for as long as it stood there. The burst is fired by tickBox on the CLICK,
+ * and measured on a running build it is visible from about 200ms to 800ms and
+ * unmounted by 1220ms; the swap begins at 1300ms. The panes had been given
+ * permission to do the cheapest possible thing on the strength of cover that
+ * had already left the screen.
+ *
+ * There is a burst here now, fired at the swap itself and anchored to the
+ * point the grid blooms out of - see .cg-burst-swap and the effect that sets
+ * swapBurst. The sentence is finally true.
  *
  * THE CELL STILL SIZES ITSELF FROM THE TALLER PANE, which is why both stay
  * mounted and why this fades opacity rather than unmounting: dropping one
@@ -4300,6 +4378,90 @@ export const CAPTCHA_GATE_CSS = `
 }
 
 /*
+ * -- THE GRID BLOOMS OUT OF THE TICK --------------------------------------
+ *
+ * WHAT WAS MISSING FROM THE SWAP: a cause. The checkbox dissolved and the
+ * photographs materialised in the same box, and nothing in the motion said
+ * that the second thing came from the first. The burst covers the seam, but
+ * covering a seam is not the same as joining two things across it.
+ *
+ * So the grid now grows, very slightly, out of the point the tick was at.
+ * transform-origin does all of it - the pane still fills the same cell, still
+ * changes no layout property, and the scale is one composited transform on an
+ * element that was already being promoted for its own fade. It is the cheapest
+ * thing that could possibly carry a cause.
+ *
+ * 9% 60% IS MEASURED, NOT GUESSED, and the 60 is the half that surprises. The
+ * tick is not in the middle of this pane: the message block sits above the
+ * widget, so the checkbox's centre lands three fifths of the way down. Taken
+ * across viewports it is 9.3%/59.9% at 1280 and at 900, and 7.9%/58.8% at 420
+ * - stable enough to be a constant, and near enough at the phone width that a
+ * second breakpoint would be pedantry.
+ *
+ * 0.94, WHICH IS DELIBERATELY TOO SMALL TO NOTICE AS A SCALE. At 460px wide
+ * that is a 28px journey across 260ms, which the eye reads as the grid
+ * settling into place rather than as a zoom. This file threw out a 520ms
+ * translateY slide for being too much, and the note above still says the panes
+ * do not travel or resize - they still do neither. This is not the slide
+ * coming back; it is the smallest possible gesture that points at where the
+ * grid came from.
+ *
+ * IT OUTLASTS THE FADE BY FORTY MILLISECONDS, on purpose. The opacity is done
+ * at 320ms and the transform at 360ms, so the last thing that happens in the
+ * swap is the grid coming to rest rather than the fade ending - which is the
+ * beat the tile wave is already arriving into.
+ *
+ * SOURCE ORDER IS DOING REAL WORK HERE. .cg-pane-grid.is-showing and
+ * .cg-pane.is-showing have the same specificity, so this rule has to sit
+ * BELOW the one above to win. Moving it up the file silently drops the
+ * transform transition and the grid snaps instead of blooming.
+ */
+/*
+ * -- AND A HALF DEGREE OF IT ----------------------------------------------
+ *
+ * A rectangle that only ever grows is a rectangle being rendered. The same
+ * rectangle arriving a fraction off-square and straightening as it lands is a
+ * card being PUT DOWN, and the difference between those two readings is half a
+ * degree. It rides the bloom's own transition - one more function in a
+ * transform that was already being interpolated on an already-promoted layer -
+ * so it is not a new animation and there is no new timing anywhere.
+ *
+ * ANTICLOCKWISE, BECAUSE OF WHERE THE ORIGIN IS. The bloom grows out of the
+ * tick at 9% 60%, which is low and to the left, so the far corner of the card
+ * is up and to the right. A negative angle drops that corner slightly on the
+ * way in and lifts it into square as it settles - the card is laid down from
+ * the hand that ticked the box. Reverse the sign and it hinges the wrong way,
+ * away from the point everything else in this swap comes out of.
+ *
+ * ROTATION IS LAST IN THE LIST. transform functions apply right to left, so
+ * scale runs first and the rotation turns the already-scaled box about the
+ * same origin. Written the other way round the pane rotates at full size and
+ * then shrinks, which sweeps a wider corner for no visible gain.
+ */
+.cg-pane-grid {
+  transform: scale(0.94) rotate(-0.5deg);
+  transform-origin: 9% 60%;
+  /*
+   * The outgoing half needs the transform too, or the pane snaps back to 0.94
+   * in one frame as it leaves - at opacity 0, but during the 180ms it is still
+   * fading, which is exactly when a snap is cheapest to see.
+   */
+  transition:
+    opacity 180ms cubic-bezier(0.4, 0, 1, 1),
+    transform 180ms cubic-bezier(0.4, 0, 1, 1),
+    visibility 0s linear 180ms;
+  will-change: opacity, transform;
+}
+
+.cg-pane-grid.is-showing {
+  transform: none;
+  transition:
+    opacity 220ms cubic-bezier(0, 0, 0.2, 1) 100ms,
+    transform 260ms cubic-bezier(0.22, 0.9, 0.3, 1) 100ms,
+    visibility 0s linear 0s;
+}
+
+/*
  * -- THE HEARTBEAT AND THE SHOCKWAVE --------------------------------------
  *
  * Five elements: the heart, the sheet the reveal is cut out of, and three
@@ -4335,6 +4497,20 @@ export const CAPTCHA_GATE_CSS = `
   .cg-pane,
   .cg-pane.is-showing {
     transition: none;
+  }
+
+  /*
+   * AND THE BLOOM GOES WITH THE FADE. transition:none above already makes
+   * the scale a jump rather than a glide, but a jump from 0.94 is still a pop
+   * on the one frame the grid appears - and a pop is the thing this setting is
+   * asking about. The grid has to arrive at its own size.
+   *
+   * This sits BELOW .cg-pane-grid.is-showing rather than above it, for the
+   * same same-specificity reason recorded there.
+   */
+  .cg-pane-grid,
+  .cg-pane-grid.is-showing {
+    transform: none;
   }
 }
 
@@ -4733,6 +4909,64 @@ export const CAPTCHA_GATE_CSS = `
   pointer-events: none;
 }
 
+/*
+ * -- THE SWAP'S BURST ------------------------------------------------------
+ *
+ * The same six hearts as the tick's, from the same point, at the moment the
+ * grid arrives. The whole argument for it is in the effect that fires it.
+ *
+ * A ZERO-SIZED BOX, WHICH IS THE TRICK THAT MAKES THIS FREE. .cg-burst i is
+ * already positioned at top: 50%, left: 50% of its parent - fifty percent of
+ * nothing is nothing, so all six hearts stack exactly on this point and then
+ * fly out along the --bx/--by they already carry. No new keyframes, no new
+ * classes on the hearts, and .cg-burst-1 through -6 keep working untouched.
+ *
+ * 9% 60% IS THE SAME CONSTANT THE GRID BLOOMS FROM, and it survives the change
+ * of coordinate space by luck worth writing down: the transform-origin on
+ * .cg-pane-grid is a percentage of the PANE, and this is a percentage of the
+ * STAGE. Measured, they are 9.3%/59.9% and 9.3%/60.3% at 1280 - the stage and
+ * the pane are near enough coextensive that one number does both. At 420 the
+ * stage reads 10.5%/63%, which is close enough that the hearts still come off
+ * the tick rather than off the air beside it.
+ *
+ * z-index 4 puts it over both panes. .cg-confetti is 3.
+ */
+.cg-burst-swap {
+  inset: 60% auto auto 9%;
+  width: 0;
+  height: 0;
+  z-index: 4;
+}
+
+/*
+ * A FASTER ATTACK THAN THE TICK'S, AND THE REASON IS THE JOB.
+ *
+ * cg-burst-out spends a quarter of its 900ms coming up, which is right for a
+ * pop that answers a click - it is the only thing on screen and it can afford
+ * to bloom. This one has 320ms of cross-fade to cover and the fade starts
+ * 100ms after the class lands, so a heart that is not up until 225ms is absent
+ * for the first third of the thing it is here for. Measured against the pane,
+ * the old attack put peak opacity about 125ms into the fade; this puts it at
+ * the start of it.
+ *
+ * ONLY THE ATTACK CHANGES. Same 900ms, same travel out along --bx/--by, same
+ * per-heart delays, same easing - so the two bursts still read as the same
+ * gesture, which is the entire point of firing this one from the tick's spot.
+ */
+@keyframes cg-burst-swap-out {
+  0% { transform: translate(-50%, -50%) scale(0.4); opacity: 0; }
+  10% { opacity: 1; }
+  100% {
+    transform: translate(calc(-50% + var(--bx)), calc(-50% + var(--by)))
+      scale(1.1) rotate(18deg);
+    opacity: 0;
+  }
+}
+
+.cg-burst-swap i {
+  animation-name: cg-burst-swap-out;
+}
+
 .cg-burst i {
   position: absolute;
   top: 50%;
@@ -4741,7 +4975,23 @@ export const CAPTCHA_GATE_CSS = `
   font-style: normal;
   color: #ff69b4;
   opacity: 0;
-  animation: cg-burst-out 900ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
+  /*
+   * LONGHANDS, AND NOT AS A MATTER OF TASTE. This was the animation
+   * shorthand, which resets every property it does not name - including
+   * animation-delay, back to 0s. .cg-burst-1 through -6 below each declare a
+   * delay of 0/40/90/30/120/70ms, and not one of them was ever applied: this
+   * selector is (0,1,1) and theirs are (0,1,0), so the shorthand outranked
+   * them and quietly flattened the stagger. Six hearts that were meant to
+   * leave in a ripple have been leaving in one lump.
+   *
+   * Verified by reading animationDelay off all six in a live gate: every one
+   * of them computed 0s. Spelling the longhands out leaves animation-delay
+   * untouched, so the per-heart rules finally reach the element.
+   */
+  animation-name: cg-burst-out;
+  animation-duration: 900ms;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1);
+  animation-fill-mode: both;
 }
 
 .cg-burst-1 { --bx: -26px; --by: -22px; animation-delay: 0ms; }
@@ -5540,8 +5790,17 @@ export const CAPTCHA_GATE_CSS = `
  * as a second jolt — but nine springy squares were doing exactly that, the
  * last of them still overshooting 145ms AFTER the container had settled. The
  * wave is worth keeping; it just has to finish inside the growth rather than
- * trail out the far side of it, and it overshoots a good deal less now that it
- * is landing on something that is itself still moving.
+ * trail out the far side of it.
+ *
+ * THE GROWTH IT REFERS TO IS BACK, AND IT IS NOT THE ONE THIS WAS WRITTEN
+ * AGAINST. For several revisions this note ended "it is landing on something
+ * that is itself still moving" while the panes travelled, resized and scaled
+ * exactly nothing - the sentence outlived the growth it described by longer
+ * than it described it. What moves today is the bloom on .cg-pane-grid: a
+ * 0.94 to 1 scale over 260ms out of the tick. The wave's last square lands at
+ * 500ms, so it still trails the container - but the container is now settling
+ * under it rather than sitting perfectly still, which is the condition the
+ * tamed spring was tuned for in the first place.
  */
 .cg-grid.is-arriving .cg-tile {
   animation: cg-tile-in 340ms cubic-bezier(0.34, 1.32, 0.64, 1) var(--d, 0ms)
