@@ -470,135 +470,124 @@ html {
 }
 
 /*
- * "COULD A POINTER EVER APPEAR HERE", AND WE HAVE TO GUESS.
+ * "COULD A POINTER EVER APPEAR HERE" - AND WE STOPPED GUESSING.
  *
- * THE HISTORY, because each rule here was written to fix the last one:
+ * THIS WAS BEHIND @media (any-pointer: fine), (any-hover: hover), (min-width:
+ * 900px), an OR of three arms, each one written to patch the last. It was still
+ * wrong, and the way it was wrong is worth keeping because it is not obvious:
+ * the three arms could fail TOGETHER. Anything reporting touch turns the first
+ * two false, and then the whole thing came down to the window being 900px wide.
+ * Narrow the window on a touchscreen laptop - or open the device toolbar in
+ * devtools, which reports touch and a small viewport at once - and all three
+ * arms miss, the variables fall back to `auto` and `pointer`, and every pixel
+ * cursor in the app quietly turns into the system one. Widen the window and it
+ * comes back, which is exactly the "it keeps going away again" this was.
  *
- *   min-width: 768px          asked whether the WINDOW was wide, which is not
- *                             the question. A desktop browser at 700px still
- *                             has a mouse - and on a 150%-scaled Windows
- *                             display a window must be 1150 PHYSICAL px to
- *                             clear 768 CSS px, so this was not a rare corner.
+ * Measured in a real browser, before the gate came off:
  *
- *   (any-hover: hover) and    asked the right question and got a wrong answer.
- *   (any-pointer: fine)       The any- forms are SUPPOSED to describe every
- *                             attached device, so a laptop with a trackpad AND
- *                             a touchscreen should report fine + coarse. In
- *                             practice a Windows touchscreen laptop reports
- *                             `any-pointer: coarse` and `any-hover: none`,
- *                             identical to a phone - the touch digitiser wins
- *                             and the trackpad is not mentioned at all. This
- *                             is measurable: emulate a touch-capable desktop
- *                             and every one of the four pointer/hover features
- *                             reads the same as it does on a Pixel 7.
+ *   1440 wide, mouse    fine=Y hover=Y w>=900=Y   pixel arrow
+ *    860 wide, mouse    fine=Y hover=Y w>=900=N   pixel arrow
+ *   1440 wide, TOUCH    fine=N hover=N w>=900=Y   pixel arrow
+ *    860 wide, TOUCH    fine=N hover=N w>=900=N   SYSTEM CURSOR  <- the bug
  *
- * So the pointer features CANNOT distinguish a touchscreen laptop from a
- * phone, and no combination of them will. The third arm below is what actually
- * separates the two, and it is the old width test brought back - not as the
- * primary question, but as the tiebreak for the machines the pointer features
- * describe wrongly.
+ * SO THE GATE IS GONE, ON THE OLD NOTE'S OWN ARGUMENT. It said over-including
+ * costs nothing, because a device with no pointer renders no cursor and a
+ * `cursor` value it never uses is invisible either way. That is true, and it is
+ * the whole case against having a gate at all: one side of the trade is free,
+ * and the other side loses the look on a real machine. A phone parses two
+ * custom properties it will never paint; that is the entire cost of never
+ * being wrong about this again.
  *
- * IT IS AN OR, AND IT LEANS PERMISSIVE ON PURPOSE. Over-including costs
- * nothing: a device with no pointer renders no cursor, so a `cursor` value it
- * never uses is invisible either way. Under-including costs the whole look on
- * a real laptop. Given one side of that trade is free, it is not a close call.
- *
- *   (any-pointer: fine)   an honest desktop, and any hybrid that reports
- *                         truthfully. Keeps working at any window width.
- *   (any-hover: hover)    a device with a hovering input - a mouse on a
- *                         tablet, an iPad with a trackpad keyboard.
- *   (min-width: 900px)    the tiebreak. Above a phone in landscape (~844px)
- *                         and above an iPad in portrait (768/834), so a
- *                         touchscreen laptop clears it and a phone does not.
+ * The fallbacks above stay where they are. Nothing reaches them any more, and
+ * they are two lines of insurance against a browser that refuses a url()
+ * cursor outright.
  */
-@media (any-pointer: fine), (any-hover: hover), (min-width: 900px) {
-  :root {
-    --cursor-arrow:
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='23' height='30' viewBox='0 0 23 30'%3E%3Cpath d='M3 2.4 L3 23 L8.6 17.9 L12.4 26.4 L16.4 24.5 L12.7 16.4 L19.6 16.4 Z' fill='%23ff2e9a' stroke='%23ff2e9a' stroke-width='2.6' stroke-linejoin='round' stroke-linecap='round' transform='translate%281.4,1.6%29'/%3E%3Cpath d='M3 2.4 L3 23 L8.6 17.9 L12.4 26.4 L16.4 24.5 L12.7 16.4 L19.6 16.4 Z' fill='white' stroke='black' stroke-width='2.6' stroke-linejoin='round' stroke-linecap='round' paint-order='stroke fill'/%3E%3C/svg%3E")
-        3 3,
-      auto;
-    --cursor-hand:
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='30' viewBox='0 0 26 30'%3E%3Cpath d='M6.6 14.6 L6.6 7.2 A2.8 2.8 0 0 1 12.2 7.2 L12.2 12.2 Q12.6 10.4 15.1 10.4 Q17.6 10.4 17.8 13 Q18.5 11.8 20.4 12.1 Q22.4 12.4 22.4 15 L22.4 21.6 Q22.4 26.4 17.6 26.4 L11.6 26.4 Q7.8 26.4 6.5 23 L3.9 16.8 Q2.9 14.3 5.2 13.7 Q6.2 13.4 6.6 14.6 Z' fill='%23ff2e9a' stroke='%23ff2e9a' stroke-width='2.6' stroke-linejoin='round' stroke-linecap='round' transform='translate%281.4,1.6%29'/%3E%3Cpath d='M6.6 14.6 L6.6 7.2 A2.8 2.8 0 0 1 12.2 7.2 L12.2 12.2 Q12.6 10.4 15.1 10.4 Q17.6 10.4 17.8 13 Q18.5 11.8 20.4 12.1 Q22.4 12.4 22.4 15 L22.4 21.6 Q22.4 26.4 17.6 26.4 L11.6 26.4 Q7.8 26.4 6.5 23 L3.9 16.8 Q2.9 14.3 5.2 13.7 Q6.2 13.4 6.6 14.6 Z' fill='white' stroke='black' stroke-width='2.6' stroke-linejoin='round' stroke-linecap='round' paint-order='stroke fill'/%3E%3C/svg%3E")
-        9 5,
-      pointer;
-  }
+:root {
+  --cursor-arrow:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='23' height='30' viewBox='0 0 23 30'%3E%3Cpath d='M3 2.4 L3 23 L8.6 17.9 L12.4 26.4 L16.4 24.5 L12.7 16.4 L19.6 16.4 Z' fill='%23ff2e9a' stroke='%23ff2e9a' stroke-width='2.6' stroke-linejoin='round' stroke-linecap='round' transform='translate%281.4,1.6%29'/%3E%3Cpath d='M3 2.4 L3 23 L8.6 17.9 L12.4 26.4 L16.4 24.5 L12.7 16.4 L19.6 16.4 Z' fill='white' stroke='black' stroke-width='2.6' stroke-linejoin='round' stroke-linecap='round' paint-order='stroke fill'/%3E%3C/svg%3E")
+      3 3,
+    auto;
+  --cursor-hand:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='30' viewBox='0 0 26 30'%3E%3Cpath d='M6.6 14.6 L6.6 7.2 A2.8 2.8 0 0 1 12.2 7.2 L12.2 12.2 Q12.6 10.4 15.1 10.4 Q17.6 10.4 17.8 13 Q18.5 11.8 20.4 12.1 Q22.4 12.4 22.4 15 L22.4 21.6 Q22.4 26.4 17.6 26.4 L11.6 26.4 Q7.8 26.4 6.5 23 L3.9 16.8 Q2.9 14.3 5.2 13.7 Q6.2 13.4 6.6 14.6 Z' fill='%23ff2e9a' stroke='%23ff2e9a' stroke-width='2.6' stroke-linejoin='round' stroke-linecap='round' transform='translate%281.4,1.6%29'/%3E%3Cpath d='M6.6 14.6 L6.6 7.2 A2.8 2.8 0 0 1 12.2 7.2 L12.2 12.2 Q12.6 10.4 15.1 10.4 Q17.6 10.4 17.8 13 Q18.5 11.8 20.4 12.1 Q22.4 12.4 22.4 15 L22.4 21.6 Q22.4 26.4 17.6 26.4 L11.6 26.4 Q7.8 26.4 6.5 23 L3.9 16.8 Q2.9 14.3 5.2 13.7 Q6.2 13.4 6.6 14.6 Z' fill='white' stroke='black' stroke-width='2.6' stroke-linejoin='round' stroke-linecap='round' paint-order='stroke fill'/%3E%3C/svg%3E")
+      9 5,
+    pointer;
+}
 
-  /*
-   * THE FLOOR. `body` sets the arrow and `*` makes every descendant inherit
-   * it, which is what closes the gaps: an element that names no cursor of its
-   * own used to fall back to the UA default - a SYSTEM arrow - and that is the
-   * leak that made the pixel cursor feel like it kept switching off. `html` is
-   * set too, so the strip outside a short body is covered as well.
-   */
-  html,
-  body {
-    cursor: var(--cursor-arrow);
-  }
+/*
+ * THE FLOOR. `body` sets the arrow and `*` makes every descendant inherit
+ * it, which is what closes the gaps: an element that names no cursor of its
+ * own used to fall back to the UA default - a SYSTEM arrow - and that is the
+ * leak that made the pixel cursor feel like it kept switching off. `html` is
+ * set too, so the strip outside a short body is covered as well.
+ */
+html,
+body {
+  cursor: var(--cursor-arrow);
+}
 
-  *,
-  *::before,
-  *::after {
-    cursor: inherit;
-  }
+*,
+*::before,
+*::after {
+  cursor: inherit;
+}
 
-  /*
-   * THE SAFETY NET, for things that are clickable by their own nature and were
-   * never given a cursor by hand. Element and attribute selectors only, so any
-   * CLASS rule in this codebase still outranks it - `.win98-titlebar-btn`
-   * keeps the arrow it deliberately asks for, and nothing here has to shout
-   * !important to be heard.
-   */
-  a[href],
-  button,
-  summary,
-  select,
-  label[for],
-  [role='button'],
-  [role='link'],
-  [role='checkbox'],
-  [role='radio'],
-  [role='switch'],
-  [role='tab'],
-  [role='option'],
-  [role='menuitem'],
-  input[type='checkbox'],
-  input[type='radio'],
-  input[type='submit'],
-  input[type='button'],
-  input[type='reset'],
-  input[type='file'] {
-    cursor: var(--cursor-hand);
-  }
+/*
+ * THE SAFETY NET, for things that are clickable by their own nature and were
+ * never given a cursor by hand. Element and attribute selectors only, so any
+ * CLASS rule in this codebase still outranks it - `.win98-titlebar-btn`
+ * keeps the arrow it deliberately asks for, and nothing here has to shout
+ * !important to be heard.
+ */
+a[href],
+button,
+summary,
+select,
+label[for],
+[role='button'],
+[role='link'],
+[role='checkbox'],
+[role='radio'],
+[role='switch'],
+[role='tab'],
+[role='option'],
+[role='menuitem'],
+input[type='checkbox'],
+input[type='radio'],
+input[type='submit'],
+input[type='button'],
+input[type='reset'],
+input[type='file'] {
+  cursor: var(--cursor-hand);
+}
 
-  /*
-   * TEXT ENTRY KEEPS THE I-BEAM. `*{cursor:inherit}` above would otherwise
-   * hand a text field the arrow, and the caret is a real affordance - it is
-   * how you know a box takes typing before you click it. The gift-creation
-   * forms are the sender's whole job, so this is not a place to trade
-   * usability for consistency.
-   */
-  input:not([type='checkbox']):not([type='radio']):not([type='submit']):not(
-      [type='button']
-    ):not([type='reset']):not([type='file']):not([type='range']):not(
-      [type='color']
-    ),
-  textarea,
-  [contenteditable='true'] {
-    cursor: text;
-  }
+/*
+ * TEXT ENTRY KEEPS THE I-BEAM. `*{cursor:inherit}` above would otherwise
+ * hand a text field the arrow, and the caret is a real affordance - it is
+ * how you know a box takes typing before you click it. The gift-creation
+ * forms are the sender's whole job, so this is not a place to trade
+ * usability for consistency.
+ */
+input:not([type='checkbox']):not([type='radio']):not([type='submit']):not(
+    [type='button']
+  ):not([type='reset']):not([type='file']):not([type='range']):not(
+    [type='color']
+  ),
+textarea,
+[contenteditable='true'] {
+  cursor: text;
+}
 
-  /*
-   * DISABLED IS NOT CLICKABLE, so it takes the arrow back off the safety net
-   * above. Class rules would outrank a bare `button`, so these carry a class-
-   * level selector of their own rather than an !important.
-   */
-  button:disabled,
-  input:disabled,
-  select:disabled,
-  textarea:disabled,
-  [aria-disabled='true'] {
-    cursor: var(--cursor-arrow);
-  }
+/*
+ * DISABLED IS NOT CLICKABLE, so it takes the arrow back off the safety net
+ * above. Class rules would outrank a bare `button`, so these carry a class-
+ * level selector of their own rather than an !important.
+ */
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled,
+[aria-disabled='true'] {
+  cursor: var(--cursor-arrow);
 }
 
 /*
@@ -657,8 +646,16 @@ html {
  * parser that does not understand the query leaves the trail off, which is the
  * safe direction to fail.
  *
- * Keep this list identical to the cursor's gate above and to POINTER_QUERY in
- * components/cursor-trail.tsx - all three describe the same device.
+ * THE CURSOR NO LONGER HAS A GATE TO MATCH, and this one is not now redundant
+ * with it - it is doing a different job. A cursor value on a device with no
+ * pointer is inert, so guessing wrong there costs nothing and the guess was
+ * dropped. A TRAIL is drawn work: hearts painted behind a pointer that does not
+ * exist, on a device that never asked for them. Guessing wrong here is not
+ * free, so this stays, and it stays stated positively so a parser that does not
+ * understand the query fails with the trail OFF.
+ *
+ * Keep this list identical to POINTER_QUERY in components/cursor-trail.tsx -
+ * both describe the same device.
  */
 @media (any-pointer: fine), (any-hover: hover), (min-width: 900px) {
   .cursor-trail {

@@ -179,7 +179,20 @@ export const CAPTCHA_GATE_COPY = {
    */
   checkbox: "I'm not a robot — I'm the one",
   tickHint: 'tick the box to prove it',
-  verifying: 'verifying…',
+  /*
+   * BACK TO THE REAL WIDGET'S WORD. This briefly read "making sure it's you",
+   * which was warmer and was wrong: the whole step is a straight impression of
+   * a captcha, and the moment the label stops sounding like one the joke has
+   * to be carried by the grid alone. "verifying" is the boring word on
+   * purpose - the gate is funny because it is convincing first.
+   *
+   * NO ELLIPSIS IN THE STRING, and that is the one thing kept from the
+   * experiment. The three dots after this word are elements now (see
+   * .cg-waitdots), so they can fade in and out instead of sitting there; a
+   * typed "…" here would render a fourth. The line still reads "verifying..."
+   * exactly as it always did.
+   */
+  verifying: 'verifying',
 
   /**
    * The line above the prompt. The taunt does the work the old sub-line did, so
@@ -934,7 +947,18 @@ const BURST_MS = 1000;
  * unmount and no height to settle, so the slide's duration lives in one place
  * — the transform transition on .cg-pane — and nowhere else.
  */
-const TILES_IN_MS = 500;
+/*
+ * IT HAS TO OUTLAST THE LAST SQUARE, AND IT IS THE ONE NUMBER HERE THAT LIVES
+ * IN JAVASCRIPT. The wave is 510ms per tile plus a diagonal stagger of 57ms a
+ * step, so the bottom-right square starts at 4 x 57 = 228ms and finishes at
+ * 738ms. Retiring .is-arriving before then would strip the animation off a tile
+ * that is still mid-flight and snap it to its resting size.
+ *
+ * RAISED FROM 500ms WITH THE WAVE ITSELF. If either the duration or the stagger
+ * changes again, this has to move with them - it is the only place the two are
+ * not derived from each other.
+ */
+const TILES_IN_MS = 780;
 
 /**
  * HOW HARD THE PUZZLE IS.
@@ -1012,14 +1036,6 @@ const FOCUS_JITTER = 5;
  * paper the card is made of and the whole drifting margin around it. Taking
  * the hand out of the LAYOUT is what lets the layout do its one job.
  */
-
-/**
- * How long the correct-tap particles stay mounted. It is the longest particle
- * animation (delay + duration) plus a frame or two of slack, and nothing reads
- * it except the timer that unmounts them - so if a keyframe below is
- * lengthened, this has to move with it or the particles vanish mid-flight.
- */
-const POP_MS = 700;
 
 /** How long the full photograph is held before the tick lands. */
 const REVEAL_MS = 1000;
@@ -1320,7 +1336,6 @@ export function CaptchaGate({
   /** Tapped correctly — the crop has pulled back to the full photograph. */
   const [selected, setSelected] = useState<Set<number>>(new Set());
   /** Finished the reveal beat — the tick has landed. */
-  const [verified, setVerified] = useState<Set<number>>(new Set());
   const [nudge, setNudge] = useState<string | null>(null);
   const [shakeAt, setShakeAt] = useState<number | null>(null);
   const [reduced, setReduced] = useState(false);
@@ -1335,15 +1350,7 @@ export function CaptchaGate({
    * doing nothing, and every subsequent tap animated against that. Unmounting
    * hands the layers back the moment the animation is over.
    */
-  const [popAt, setPopAt] = useState<Set<number>>(new Set());
   /** Reveal timers, so a gate that unmounts mid-beat cleans up after itself. */
-  const revealTimers = useRef<Map<number, ReturnType<typeof setTimeout>>>(
-    new Map(),
-  );
-  /** Same contract for the particle timers. */
-  const popTimers = useRef<Map<number, ReturnType<typeof setTimeout>>>(
-    new Map(),
-  );
 
   const revealMs = reduced ? REVEAL_MS_REDUCED : REVEAL_MS;
 
@@ -1513,17 +1520,6 @@ export function CaptchaGate({
   }, [grid]);
 
   useEffect(() => {
-    const timers = revealTimers.current;
-    const popped = popTimers.current;
-    return () => {
-      timers.forEach(clearTimeout);
-      timers.clear();
-      popped.forEach(clearTimeout);
-      popped.clear();
-    };
-  }, []);
-
-  useEffect(() => {
     if (!nudge) return;
     const t = setTimeout(() => setNudge(null), NUDGE_MS);
     return () => clearTimeout(t);
@@ -1550,6 +1546,31 @@ export function CaptchaGate({
     setPhase('verifying');
   }, []);
 
+  /**
+   * HOW MANY SQUARES THIS ROUND NEEDS. It was computed inside verifyRound and
+   * nowhere else, because nothing but the button had ever needed to know. The
+   * moment the SOLVE has to be marked, the render needs it too - and a number
+   * this important derived in two places is a number that will drift.
+   */
+  const neededCount = useMemo(() => grid.filter((t) => t.isUs).length, [grid]);
+
+  /**
+   * ── EVERY SIDE EFFECT IS OUT HERE, AND THAT IS NOT A STYLE PREFERENCE ────
+   *
+   * AN UPDATER MUST BE A PURE FUNCTION OF THE PREVIOUS STATE. React invokes one
+   * TWICE in development, deliberately, to surface anything that is not - and
+   * this handler used to start its timers inside setSelected's updater, so each
+   * tap started two of them. It went unnoticed for a long time because the
+   * payload is setVerified(v => new Set(v).add(pos)), and adding the same number
+   * to a Set twice is the same as adding it once: the duplicate timer merely
+   * leaked. A later counter built on the same pattern was not so forgiving and
+   * doubled on every tap, which is how it was found.
+   *
+   * SO THE MEMBERSHIP TEST READS `selected` FROM THE CLOSURE and every updater
+   * below returns a new value and does nothing else. That puts `selected` in
+   * the dependency list, which is correct rather than merely tolerable: this
+   * handler genuinely depends on what is currently chosen.
+   */
   const tapTile = useCallback(
     (pos: number, tile: Tile) => {
       if (!tile.isUs) {
@@ -1561,67 +1582,38 @@ export function CaptchaGate({
       // A correct tap answers whatever the last nudge complained about.
       setNudge(null);
 
-      setSelected((prev) => {
-        const next = new Set(prev);
-        if (next.has(pos)) {
-          // Taking it back: drop the tick and cancel the pending reveal.
+      if (selected.has(pos)) {
+        // Taking it back: the square returns to its own brightness.
+        setSelected((prev) => {
+          const next = new Set(prev);
           next.delete(pos);
-          setVerified((v) => {
-            const nv = new Set(v);
-            nv.delete(pos);
-            return nv;
-          });
-          const t = revealTimers.current.get(pos);
-          if (t) {
-            clearTimeout(t);
-            revealTimers.current.delete(pos);
-          }
-          const pt = popTimers.current.get(pos);
-          if (pt) {
-            clearTimeout(pt);
-            popTimers.current.delete(pos);
-          }
-          setPopAt((pv) => {
-            if (!pv.has(pos)) return pv;
-            const nv = new Set(pv);
-            nv.delete(pos);
-            return nv;
-          });
-        } else {
-          next.add(pos);
-          /*
-           * THE PARTICLES, FOR EXACTLY AS LONG AS THEY MOVE. Reduced motion
-           * never mounts them at all - there is nothing to see and nothing to
-           * clean up.
-           */
-          {
-            setPopAt((pv) => new Set(pv).add(pos));
-            const pt = setTimeout(() => {
-              popTimers.current.delete(pos);
-              setPopAt((pv) => {
-                const nv = new Set(pv);
-                nv.delete(pos);
-                return nv;
-              });
-            }, POP_MS);
-            popTimers.current.set(pos, pt);
-          }
-          // THE REWARD: the full photograph is already fading in via CSS. The
-          // tick is held back until it has been seen.
-          const t = setTimeout(() => {
-            revealTimers.current.delete(pos);
-            setVerified((v) => new Set(v).add(pos));
-          }, revealMs);
-          revealTimers.current.set(pos, t);
-        }
-        return next;
-      });
+          return next;
+        });
+        return;
+      }
+
+      setSelected((prev) => new Set(prev).add(pos));
     },
-    [say, revealMs],
+    [selected, say],
   );
 
+  /**
+   * THE ROUND IS WON, AND UNTIL NOW NOTHING SAID SO.
+   *
+   * Every correct tap ran the same pop and the same reveal, so the LAST one -
+   * the whole point of the screen, the moment the recipient has found all of
+   * themselves in the grid - looked exactly like the first. The only thing
+   * that changed was a count nobody could see, and the button that had been
+   * sitting there since the grid arrived went on sitting there identically.
+   *
+   * selected only ever holds correct taps: tapTile shakes and returns on a
+   * wrong one, so this cannot be reached by tapping nine squares.
+   */
+  const solved =
+    phase === 'challenge' && neededCount > 0 && selected.size >= neededCount;
+
   const verifyRound = useCallback(() => {
-    const needed = grid.filter((t) => t.isUs).length;
+    const needed = neededCount;
     if (selected.size === 0) {
       say(CAPTCHA_GATE_NUDGES.empty);
       return;
@@ -1633,7 +1625,7 @@ export function CaptchaGate({
     setNudge(null);
     setPhase('passed');
     onUnlock?.();
-  }, [grid, selected, say, onUnlock]);
+  }, [neededCount, selected, say, onUnlock]);
 
   /** The green tick is held, then the gift takes the screen. */
   useEffect(() => {
@@ -1769,15 +1761,6 @@ export function CaptchaGate({
 
       {/* Soft scanlines the whole way through; turned up during the glitch. */}
       <div className="cg-scan" aria-hidden />
-
-      {/*
-        THE PIXEL DISSOLVE.
-
-        Mounted when the box is ticked and unmounted the moment the last block
-        has lifted; never mounted at all under reduced motion. The blocks carry
-        nothing but their two delays - the shapes, colours and animations are
-        all in the stylesheet, shared by every one of them.
-      */}
 
       {/*
         THE MARGINS, AND ONLY THE MARGINS.
@@ -2150,7 +2133,9 @@ export function CaptchaGate({
                     >
                       <button
                         type="button"
-                        className="cg-check"
+                        className={`cg-check${
+                          tickBurst && !reduced ? ' is-popped' : ''
+                        }`}
                         onClick={tickBox}
                         disabled={boxPhase !== 'twist'}
                         aria-label={CAPTCHA_GATE_COPY.checkbox}
@@ -2158,17 +2143,70 @@ export function CaptchaGate({
                         role="checkbox"
                       >
                         {boxPhase === 'verifying' ? (
+                          <span className="cg-pxheart cg-mini" aria-hidden />
+                        ) : null}
+
+                        {/*
+                          TWO, AND TWO IS THE WHOLE POINT.
+
+                          One orbiting heart reads as a stray particle; three or
+                          more read as a loading spinner, which is the one thing
+                          this screen is trying not to be. Two, opposite each
+                          other, read as a pair going round together - which is
+                          what the gift is about, and it is also the cheapest
+                          count that reads as deliberate.
+                        */}
+                        {boxPhase === 'verifying' && !reduced ? (
                           <span
-                            className={`cg-pxheart cg-mini${
-                              reduced ? '' : ' cg-mini-hop'
+                            className={`cg-orbit${
+                              phase === 'challenge' ? ' is-meeting' : ''
                             }`}
                             aria-hidden
-                          />
+                          >
+                            {/*
+                              THREE NESTED ELEMENTS PER HEART, AND EACH ONE IS
+                              LOAD-BEARING. The outer i carries the angle, the
+                              arm carries the RADIUS, and the heart inside
+                              carries the counter-rotation that keeps it
+                              upright.
+
+                              Splitting angle from radius is what lets them
+                              meet. Retargeting a single transform mid-orbit
+                              restarts it, which snaps the heart back to zero
+                              degrees before it can travel anywhere - so the
+                              rush inward has to be a property nothing else is
+                              animating, and that is the arm's translate.
+                            */}
+                            <i className="cg-orbit-1">
+                              <span className="cg-orbit-arm">
+                                <span className="cg-orbit-heart">♡</span>
+                              </span>
+                            </i>
+                            <i className="cg-orbit-2">
+                              <span className="cg-orbit-arm">
+                                <span className="cg-orbit-heart">♡</span>
+                              </span>
+                            </i>
+                          </span>
                         ) : null}
+
                         {boxPhase === 'passed' ? (
                           <span className="cg-check-green" aria-hidden>
                             ✓
                           </span>
+                        ) : null}
+
+                        {/*
+                          THE RING, AND IT IS ONE ELEMENT.
+
+                          A single expanding outline is the cheapest possible
+                          way to say "that landed" - it costs one node, one
+                          transform and one opacity, and it reads as a pulse
+                          leaving the box rather than as more confetti. The
+                          hearts already handle quantity; this handles impact.
+                        */}
+                        {tickBurst && !reduced ? (
+                          <span className="cg-ring" aria-hidden />
                         ) : null}
 
                         {/* The heart-pop, on tick and on success. */}
@@ -2187,9 +2225,34 @@ export function CaptchaGate({
                         {boxPhase === 'twist'
                           ? CAPTCHA_GATE_COPY.checkbox
                           : null}
-                        {boxPhase === 'verifying'
-                          ? CAPTCHA_GATE_COPY.verifying
-                          : null}
+                        {boxPhase === 'verifying' ? (
+                          <>
+                            {/*
+                              THE LINE SITS STILL WHILE IT WAITS.
+
+                              It used to be one span per character on a 2.4s
+                              ripple - a hand waving rather than a spinner
+                              turning. The verifying beat is quiet now, so it
+                              is plain text: one node, nothing animating, and
+                              nothing for a screen reader to be hidden from.
+                              The dots after it are still their own elements
+                              so they can come and go on their own clock.
+                            */}
+                            {CAPTCHA_GATE_COPY.verifying}
+                            {/*
+                              The dots are three elements rather than three
+                              characters so they can come and go on their own
+                              clock. aria-hidden because "making sure it's
+                              you..." read aloud is the same sentence as
+                              "making sure it's you".
+                            */}
+                            <span className="cg-waitdots" aria-hidden>
+                              <i />
+                              <i />
+                              <i />
+                            </span>
+                          </>
+                        ) : null}
                         {boxPhase === 'passed'
                           ? CAPTCHA_GATE_COPY.passedLabel
                           : null}
@@ -2270,14 +2333,14 @@ export function CaptchaGate({
 
                     <div className="cg-gridwrap">
                       <div
-                        className={`cg-grid${tilesArriving ? ' is-arriving' : ''}`}
+                        className={`cg-grid${tilesArriving ? ' is-arriving' : ''}${
+                          solved && !reduced ? ' is-solved' : ''
+                        }`}
                         role="group"
                         aria-label={GRID_PROMPTS[promptIdx]}
                       >
                         {grid.map((tile, pos) => {
                           const isOn = selected.has(pos);
-                          const isTicked = verified.has(pos);
-                          const isPopping = popAt.has(pos);
                           return (
                             /*
                               THE CELL. It used to carry the tilt and the nudge
@@ -2308,7 +2371,6 @@ export function CaptchaGate({
                                 className={[
                                   'cg-tile',
                                   isOn ? 'is-open' : '',
-                                  isTicked ? 'is-verified' : '',
                                   shakeAt === pos ? 'cg-shake' : '',
                                 ]
                                   .filter(Boolean)
@@ -2318,7 +2380,16 @@ export function CaptchaGate({
                                 // the top-left corner rather than row by row.
                                 style={
                                   {
-                                    '--d': `${(Math.floor(pos / 3) + (pos % 3)) * 38}ms`,
+                                    '--d': `${(Math.floor(pos / 3) + (pos % 3)) * 57}ms`,
+                                    /*
+                                      THE CROP'S ZOOM, AS A NUMBER THE
+                                      STYLESHEET CAN READ. It is already on the
+                                      img below as an inline transform, but a
+                                      transform is not readable from CSS and
+                                      @keyframes cg-open-in has to start the
+                                      reward at exactly it. See the note there.
+                                    */
+                                    '--z': tile.zoom.toFixed(3),
                                   } as CSSProperties
                                 }
                                 onClick={() => tapTile(pos, tile)}
@@ -2368,84 +2439,64 @@ export function CaptchaGate({
                                     } as CSSProperties
                                   }
                                 />
-                                {/* THE REWARD — the whole photograph, over the crop. */}
+                                {/*
+                                  THE REWARD — the whole photograph, over the
+                                  crop.
+
+                                  IT CARRIES THE CROP'S TRANSFORM-ORIGIN AND NOT
+                                  ITS TRANSFORM, and the asymmetry is the point.
+                                  The scale is owned by @keyframes cg-open-in,
+                                  which pulls it from the crop's zoom back to 1;
+                                  the ORIGIN has to be declared here because it
+                                  is per-tile and is never animated. Together
+                                  they mean this image starts as a pixel-perfect
+                                  copy of the close-up underneath it and widens
+                                  out of it, so the swap between the two has
+                                  nothing to show.
+
+                                  With no inline transform, an element with no
+                                  animation sits at scale(1) - the whole frame -
+                                  which is exactly what reduced motion wants.
+                                */}
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img
                                   src={tile.src}
                                   alt=""
                                   className="cg-full"
+                                  style={
+                                    {
+                                      transformOrigin: `${tile.focusX.toFixed(1)}% ${tile.focusY.toFixed(1)}%`,
+                                    } as CSSProperties
+                                  }
                                 />
 
                                 {/*
-                                THERE IS NO BURST HERE, AND THERE USED TO BE.
+                                  ONE HEART, RISING OUT OF THE PICTURE AND
+                                  STAYING WHERE IT LANDS.
 
-                                Six little hearts flew out of a square on every
-                                correct tap - on top of a bloom, on top of a
-                                bounce, on top of a ring, on top of a photograph
-                                unfolding. Five things answering one tap is not
-                                five times the delight. It is noise, and what it
-                                buried was the only one of the five that was
-                                actually a reward: the picture coming up.
+                                  IT IS THE EVENT AND THE MARK IN ONE MOTION.
+                                  The previous version floated up and faded,
+                                  which made it an event only - a square chosen
+                                  a minute ago had nothing on it, so a separate
+                                  chip had to exist to say which squares were
+                                  claimed. Landing instead of vanishing collapses
+                                  the two: the heart that celebrates the tap is
+                                  the heart still sitting there afterwards.
 
-                                The burst itself is not gone and is still used,
-                                on the checkbox and on the green tick, where it
-                                is the ONLY thing happening on the screen. See
-                                the note on .cg-tile.is-open for the whole
-                                argument about what a correct tap should say.
-                              */}
-                                {/*
-                                  THE REWARD, AND IT IS ONE HEART.
-
-                                  Six of them used to fly out of a square on
-                                  every correct tap, on top of a bloom, a
-                                  bounce, a ring and the photograph unfolding -
-                                  the note below records why all of that came
-                                  off. What is here now is the same GESTURE at
-                                  a hundredth of the volume: a single heart
-                                  rising once inside the square that was
-                                  tapped, and gone in 600ms.
-
-                                  It is mounted only while the tile is chosen,
-                                  so a grid nobody has touched carries nine
-                                  fewer nodes and no animations at all.
+                                  SO IT MOUNTS ON isOn ALONE, not on
+                                  isOn && !reduced. It is no longer
+                                  nothing-but-motion, so reduced motion needs it
+                                  PRESENT - just already attached, with the
+                                  flight switched off. Unmounting on deselect is
+                                  what takes it away again; there is no state
+                                  and no timer anywhere in this.
                                 */}
-                                {/*
-                                  THE MARK ON A CHOSEN SQUARE IS A HEART, NOT A
-                                  CHECK. A tick is the vocabulary of a form that
-                                  has been filled in correctly; this grid is
-                                  somebody finding photographs of themselves.
-                                  The sparkle is what stops the chip reading as
-                                  a badge.
-                                */}
-                                <span className="cg-tick" aria-hidden>
-                                  <i className="cg-pxheart" />
-                                  <b className="cg-tick-spark">✦</b>
-                                </span>
+                                {isOn ? (
+                                  <span className="cg-lift" aria-hidden>
+                                    <i />
+                                  </span>
+                                ) : null}
                               </button>
-
-                              {/*
-                                THE FLOATING HEART LIVES OUT HERE, ON THE CELL,
-                                AND NOT INSIDE THE BUTTON.
-
-                                .cg-tile is overflow: hidden and has to stay
-                                that way - it is the clip that keeps a crop
-                                zoomed 2-4x from spilling over its neighbours.
-                                Anything mounted inside it is guillotined at the
-                                tile border, which is exactly what was happening
-                                to the old heart. The cell is the first ancestor
-                                that does not clip, so this is the innermost
-                                place the heart can be and still escape.
-
-                                The cell also carries is-lifted (z-index 2) for
-                                the whole time a tile is chosen, so the heart
-                                paints over the neighbouring squares on its way
-                                up rather than sliding under them.
-                              */}
-                              {isPopping ? (
-                                <span className="cg-pop" aria-hidden>
-                                  <i className="cg-pop-heart cg-pxheart" />
-                                </span>
-                              ) : null}
                             </span>
                           );
                         })}
@@ -2502,7 +2553,9 @@ export function CaptchaGate({
                     <div className="cg-btnrow">
                       <button
                         type="button"
-                        className="cg-btn cg-btn-love"
+                        className={`cg-btn cg-btn-love${
+                          solved ? ' is-ready' : ''
+                        }`}
                         onClick={verifyRound}
                       >
                         {CAPTCHA_GATE_COPY.verify}
@@ -4341,7 +4394,7 @@ export const CAPTCHA_GATE_CSS = `
    * visibility, and the delay on it, is what keeps the parked step out of the
    * tab order and out of the accessibility tree WITHOUT taking it out of the
    * layout. The 0s change is delayed until the fade is over so the outgoing
-   * step stays readable for the whole of it; both numbers are 200ms and they
+   * step stays readable for the whole of it; both numbers are 270ms and they
    * have to stay the same number.
    */
   visibility: hidden;
@@ -4357,8 +4410,8 @@ export const CAPTCHA_GATE_CSS = `
    * the outgoing step stays readable for the whole of it.
    */
   transition:
-    opacity 180ms cubic-bezier(0.4, 0, 1, 1),
-    visibility 0s linear 180ms;
+    opacity 270ms cubic-bezier(0.4, 0, 1, 1),
+    visibility 0s linear 270ms;
   will-change: opacity;
 }
 
@@ -4373,7 +4426,7 @@ export const CAPTCHA_GATE_CSS = `
    * arrives quickly and settles rather than creeping in.
    */
   transition:
-    opacity 220ms cubic-bezier(0, 0, 0.2, 1) 100ms,
+    opacity 330ms cubic-bezier(0, 0, 0.2, 1) 150ms,
     visibility 0s linear 0s;
 }
 
@@ -4447,17 +4500,17 @@ export const CAPTCHA_GATE_CSS = `
    * fading, which is exactly when a snap is cheapest to see.
    */
   transition:
-    opacity 180ms cubic-bezier(0.4, 0, 1, 1),
-    transform 180ms cubic-bezier(0.4, 0, 1, 1),
-    visibility 0s linear 180ms;
+    opacity 270ms cubic-bezier(0.4, 0, 1, 1),
+    transform 270ms cubic-bezier(0.4, 0, 1, 1),
+    visibility 0s linear 270ms;
   will-change: opacity, transform;
 }
 
 .cg-pane-grid.is-showing {
   transform: none;
   transition:
-    opacity 220ms cubic-bezier(0, 0, 0.2, 1) 100ms,
-    transform 260ms cubic-bezier(0.22, 0.9, 0.3, 1) 100ms,
+    opacity 330ms cubic-bezier(0, 0, 0.2, 1) 150ms,
+    transform 390ms cubic-bezier(0.22, 0.9, 0.3, 1) 150ms,
     visibility 0s linear 0s;
 }
 
@@ -4852,12 +4905,16 @@ export const CAPTCHA_GATE_CSS = `
  * twist on the checked state — so it arrives with a pop rather than simply
  * being present, and the burst of little hearts fires from the same instant.
  *
- * TWO ANIMATIONS ON ONE ELEMENT, SEQUENCED BY DELAY. The pop runs once for
- * 420ms and the idle hop starts at 420ms, so they never overlap and never both
- * own the transform. The pop deliberately has NO fill mode: it ends at the
- * heart's natural size, hands the element back with no transform pinned, and
- * the hop takes it from there. A "forwards" on the pop would freeze the heart
- * and the loader would never move.
+ * ONE ANIMATION, AND THEN IT IS STILL. The heart used to carry a second one:
+ * cg-beat, a thump-thump-rest starting at 420ms, on the argument that a beat
+ * says "alive" where a hop says "working". It did - and it also meant the one
+ * element the eye lands on never stopped moving. The wait is calm now, so the
+ * pop is the whole of it.
+ *
+ * THE POP DELIBERATELY HAS NO FILL MODE, and that matters more now rather than
+ * less. It ends at the heart's natural size and hands the element back with no
+ * transform pinned; a "forwards" here would leave the heart frozen at whatever
+ * the last keyframe said instead of simply sitting at its own size.
  */
 .cg-mini {
   width: 15px;
@@ -4865,10 +4922,178 @@ export const CAPTCHA_GATE_CSS = `
   animation: cg-heart-check 420ms cubic-bezier(0.34, 1.7, 0.64, 1);
 }
 
-.cg-mini-hop {
-  animation:
-    cg-heart-check 420ms cubic-bezier(0.34, 1.7, 0.64, 1),
-    cg-hop 0.9s cubic-bezier(0.3, 0.9, 0.4, 1) 420ms infinite;
+/*
+ * -- TWO HEARTS GOING ROUND -------------------------------------------------
+ *
+ * CAPPED AT TWO, IN THE MARKUP AND HERE. See the note where they are mounted:
+ * one reads as a stray, three or more read as a spinner. Two opposite each
+ * other read as a pair, which is the only reading this gift wants.
+ *
+ * THE COUNTER-ROTATION IS WHAT KEEPS THEM UPRIGHT. rotate(a) translateX(r)
+ * carries the glyph around the circle AND turns it; the trailing rotate(-a)
+ * undoes the turn without touching the position, so a heart orbits without
+ * ever tumbling. Both halves live in the same transform, so it is still one
+ * composited property.
+ *
+ * 3.4s IS SLOW ON PURPOSE. The wait is 1300ms, so neither heart completes even
+ * half a lap - they drift, which is what makes it read as decoration rather
+ * than as a progress indicator counting laps at you.
+ *
+ * The second is half a period out via a NEGATIVE delay, so it starts already
+ * opposite instead of chasing the first one round.
+ */
+.cg-orbit {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/*
+ * ONE TRANSFORM PER JOB, SPREAD OVER THREE ELEMENTS, and it is not
+ * over-engineering - it is the only shape that lets these hearts do the second
+ * thing they have to do.
+ *
+ * The obvious version puts the whole orbit in one transform on one element:
+ * rotate(a) translateX(r) rotate(-a). It works, and it is a dead end. Making
+ * the pair MEET means shrinking r while a keeps turning, and a CSS animation
+ * owns the whole transform property - retarget it and the browser restarts it
+ * from its own 0%, which snaps the heart back to zero degrees before it can
+ * travel a pixel.
+ *
+ * So: the i owns the ANGLE, the arm owns the RADIUS, the heart owns the
+ * counter-rotation that keeps the glyph upright. Three composited transforms
+ * that never touch each other's property, and the radius is free to be
+ * animated by something else entirely when the swap arrives.
+ *
+ * THE DELAY HAS TO BE REPEATED ON THE COUNTER-ROTATION. The second heart
+ * starts half a lap out via a negative delay, and its upright-keeping spin has
+ * to be exactly as far out or the glyph rides round at a fixed tilt.
+ */
+.cg-orbit i {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: block;
+  animation: cg-orbit-spin 3.4s linear infinite;
+  will-change: transform;
+}
+
+.cg-orbit-arm {
+  display: block;
+  transform: translateX(21px);
+  will-change: transform;
+}
+
+.cg-orbit-heart {
+  display: block;
+  margin: -6px 0 0 -5px;
+  font-size: 10px;
+  font-style: normal;
+  line-height: 1;
+  color: var(--cg-pink, #ff69b4);
+  text-shadow: 0 1px 4px rgba(216, 27, 140, 0.4);
+  animation: cg-orbit-anti 3.4s linear infinite;
+  will-change: transform;
+}
+
+.cg-orbit-2 { animation-delay: -1.7s; }
+.cg-orbit-2 .cg-orbit-heart { animation-delay: -1.7s; }
+.cg-orbit-2 .cg-orbit-heart { color: #d98cf5; }
+
+@keyframes cg-orbit-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes cg-orbit-anti {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(-360deg); }
+}
+
+/*
+ * -- AND AT THE SWAP THEY MEET ---------------------------------------------
+ *
+ * The pair has been going round each other for the whole wait, and until now
+ * they simply stopped existing when the pane changed - which threw away the
+ * only thing on the screen that was already a pair.
+ *
+ * Now the radius collapses to nothing over 320ms while the angle keeps
+ * turning, so they spiral inward rather than sliding on a straight line, and
+ * they arrive at the centre of the checkbox - which is the exact point the
+ * swap's burst fires from and the exact origin the grid blooms out of. The
+ * hearts do not vanish and get replaced by a burst; they become it.
+ *
+ * THE FADE IS ON THE CONTAINER, deliberately. Both inner elements are already
+ * running transform animations, and a second animation naming opacity would
+ * still reset their delays if it were declared on the same element. The
+ * wrapper animates nothing else, so opacity there is free.
+ */
+.cg-orbit.is-meeting .cg-orbit-arm {
+  animation: cg-orbit-meet 320ms cubic-bezier(0.5, 0, 0.2, 1) forwards;
+}
+
+.cg-orbit.is-meeting {
+  animation: cg-orbit-fade 320ms ease-in forwards;
+}
+
+@keyframes cg-orbit-meet {
+  0% { transform: translateX(21px); }
+  100% { transform: translateX(0px) scale(0.6); }
+}
+
+@keyframes cg-orbit-fade {
+  0% { opacity: 1; }
+  62% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/*
+ * -- THE TICK LANDS ---------------------------------------------------------
+ *
+ * ONE RING, NOT MORE PARTICLES. The six hearts already say "delight"; what the
+ * tick was missing was impact - the sense that something was pressed. An
+ * outline leaving the box at speed and thinning to nothing is the cheapest
+ * gesture that reads as a press, and it is one node, one transform, one
+ * opacity.
+ *
+ * IT BORROWS THE BOX'S OWN RADIUS rather than being a circle. A circle
+ * expanding out of a rounded square reads as a separate object that happened
+ * to be there; the same shape expanding reads as the square itself pulsing.
+ */
+.cg-ring {
+  position: absolute;
+  inset: -2px;
+  border: 2px solid var(--cg-pink, #ff69b4);
+  border-radius: 13px;
+  pointer-events: none;
+  opacity: 0;
+  animation: cg-ring-out 620ms cubic-bezier(0.2, 0.75, 0.35, 1) both;
+  will-change: transform, opacity;
+}
+
+@keyframes cg-ring-out {
+  0% { opacity: 0.9; transform: scale(0.86); }
+  100% { opacity: 0; transform: scale(1.75); }
+}
+
+/*
+ * THE BOX ITSELF GIVES, THEN OVERSHOOTS. A press that only expands outward is
+ * a firework; a press that dips first is a button. 0.88 in 12% of the time,
+ * then over the top and back - and it is deliberately shorter than the ring,
+ * so the box has settled while the ring is still leaving it.
+ */
+.cg-check.is-popped {
+  animation: cg-check-pop 460ms cubic-bezier(0.3, 1.35, 0.5, 1) both;
+  will-change: transform;
+}
+
+@keyframes cg-check-pop {
+  0% { transform: scale(1); }
+  12% { transform: scale(0.88); }
+  42% { transform: scale(1.14); }
+  66% { transform: scale(0.97); }
+  84% { transform: scale(1.02); }
+  100% { transform: scale(1); }
 }
 
 @keyframes cg-heart-check {
@@ -5034,6 +5259,67 @@ export const CAPTCHA_GATE_CSS = `
   min-width: 0;
   font-size: 15px;
   color: #2b2233;
+}
+
+/*
+ * -- THE WAITING DOTS -------------------------------------------------------
+ *
+ * Three of them, on a 1.2s cycle, each a fifth of a second behind the last -
+ * so it reads left to right as a sentence still being thought about rather
+ * than as three lights blinking.
+ *
+ * THEY NEVER REACH ZERO. Dots that vanish make the label's width look like it
+ * is changing even when it is not, because the eye reads the gap as the line
+ * ending. Floating between 0.25 and 1 keeps the shape of the sentence still.
+ *
+ * inline-block WITH A FIXED WIDTH, so three dots occupy the same space at
+ * every moment and the label beside them cannot shuffle.
+ */
+/*
+ * -- THE WAITING LINE WAVES -------------------------------------------------
+ *
+ * Each letter lifts and comes back, a beat behind the one before it, so the
+ * ripple runs the length of the sentence and then rests. 2.4s round trip with
+ * the lift occupying only the first fifth of it - the pause is most of the
+ * cycle, exactly as it is on the heartbeat next to it, and for the same reason:
+ * a wave that never stops is a wobble.
+ *
+ * white-space: pre IS LOAD-BEARING, TOGETHER WITH THE NBSP IN THE MARKUP.
+ * Splitting a line into inline-blocks is the classic way to shorten it by
+ * accident - the spaces between words sit at the edges of their own boxes and
+ * collapse - and this label is flex: 1 1 auto in a row whose badge is parked
+ * about two pixels from the card's edge. A quietly narrower label moves the
+ * badge, which is the one piece of this widget that has to look untouched.
+ * Measured after the change: same widget width, same badge gap.
+ *
+ * translateY ONLY, AND ONLY 2px. Rotation per letter reads as bouncing text on
+ * a birthday card; a small vertical ripple reads as a wave. At 15px type, two
+ * pixels is plenty.
+ */
+.cg-waitdots {
+  display: inline-block;
+  margin-left: 1px;
+}
+
+.cg-waitdots i {
+  display: inline-block;
+  width: 4px;
+  font-style: normal;
+  opacity: 0.25;
+  animation: cg-waitdot 1.2s ease-in-out infinite;
+  will-change: opacity;
+}
+
+.cg-waitdots i::before {
+  content: '.';
+}
+
+.cg-waitdots i:nth-child(2) { animation-delay: 0.2s; }
+.cg-waitdots i:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes cg-waitdot {
+  0%, 60%, 100% { opacity: 0.25; }
+  30% { opacity: 1; }
 }
 
 /* Drab on purpose — it is the part of a real widget nobody looks at. It also
@@ -5676,6 +5962,56 @@ export const CAPTCHA_GATE_CSS = `
 }
 
 /*
+ * -- THE ROUND IS WON -------------------------------------------------------
+ *
+ * ONE PULSE, ON THE FOUR THAT WERE FOUND, AND ONLY ONCE. is-lifted is already
+ * exactly the set of chosen squares, so this needs no new state in the markup
+ * and cannot get out of step with what is selected: the class arrives with the
+ * last correct tap and the animation is one-shot, so the grid says "that's all
+ * of us" and then holds perfectly still.
+ *
+ * IT IS ON THE CELL, NOT THE TILE, AND THAT SURVIVED THE TILE GOING STILL.
+ * The original reason was collision: .cg-tile.is-open owned its own transform -
+ * a resting lift and the cg-tile-pop squish - and an animation here would have
+ * replaced both. Both of those are gone now and the tile holds perfectly still
+ * on a correct tap, so the collision is gone with them. The pulse stays on the
+ * cell anyway, because the tile is the element the PHOTOGRAPH is scaled inside
+ * (see cg-open-in) and scaling its container at the same time is the exact
+ * two-nested-scales problem that removing the squish was meant to end. The cell
+ * is the free layer above both.
+ *
+ * THE STAGGER IS THE GRID'S OWN. Squares hold their positions, so a fixed
+ * 45ms step by DOM order reads left to right across the card - enough that the
+ * four register as a set rather than one four-square flash, and small enough
+ * that it is over inside half a second.
+ */
+.cg-grid.is-solved .cg-cell.is-lifted {
+  animation: cg-found 520ms cubic-bezier(0.3, 1.3, 0.5, 1) both;
+  will-change: transform;
+}
+
+.cg-grid.is-solved .cg-cell.is-lifted:nth-child(2) { animation-delay: 45ms; }
+.cg-grid.is-solved .cg-cell.is-lifted:nth-child(3) { animation-delay: 90ms; }
+.cg-grid.is-solved .cg-cell.is-lifted:nth-child(4) { animation-delay: 45ms; }
+.cg-grid.is-solved .cg-cell.is-lifted:nth-child(5) { animation-delay: 90ms; }
+.cg-grid.is-solved .cg-cell.is-lifted:nth-child(6) { animation-delay: 135ms; }
+.cg-grid.is-solved .cg-cell.is-lifted:nth-child(7) { animation-delay: 90ms; }
+.cg-grid.is-solved .cg-cell.is-lifted:nth-child(8) { animation-delay: 135ms; }
+.cg-grid.is-solved .cg-cell.is-lifted:nth-child(9) { animation-delay: 180ms; }
+
+/*
+ * SMALL, BECAUSE THESE SQUARES ARE ALREADY LIFTED. A chosen tile sits at
+ * scale(1.04) with a ring and a shadow; the cell only has to nudge it. 1.05
+ * on top of that is a visible swell without the card looking like it inflated.
+ */
+@keyframes cg-found {
+  0% { transform: scale(1); }
+  34% { transform: scale(1.05); }
+  62% { transform: scale(0.995); }
+  100% { transform: scale(1); }
+}
+
+/*
  * THE CARD'S BOTTOM CORNERS, DRAWN BY THE TILES THAT SIT IN THEM. This is what
  * replaces .cg-grid's overflow: hidden - same silhouette, no clip, so the
  * floating heart can leave. Only the bottom two, because the header band above
@@ -5757,9 +6093,29 @@ export const CAPTCHA_GATE_CSS = `
   background: #fffdf8;
   cursor: var(--cursor-hand);
   display: block;
-  transition:
-    transform 320ms cubic-bezier(0.34, 1.45, 0.64, 1),
-    box-shadow 240ms ease-out;
+  /*
+   * THIS TRANSITION IS FOR THE PRESS, AND NOTHING ELSE.
+   *
+   * IT LOOKED DEAD AND HALF OF IT WAS. An audit of what fires on a correct tap
+   * caught a 320ms transform transition running on every one of them and doing
+   * nothing visible, because @keyframes cg-tile-pop animated the same property
+   * and an animation beats a transition in the cascade. The obvious conclusion
+   * was that the whole declaration was dead weight. It was not: it is what
+   * gives .cg-tile:not(.is-open):active its spring, so deleting it would have
+   * made the press-down on all nine squares snap instead of give.
+   *
+   * THE box-shadow HALF WAS GENUINELY DEAD AND HAS GONE. Nothing anywhere ever
+   * sets a box-shadow on .cg-tile - the chosen ring is drawn on ::after, which
+   * is a different element with its own static shadow - so those 240ms were
+   * waiting for a change that could not arrive.
+   *
+   * AND IT IS FENCED OUT OF THE REVEAL, SEE .cg-tile.is-open BELOW. With the
+   * squish gone the tile has no business moving during a reveal at all, and
+   * without the fence the release of :active would spring 0.95 back to 1 over
+   * 320ms - straight across the photograph's own opening, which is the exact
+   * collision this pass exists to remove.
+   */
+  transition: transform 320ms cubic-bezier(0.34, 1.45, 0.64, 1);
 }
 
 /* Squish under the thumb, but only while it is still a puzzle piece — a
@@ -5803,7 +6159,7 @@ export const CAPTCHA_GATE_CSS = `
  * tamed spring was tuned for in the first place.
  */
 .cg-grid.is-arriving .cg-tile {
-  animation: cg-tile-in 340ms cubic-bezier(0.34, 1.32, 0.64, 1) var(--d, 0ms)
+  animation: cg-tile-in 510ms cubic-bezier(0.34, 1.32, 0.64, 1) var(--d, 0ms)
     backwards;
   /*
    * AND THIS IS WHAT KEEPS THE FADE SMOOTH, which is not the same as the wave
@@ -5822,9 +6178,10 @@ export const CAPTCHA_GATE_CSS = `
    * nothing new.
    *
    * IT IS SCOPED TO .is-arriving, AND THAT IS THE POINT. Promotion is not free
-   * and it is not a hint you leave on - the same rule popAt follows one layer
-   * up. The class comes off after TILES_IN_MS and the nine layers go with it,
-   * long before a thumb can reach a square.
+   * and it is not a hint you leave on - the same rule the heart-open mask
+   * follows one layer down, where the hint sits on .is-open rather than on
+   * .cg-tile. The class comes off after TILES_IN_MS and the nine layers go with
+   * it, long before a thumb can reach a square.
    */
   will-change: transform, opacity;
   contain: paint;
@@ -5931,205 +6288,124 @@ export const CAPTCHA_GATE_CSS = `
  * z-index 4 puts it over both and under the tick at 5.
  */
 /*
- * ── THE CORRECT-TAP REWARD ────────────────────────────────────────────────
+ * ── THE CORRECT-TAP REWARD ──────────────────────────────────────────────
  *
  * THE NOTE THIS SITS UNDER SAYS FIVE THINGS ANSWERING ONE TAP IS NOISE, AND IT
- * IS STILL RIGHT. What came off was a bloom, a ring that grew, a bounce with an
- * overshoot AND a kick of rotation, and six hearts - each one competing with
- * the photograph unfolding, which was the actual reward and the quietest of
- * them.
+ * IS STILL RIGHT. What came off, over three passes, was a bloom, a ring that
+ * grew, a bounce with an overshoot AND a kick of rotation, six hearts, a pink
+ * flare, and then two separate attempts at making the picture's own arrival
+ * into an event.
  *
- * WHAT IS HERE IS ONE MOMENT IN THREE PARTS, SEQUENCED RATHER THAN STACKED.
- * They do not run against each other; they hand off:
+ * WHAT IS LEFT IS THE FLOOR, AND IT IS DELIBERATELY THE FLOOR:
  *
- *   0-380ms   the tile springs: a small scale up and back. It is the tile
- *             saying "yes, that one" in the same instant the thumb lifts.
- *   0-500ms   the ring flares brighter and settles to its resting violet.
- *   60-660ms  one heart rises through the square and fades.
- *   at 1000ms the tick lands (REVEAL_MS), by which point everything above has
- *             finished and the photograph has been looked at.
+ *   0-460ms   the tile squishes and comes back - the only thing answering the
+ *             THUMB rather than the picture.
+ *   instantly the whole photograph is there, replacing the close-up.
+ *   at 1000ms the tick lands (REVEAL_MS), by which point it has been seen.
+ *   throughout the ring on ::after says CHOSEN, statically.
  *
- * NOTHING OVERLAPS THE PHOTOGRAPH'S OWN BEAT. The crop pulls back to the full
- * frame over 520ms and that is still the main event; these three are all under
- * or around it and all gone before the tick.
+ * THE TWO THAT FAILED, AND WHY, SO NEITHER IS TRIED A THIRD TIME:
+ *
+ *   THE PIXEL DISSOLVE cut the close-up into a 4x4 grid and popped the blocks
+ *   out in a scatter. It was cheap and it was in the gate's own vocabulary, and
+ *   it read as a MACHINE resolving an image - on the one screen whose whole
+ *   joke is that the verification is about a person.
+ *
+ *   THE OPENING HEART clipped the reward to the gate's pixel heart and blew it
+ *   out past the tile's edge. The shape had no colour of its own, so on a night
+ *   photograph it was a black hole in a black square; making it legible needed
+ *   the layer underneath dimmed AND a drawn rim on a wrapper element, and an
+ *   idea that needs two props to be visible is not the simple one it claimed.
+ *
+ * THE COMMON LESSON: the reward is a photograph of two specific people, every
+ * one of these squares is a real snapshot, and any effect that borrows the
+ * picture's own brightness or detail works on some of them and not others.
  */
 /*
- * A SQUISH, NOT A SPRING. The previous curve went UP first - scale(1.055) on a
- * stiff overshoot - which is the motion of a button confirming an input. A soft
+ * ── THE TILE DOES NOT MOVE ON A CORRECT TAP, AND THAT IS THE POINT ────────
+ *
+ * THERE WAS A SQUISH HERE - @keyframes cg-tile-pop, 460ms, scale down to 0.955
+ * and back up through 1.042 - and the note that argued for it was good: a soft
  * thing that is pleased to be touched compresses FIRST and swells back through
- * its resting size, and that order is the whole difference between mechanical
- * and cute. Same duration, gentler amplitude, one extra settle.
- */
-@keyframes cg-tile-pop {
-  0% { transform: scale(1); }
-  22% { transform: scale(0.955); }
-  52% { transform: scale(1.042); }
-  78% { transform: scale(0.992); }
-  100% { transform: scale(1); }
-}
-
-/*
- * NO fill mode, deliberately - the keyframes end exactly where the resting rule
- * sits, so the browser hands the tile back to plain CSS at scale(1). A fill of
- * "both" would pin the transform to the last frame and the squish on a later
- * tap would have nothing to animate from.
+ * its resting size, and that order is the difference between mechanical and
+ * cute. None of that was wrong. It was answering a different question.
+ *
+ * TWO SCALES ON NESTED ELEMENTS AT THE SAME INSTANT IS ONE TOO MANY. The squish
+ * scaled the TILE while cg-open-in scaled the PHOTOGRAPH INSIDE IT, both
+ * starting on the same frame, both about half a second long. The eye cannot
+ * follow two nested things changing size at once - it reads as a wobble rather
+ * than as either motion - and of the two, only one is the reward. The
+ * photograph opening is what the recipient came for; the squish was
+ * acknowledgement of a thumb, and the thumb already has acknowledgement.
+ *
+ * IT DOES, TOO: .cg-tile:not(.is-open):active still presses to 0.95 under the
+ * finger, on every square, right up to the moment one is chosen. The tap is
+ * answered - it is just answered while the finger is DOWN, which is where
+ * press feedback belongs, instead of competing with the reveal afterwards.
+ *
+ * SO THE ONLY MOTION ON A CORRECT TAP IS THE PICTURE'S OWN. It widens, the
+ * light comes up on it, and twelve sparks leave the middle of the square.
+ * Nothing that contains the photograph moves at all.
+ *
+ * will-change WENT WITH THE ANIMATION. It was promoting the tile for the length
+ * of the squish; with nothing on the tile to promote, the hint was buying a
+ * compositor layer per chosen square for no motion whatsoever.
  */
 .cg-tile.is-open {
   /*
-   * will-change promotes the tile for the length of the squish. It is declared
-   * on .is-open rather than on .cg-tile because a permanently-promoted layer
-   * per tile is nine layers the compositor has to hold for a screen that is
-   * mostly sitting still - the hint belongs on the state that actually moves.
+   * AND THE PRESS DOES NOT SPRING BACK OVER THE REVEAL. :active stops matching
+   * the instant this class lands, so transform returns from scale(0.95) to
+   * none - and the base rule would ease that over 320ms, on the tile, directly
+   * across the photograph opening inside it. transition: none makes it a
+   * single-frame snap nobody can see. It is the last of the two competing
+   * scales, and it is the one that is easy to miss because it is inherited
+   * from a rule three screens up rather than declared here.
    */
-  will-change: transform;
-  animation: cg-tile-pop 460ms cubic-bezier(0.32, 1.4, 0.5, 1);
+  transition: none;
 }
 
 /*
- * THE HEART. The gate's own pixel heart, not an emoji, for the reason every
- * other shape here is drawn: an emoji is a different picture on every phone.
+ * ── THERE IS NO FLARE ANY MORE, AND WHY IT EXISTED IS WORTH KEEPING ─────
  *
- * IT RISES INSIDE THE SQUARE AND DIES BEFORE THE TOP EDGE. .cg-tile is
- * overflow: hidden, so a heart floating out of the tile would be guillotined at
- * the border - and letting it escape is worse, not better: with a 3px channel
- * it would immediately be sitting on the neighbouring photograph, which is the
- * one thing decoration in this grid may never do. Starting low and fading by
- * 70% of the way up keeps the whole gesture on the tile it belongs to.
+ * A .cg-tile.is-open::before used to carry a pink bloom that swelled as it
+ * faded, over 620ms. It was built to fix real jank: the version before it
+ * animated box-shadow directly, which is a PAINT property - no reflow, but a
+ * large blurred shadow redrawn and re-uploaded every frame, on four tiles at
+ * once, which is exactly the stutter that was reported. That fix was right and
+ * the rule it produced still governs this file: NEVER ANIMATE A SHADOW. Paint
+ * it once, on its own element, and animate that element's opacity and
+ * transform - both of which the compositor can do without touching pixels.
+ *
+ * The layer went anyway, because a correctly-built glow is still a glow going
+ * off over somebody's face. See the correct-tap note above.
  */
-/*
- * ── THE HEART THAT LEAVES ─────────────────────────────────────────────────
- *
- * ONE HEART. Not a shower - this screen has thrown six of them before and the
- * note on .cg-tile.is-open records what that cost. A single object rising out
- * of the square that was tapped is legible, cheap, and reads as the photograph
- * being pleased rather than as a particle system.
- *
- * IT IS POSITIONED AGAINST THE CELL, NOT THE TILE, so its 0 point is the tile's
- * own box and translating it negatively carries it up past the top edge and
- * over whatever is above - see the note in the JSX for why it cannot live
- * inside the button.
- *
- * TRANSFORM AND OPACITY ONLY. No top, no margin, no filter, no shadow
- * animation: the element is promoted once by will-change and then the
- * compositor moves it without the main thread touching a pixel. The drop
- * shadow that used to sit on this heart is gone for the same reason - a filter
- * on a moving element can re-run every frame.
- */
-.cg-pop {
-  position: absolute;
-  left: 50%;
-  top: 12%;
-  z-index: 3;
-  pointer-events: none;
-  opacity: 0;
-  will-change: transform, opacity;
-  animation: cg-pop-rise 640ms cubic-bezier(0.22, 0.7, 0.3, 1) 40ms;
-}
-
-.cg-pop-heart {
-  display: block;
-  width: 22px;
-}
 
 /*
- * -60px CARRIES IT WELL CLEAR. The tile is ~103px on a phone, so by the end the
- * heart is more than half a tile above its own square and has been transparent
- * for the last third of the trip - it is never seen crossing the tile above it
- * at full strength.
+ * ── THERE IS NO RING AND NO CHIP, AND THE LIGHT DOES THEIR JOB ────────────
  *
- * The sway is two small x offsets rather than a rotation of the whole element,
- * which keeps the transform a translate and a scale and nothing else.
+ * A ROSE RING USED TO OUTLINE A CHOSEN SQUARE and a heart chip used to land in
+ * its corner a second later. Both were marks laid ON a photograph, and both
+ * went for the reason this file has recorded about half a dozen times now: the
+ * one surface on this screen that does not need decorating is the picture.
+ *
+ * BUT THE JOB THEY WERE DOING IS REAL AND HAD TO GO SOMEWHERE. Reading the
+ * state of the grid at a glance IS the task - the recipient has to see which
+ * squares they have already claimed or they cannot tell whether they are done.
+ * So the brightness that was already part of the reward simply stops coming all
+ * the way back down: a chosen square settles LIT and stays there, and the eight
+ * that are not chosen sit at their own exposure. Lit is chosen.
+ *
+ * IT IS ONE PROPERTY DOING BOTH JOBS, WHICH IS WHY IT IS ONE ANIMATION. The
+ * light comes up hard as the photograph opens and then eases back to a level
+ * still above its neighbours. The event and the state are the start and the end
+ * of a single curve rather than two separate things that have to agree.
+ *
+ * THE CAVEAT, WRITTEN DOWN BECAUSE IT IS THIS APPROACH'S WEAKNESS: a lift is
+ * relative, so it reads hardest on the dark night photographs and softest on
+ * the brightest ones. A ring did not care what was underneath it. If a chosen
+ * square is ever hard to pick out, the number in cg-open-in is the dial - not
+ * a new mark on the photograph.
  */
-@keyframes cg-pop-rise {
-  0% { opacity: 0; transform: translate(-50%, 4px) scale(0.5); }
-  22% { opacity: 1; transform: translate(-50%, -8px) scale(1.15); }
-  45% { opacity: 1; transform: translate(-46%, -26px) scale(1); }
-  100% { opacity: 0; transform: translate(-54%, -60px) scale(0.86); }
-}
-
-/*
- * ── THE FLARE, AND WHY IT IS A SECOND LAYER ───────────────────────────────
- *
- * THIS WAS THE JANK. The flare used to be @keyframes cg-tile-glow animating
- * box-shadow from transparent, through a 30px blur with 10px of spread, down to
- * the resting ring. box-shadow is a PAINT property: it is not layout, so it
- * never showed up as reflow - but every single frame the browser had to re-draw
- * a large blurred shadow across the whole tile and re-upload the texture. Four
- * of those at once on a phone is exactly the stutter that was reported.
- *
- * The fix is the standard one and it is worth stating as a rule: NEVER ANIMATE
- * A SHADOW. Paint it once, on its own element, and animate that element's
- * opacity and transform - both of which the compositor can do without touching
- * the pixels at all.
- *
- * So .cg-tile.is-open::after keeps the resting ring as a STATIC shadow, and
- * this ::before carries the bloom as a STATIC shadow that merely fades and
- * expands. Same picture, no repaint.
- */
-.cg-tile.is-open::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  pointer-events: none;
-  border-radius: inherit;
-  /* Painted once. Nothing in the keyframes below touches it. */
-  box-shadow:
-    inset 0 0 0 2px #ffa8d6,
-    inset 0 0 30px 10px rgba(255, 138, 200, 0.62);
-  opacity: 0;
-  will-change: transform, opacity;
-  animation: cg-tile-flare 620ms ease-out;
-}
-
-/*
- * A BLOOM RATHER THAN A FLASH. It swells slightly as it fades, which is what
- * separates "a glow blooming" from "a light being switched on and off", and it
- * runs the length of the heart's flight so the two read as one moment.
- */
-@keyframes cg-tile-flare {
-  0% { opacity: 0; transform: scale(1.04); }
-  26% { opacity: 1; transform: scale(1); }
-  100% { opacity: 0; transform: scale(1.015); }
-}
-
-.cg-tile.is-open::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 4;
-  pointer-events: none;
-  border-radius: inherit;
-  /*
-   * A SOFT ROSE GLOW, NOT A HARD VIOLET RECTANGLE.
-   *
-   * This was 3px of flat #8a63cf with a white hairline inside it - a crisp
-   * outline, which is exactly what a real captcha draws and exactly why it read
-   * as clinical. The replacement keeps the same JOB (this square is chosen,
-   * legible at a glance across nine) and changes the voice:
-   *
-   *   a 2px rose rim, thinner and warmer than the violet was
-   *   a white hairline still inside it, because a rim with nothing between it
-   *     and the photograph disappears into a dark one
-   *   an 18px inner bloom, which is the part that makes it read as GLOW rather
-   *     than as OUTLINE - the edge fades into the picture instead of cutting it
-   *
-   * STILL INSET, AND THAT IS NOT NEGOTIABLE. .cg-grid clips with overflow:
-   * hidden for the card's radius, so an outer glow is sliced off on the six
-   * tiles touching the rim and the mark changes depending on where you tapped.
-   * The bloom has to happen inside the square.
-   */
-  box-shadow:
-    inset 0 0 0 2px #ff77bd,
-    inset 0 0 0 3px rgba(255, 255, 255, 0.72),
-    inset 0 0 18px 2px rgba(255, 119, 189, 0.45);
-  /*
-   * NO ANIMATION HERE. This is the resting state and it is painted once; the
-   * arrival flare is .cg-tile.is-open::before, which fades a pre-painted layer
-   * rather than redrawing a shadow every frame.
-   */
-}
-
 /*
  * TWO STACKED IMAGES, and this is the whole reveal.
  *
@@ -6158,103 +6434,164 @@ export const CAPTCHA_GATE_CSS = `
   display: block;
 }
 
+/*
+ * THE CROP DOES NOT PULL BACK, AND THAT IS DELIBERATE.
+ *
+ * It used to hold a 520ms transition on transform, and .is-open set scale(1)
+ * over it: the square zoomed out from the tight guess to the whole frame. A
+ * viewfinder widening is an INTERFACE revealing a picture, on a screen whose
+ * whole joke is that the verification is about a person - so the zoom went, and
+ * what answers a correct tap now is the photograph itself arriving at its
+ * natural framing.
+ *
+ * SO THE CROP JUST SITS THERE. It keeps the inline scale it was laid out with
+ * and is simply covered as .cg-full comes up over it.
+ */
+/*
+ * ── AND THE UNSOLVED SQUARES CARRY NOTHING AT ALL ─────────────────────────
+ *
+ * NINE PHOTOGRAPHS, IN THEIR OWN COLOURS, WITH NO FILTER ON THEM. That is the
+ * resting grid, and it is worth stating as a positive decision rather than as
+ * an absence, because three treatments have been tried in this exact spot and
+ * every one of them was removed:
+ *
+ *   BLACK AND WHITE, colour flooding back on a correct tap. It worked and it
+ *   read as EVIDENCE - a machine's file, sorted and waiting to be identified.
+ *   Accurate to the captcha joke, wrong room for the gift it is wrapped around.
+ *
+ *   A DREAMY PASTEL WASH - saturate(0.38) brightness(1.08) plus a pink-lavender
+ *   veil. Came out pale rather than soft: a fade and a tint are both
+ *   subtractive and they stack on the same pixels.
+ *
+ *   A SOFT BLUR resolving to sharp. It failed twice over and the second reason
+ *   is the one that matters. Blur is the one treatment that imitates a FAULT -
+ *   nine soft squares read as images that have not finished loading. And
+ *   fatally: the prompt asks the recipient to find THEMSELVES, so the task is
+ *   telling one couple from another at about 100px, and any blur strong enough
+ *   to read as dreamy is also strong enough to make that impossible. There is
+ *   no value that is both. It is not a tuning problem and must not be re-tuned.
+ *
+ * THE COMMON LESSON, AND IT IS WHY THERE IS NOTHING HERE NOW: every one of the
+ * three answered the correct tap by taking something AWAY from the other eight
+ * squares first. The reward was the removal of a handicap. Nothing is
+ * handicapped any more - the nine photographs are simply themselves, and the
+ * whole of the reward now happens on the square that was tapped.
+ */
 .cg-crop {
   object-fit: cover;
-  transition: transform 520ms cubic-bezier(0.2, 0.7, 0.3, 1);
-  will-change: transform;
 }
-
-.cg-full {
-  object-fit: contain;
-  /*
-   * WHAT SHOWS BESIDE A CONTAINED PHOTOGRAPH, and it is warm now because it is
-   * the only part of an opened tile the recipient sees that is not the picture
-   * itself. It used to be lilac into var(--cg-lav) - a cool band down each side
-   * of the reward, on a card that is otherwise entirely paper.
-   */
-  background: linear-gradient(180deg, #fff7ec, #ffe9e2);
-  opacity: 0;
-  transition: opacity 380ms ease-out 140ms;
-}
-
-/* Correct tap: the crop pulls back to its natural framing and the whole
-   photograph comes up over it. */
-.cg-tile.is-open .cg-crop { transform: scale(1) !important; }
-.cg-tile.is-open .cg-full { opacity: 1; }
 
 /*
- * ── THE CHOSEN MARK: A HEART IN A ROSE CHIP ───────────────────────────────
+ * ── THE REWARD: THE PHOTOGRAPH FILLS ITS SQUARE ───────────────────────────
  *
- * IT WAS A WHITE ✓ IN A VIOLET SQUARE, and the note that argued for that is
- * worth keeping because it was right about everything except what the screen
- * is: it said one accent stated once, the ring picks the square out and the
- * mark confirms it in the same colour. Sound reasoning, applied to a widget.
+ * COVER, NOT CONTAIN, AND THE CREAM WENT WITH IT. This was object-fit: contain
+ * over a warm gradient, so a photograph that was not square arrived letterboxed
+ * - a band of cream above and below a landscape, or down both sides of a
+ * portrait. It was the tidy choice and it was the wrong one twice over: it
+ * showed the WHOLE file rather than the whole PICTURE, and it put dead paper
+ * inside the one square on the screen that had just been earned. Cover fills
+ * the tile edge to edge and the bars are gone, along with the gradient that
+ * existed only to sit behind them.
  *
- * THIS IS NOT A WIDGET. A tick is the vocabulary of a form that validated - it
- * says CORRECT. What is actually happening is that somebody has found a
- * photograph of themselves, and the mark should say AWW rather than CORRECT.
- * So it is the gate's own pixel heart, in the gate's own pink, with one
- * sparkle escaping the corner so the chip reads as a little charm rather than
- * as a badge.
+ * NOTHING IS LOST THAT WAS BEING LOOKED AT. The crop underneath is already
+ * object-fit: cover, so this is the SAME framing it has been showing all along,
+ * simply without the 2-4x zoom - the picture pulled back to how the tile would
+ * have held it if the puzzle had never tightened it.
  *
- * THE CHIP STAYS, THOUGH, AND IT HAS TO. A bare heart floating on a photograph
- * is illegible the moment the photograph behind it is pink, or pale, or busy -
- * and every one of these squares is somebody's real snapshot, which is exactly
- * the surface you cannot predict. The chip is what guarantees the mark is
- * readable on all nine.
+ * AND IT ARRIVES INSTANTLY, WHICH IS NOT THE SAME AS ARRIVING PLAINLY. This
+ * held opacity 0 and a 380ms transition: a cross-fade, the most ordinary
+ * transition there is, and the reason three passes of decoration hung on this
+ * moment never fixed it - the crossing itself was always just a dissolve.
+ *
+ * SO IT IS SIMPLY THERE from the frame the tile opens, at full opacity, and
+ * nothing crosses to it. Whatever eventually answers a correct tap has to be
+ * something OTHER than the two pictures trading places.
  */
-.cg-tick {
-  position: absolute;
-  /* Above the photograph and the ring; nothing else is layered in the tile. */
-  z-index: 5;
-  /* Inside the photograph rather than on the paper lip around it. */
-  top: 8px;
-  left: 8px;
-  width: 22px;
-  height: 22px;
-  border-radius: 7px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  /*
-   * ROSE, NOT VIOLET, and warm rather than saturated - it is a soft blush chip
-   * with a heart in it, not a status pill. The glow under it is deliberate
-   * where the old note refused one: "a glow is a light source and nothing on
-   * this card is lit" was true of a clinical grid, and this screen is now
-   * explicitly a dreamy one. A little light is the point.
-   */
-  background: linear-gradient(160deg, #fff2f8 0%, #ffdcee 100%);
-  border: 1.5px solid #fff;
-  box-shadow:
-    0 2px 7px rgba(216, 27, 140, 0.32),
-    0 0 12px rgba(255, 105, 180, 0.45);
+.cg-full {
+  object-fit: cover;
   opacity: 0;
-  transform: scale(0.6);
-  transition:
-    opacity 160ms ease-out,
-    transform 260ms cubic-bezier(0.34, 1.7, 0.64, 1);
 }
 
-.cg-tick .cg-pxheart {
-  width: 12px;
+/*
+ * ── THE REVEAL, IN THREE PARTS THAT HAND OFF ──────────────────────────────
+ *
+ * NOTHING IS TAKEN AWAY FROM THE OTHER EIGHT SQUARES. Three previous versions
+ * handicapped the whole grid - grey, washed, blurred - so that removing the
+ * handicap could be the reward. This one happens entirely on the square that
+ * was tapped, and the note above records why the other approach kept failing.
+ *
+ *   0-620ms   THE PHOTOGRAPH WIDENS. .cg-full pulls from the crop's own zoom
+ *             back to 1, anchored on the crop's own focal point, so the close-
+ *             up opens into the whole frame.
+ *   0-620ms   AND THE LIGHT COMES UP ON IT. brightness rises to 1.3 by a third
+ *             of the way through and settles back to 1, riding the same
+ *             animation on the same element.
+ *   0-716ms   THE SPARKLE RING bursts out of the middle - twelve sparks, each
+ *             with its own delay, all gone by the time the tick is due.
+ *   at 1000ms THE CHIP LANDS (REVEAL_MS), by which point all three have
+ *             finished and the photograph has been looked at.
+ *
+ * ── THE PULL-BACK IS BACK, AND THIS FILE THREW IT OUT ONCE ────────────────
+ *
+ * The note that used to sit here said the crop must not widen: "a viewfinder
+ * widening is an INTERFACE revealing a picture, on a screen whose whole joke is
+ * that the verification is about a person". That was right about a zoom on its
+ * OWN, which is all it ever was - a mechanism running with nothing to explain
+ * it. Given a burst of sparks and a light coming up, the same widening reads as
+ * the other thing a frame opening can be: something being celebrated. The
+ * argument was never against the motion, it was against the motion arriving
+ * unexplained.
+ *
+ * IT ALSO FIXES THE SWAP, WHICH THREE PASSES HAVE COMPLAINED ABOUT. .cg-full
+ * starts at the crop's own scale AND the crop's own transform-origin, so at 0%
+ * the two stacked images are the same picture to the pixel. There is no cut to
+ * hide any more, because for one frame there is no difference between them.
+ *
+ * ── THE BRIGHTNESS IS ONE FILTER ON ONE TILE, AND THAT IS THE BUDGET ──────
+ *
+ * A filter repaints, so the rule this file has settled on is that filters may
+ * animate on the ONE square that was just tapped and never on the resting nine.
+ * The three treatments that were removed all broke that rule in the same way -
+ * they put a filter on all nine and left it there. This is a single brightness
+ * on a single ~100px image for 620ms, and the other eight tiles carry no filter
+ * at all, so there is nothing on this screen for the compositor to re-rasterise
+ * while it sits still.
+ *
+ * ONE FUNCTION, SAME ORDER, EVERY FRAME. brightness to brightness and scale to
+ * scale, so both lists interpolate rather than cutting at the midpoint.
+ *
+ * THE PEAK IS AT 34% AND NOT AT 0%. Starting bright and fading down is a lamp
+ * being switched off; rising into it and settling is a light coming UP, which
+ * is the thing being described. It is the same argument as the squish going
+ * down before it comes up.
+ */
+@keyframes cg-open-in {
+  0% {
+    transform: scale(var(--z));
+    filter: brightness(1);
+  }
+  34% {
+    filter: brightness(1.34);
+  }
+  100% {
+    transform: scale(1);
+    /*
+     * NOT BACK TO 1. This is the whole selection mark now - the square stays
+     * lit above its neighbours for as long as it is chosen, and drops back the
+     * moment it is taken away. See the note where the ring used to be.
+     */
+    filter: brightness(1.15);
+  }
 }
 
-/* The sparkle sits half off the corner, which is what keeps the chip from
-   reading as a badge with a symbol in it. */
-.cg-tick-spark {
-  position: absolute;
-  top: -5px;
-  right: -4px;
-  font-size: 10px;
-  line-height: 1;
-  color: #fff3fb;
-  text-shadow: 0 0 6px rgba(255, 105, 180, 0.9);
-}
-
-/* The tick lands only after the photograph has been seen. */
-.cg-tile.is-verified .cg-tick {
+.cg-tile.is-open .cg-full {
   opacity: 1;
-  transform: none;
+  /*
+   * both, SO THE LAST FRAME IS HELD. Without it the fill would hand both
+   * properties back the instant the animation ended and the photograph would
+   * jump back to the close-up, which is the one state this exists to leave.
+   */
+  animation: cg-open-in 620ms cubic-bezier(0.25, 0.72, 0.3, 1) both;
 }
 
 .cg-shake { animation: cg-shake 380ms ease-in-out; }
@@ -6266,6 +6603,267 @@ export const CAPTCHA_GATE_CSS = `
   60% { transform: translateX(-3px); }
   80% { transform: translateX(2px); }
 }
+
+
+/*
+ * ── THERE IS NO PROGRESS BAR, AND THE REASON IS WORTH KEEPING ─────────────
+ *
+ * ONE WAS BUILT AND IT WORKED EXACTLY AS SPECIFIED. A solid capsule across the
+ * bottom of the prompt band: a dark inset track with a light hairline, a
+ * pink-to-orchid fill on scaleX, a pixel heart riding the leading edge, a flare
+ * at 100%. It was measured at every step and it was accurate to the pixel.
+ *
+ * IT WAS RIGHT ABOUT VISIBILITY AND WRONG ABOUT THE ROOM. The reasoning that
+ * put it there still holds - every other surface on this screen is busy, the
+ * band is the one solid dark object, and a structured bar on it cannot be
+ * mistaken for one of the drifting hearts. What that reasoning could not see is
+ * that a track-and-fill bar is FORM VOCABULARY. It is the shape of an upload, a
+ * download, a password strength meter. Wedged under a header it turns the
+ * header into a dialog, and this band spends its whole life pretending to be
+ * the top of a captcha widget - the one thing it must not read as is software
+ * reporting on itself.
+ *
+ * THE BAND ALSO HAS NO ROOM TO GIVE. It is flush against the grid card by
+ * design (the seam between them is not an edge, see the note on .cg-prompt),
+ * so anything added inside it pushes the two lines of the prompt up and the
+ * whole card down, and the bar and the type end up competing for the same
+ * bottom edge.
+ *
+ * SO THE COUNT PROBLEM IS STILL OPEN, and the shape of the answer is now
+ * clearer than it was: not a meter anywhere near the band, and not hearts on
+ * the page either - a tally of those was built before the bar and pulled
+ * because a page that already drifts hearts through its margins reads four more
+ * as more margin. Both attempts were INSTRUMENTS. What is left untried is
+ * voice: the gate has three copy channels on this screen and one of them, the
+ * status line under the grid, sits empty on almost every frame with its height
+ * already reserved.
+ */
+
+/*
+ * ── THE PROGRESS BAR, AND THE BUTTON THAT WAITS FOR IT ────────────────────
+ *
+ * THE ROW HOLDS TWO OBJECTS AND SHOWS ONE AT A TIME. The bar takes whatever
+ * width is left after the button's box is reserved, so its length is fixed
+ * from the first frame and the appearance of the button changes no geometry
+ * whatsoever - see the note in the markup for why that matters more than it
+ * sounds.
+ *
+ * SCOPED TO .cg-challenge, because .cg-btnrow is shared. The broken screen puts
+ * [details] and [try again] in the same row and neither of them waits for
+ * anything.
+ */
+
+
+/*
+ * ── THERE IS NO PROGRESS BAR, AND FIVE ATTEMPTS ARE WORTH ONE NOTE ────────
+ *
+ * THE QUESTION IT ANSWERED WAS REAL: nothing told the recipient how many
+ * squares there were to find, so the only way to learn the number was to press
+ * verify and be told no. Five things were built to fix that and all five came
+ * out:
+ *
+ *   A TALLY OF FOUR HEARTS beside the button. Lost among the drifting hearts
+ *   this gate already floats through its own margins - four more read as more
+ *   margin rather than as a count.
+ *
+ *   A BAR UNDER THE PROMPT BAND. Perfect contrast, wrong reading: a
+ *   track-and-fill wedged beneath a header turns the header into a dialog, and
+ *   that band spends its whole life pretending to be the top of a captcha.
+ *
+ *   A BAR BELOW THE GRID, then the same bar SWAPPING into the verify button
+ *   when it filled. Both worked exactly as specified. Both were still a form
+ *   control on a screen whose entire joke is that it is not really a form.
+ *
+ *   A GLITTER TRAIL that flew from the tapped photograph to the bar and filled
+ *   it on arrival - the bar's advance deferred until the stardust landed. It
+ *   was the best of them and it was decoration on scaffolding that should not
+ *   have been there.
+ *
+ * WHAT THE SCREEN ALREADY HAD, AND WHY IT IS ENOUGH. Every correct tap answers
+ * itself: the photograph widens and brightens, twelve sparks burst out of the
+ * square, a rose ring marks it, and a heart chip lands a second later. The four
+ * chosen squares pulse together the moment the last one is found, and the
+ * verify button wakes up and keeps pulsing until it is pressed. Progress was
+ * never invisible - it was written on the photographs instead of in a meter,
+ * which is the right place for it on a screen made of photographs.
+ *
+ * IF THE COUNT EVER NEEDS SAYING OUT LOUD, the untried answer is voice rather
+ * than instrumentation: .cg-status under the grid is already there, already
+ * height-reserved, and blank on almost every frame.
+ */
+
+/*
+ * ── THE ONE HEART, AND IT LANDS ───────────────────────────────────────────
+ *
+ * ONE, NOT TWELVE. A burst of sparks lived on this spot and it was noise on a
+ * photograph; before that six hearts; before that a bloom and a ring and a
+ * bounce at once. The argument this file keeps arriving at is that a correct
+ * tap should say ONE thing - and this heart now says it twice over, because it
+ * is both the celebration and the mark left behind.
+ *
+ * IT IS POSITIONED WHERE IT ENDS, AND ANIMATED FROM A DISPLACEMENT. That is the
+ * whole structure and it is worth stating plainly: .cg-lift's resting layout IS
+ * the marker in the corner, and cg-lift-land starts it low, large and
+ * transparent, then eases it to nothing - translate(0, 0) scale(1).
+ *
+ * DOING IT THE OTHER WAY ROUND WOULD BREAK THE ONE STATE THAT MATTERS. If the
+ * heart were laid out where it starts and animated INTO the corner, the corner
+ * would exist only inside a keyframe - so with the animation off (reduced
+ * motion) it would sit in the middle of the photograph, putting the marker in
+ * the wrong place for exactly the users who never see it arrive. Written this
+ * way, "no animation" already means "attached".
+ *
+ * THE WRAPPER IS TILE-SIZED SO THE FLIGHT CAN BE IN PERCENTAGES. A percentage
+ * in a translate resolves against the element's OWN box, so a 20px heart
+ * translated by 50% moves ten pixels. Sized to the tile, 50% is half a square,
+ * and the flight stays right at any tile size - which a pixel offset would not.
+ * This file has been caught by that rule twice before.
+ *
+ * transform-origin SITS ON THE HEART, NOT ON THE BOX. The wrapper is the whole
+ * tile but the thing being scaled is a heart in its top-left corner, so the
+ * origin moves to roughly that heart's own centre. At the default 50% 50% the
+ * scale would swing it across the square as it shrank.
+ */
+.cg-lift {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  /*
+   * THE HEART'S OWN CENTRE, AND IT HAS TO BE RECOMPUTED WHENEVER THE MARKER IS
+   * RESIZED. left 7% + half of a 12.5%-wide heart is 13.25% across; 7% plus
+   * half its height (12.5% x 6/7) is 12.4% down. Left at the box's default
+   * 50% 50% - or at the value for a bigger heart - the scale keyframes would
+   * swing the mark across the square instead of settling it in place.
+   */
+  transform-origin: 13.25% 12.4%;
+  /*
+   * The rim, on the wrapper rather than on the heart - a filter applies BEFORE
+   * the element's own clip-path, so a drop-shadow declared on a clipped heart
+   * is computed on its square box and then thrown away with everything outside
+   * the shape. Third time in this file.
+   *
+   * It matters more now than when this faded: a PERMANENT mark has to stay
+   * readable on all nine photographs, and this is the job the old chip's opaque
+   * background used to do.
+   */
+  filter: drop-shadow(0 0 1.5px rgba(255, 255, 255, 0.95))
+    drop-shadow(0 2px 4px rgba(110, 40, 130, 0.5));
+  /*
+   * linear HERE, AND THE PACING LIVES IN THE KEYFRAMES INSTEAD. An easing
+   * declared on the animation is applied to EVERY SEGMENT separately, not to
+   * the flight as a whole - so with five keyframes an ease-out curve rushed the
+   * heart a third of the way across in the first 160ms and then left it
+   * crawling through the middle of the square. Measured, not guessed. Each
+   * keyframe below carries its own animation-timing-function, which is the only
+   * way to shape a multi-point path.
+   */
+  animation: cg-lift-land 760ms linear both;
+}
+
+/*
+ * THE MARKER ITSELF, IN THE CORNER, SIZED IN PERCENT SO IT TRACKS THE TILE.
+ *
+ * 12.5% OF A 103px SQUARE IS ABOUT 14px. It was 19% for a pass - roughly the
+ * 20px the old rose chip used to be - and it was too loud for what it is now.
+ * The chip needed that size because it was carrying an opaque background and a
+ * sparkle; a bare heart with a rim needs far less to be read, and the smaller
+ * it is the more it behaves like a mark on the photograph rather than an
+ * object sitting on top of one.
+ *
+ * THE RIM DOES NOT SHRINK WITH IT, WHICH IS DELIBERATE. The drop-shadows on the
+ * wrapper are in pixels, so at 14px the white hairline is proportionally
+ * heavier than it was at 20px - exactly what a smaller mark needs to stay
+ * legible against a bright photograph.
+ */
+.cg-lift > i {
+  position: absolute;
+  left: 7%;
+  top: 7%;
+  width: 12.5%;
+  aspect-ratio: 7 / 6;
+  background: linear-gradient(
+    180deg,
+    #ffd6ec 0%,
+    #ff9ed0 44%,
+    var(--cg-pink-hot) 100%
+  );
+  clip-path: polygon(
+    14.286% 0%, 42.857% 0%, 42.857% 16.667%, 57.143% 16.667%, 57.143% 0%,
+    85.714% 0%, 85.714% 16.667%, 100% 16.667%, 100% 50%, 85.714% 50%,
+    85.714% 66.667%, 71.429% 66.667%, 71.429% 83.333%, 57.143% 83.333%,
+    57.143% 100%, 42.857% 100%, 42.857% 83.333%, 28.571% 83.333%,
+    28.571% 66.667%, 14.286% 66.667%, 14.286% 50%, 0% 50%, 0% 16.667%,
+    14.286% 16.667%
+  );
+}
+
+/*
+ * ── THE FLIGHT: UP OUT OF THE PICTURE, INTO THE CORNER ────────────────────
+ *
+ * IT RISES FROM THE MIDDLE-LOWER PART OF THE PHOTOGRAPH. A corner-to-corner
+ * diagonal was tried in this exact spot and pulled: bottom-right to top-left is
+ * the longest line inside a tile, and at that length the mark read as something
+ * FLUNG across the picture rather than lifting out of it. The short rise is the
+ * quieter motion and the right one - the heart comes off the photograph, it
+ * does not travel over it.
+ *
+ * THE NUMBERS ARE DISPLACEMENTS, NOT POSITIONS, AND THAT IS WHY THEY LOOK ODD.
+ * The heart is laid out in the corner already - its centre sits at 13.25%,
+ * 12.4% of the tile - so translate(34%, 54%) is what puts it at roughly 47%,
+ * 66%: the middle of the square, low. Every keyframe here is measured from the
+ * landing place backwards, which is what lets the last one be translate(0, 0)
+ * and the resting layout be the truth. Recompute them if the marker ever
+ * changes size or corner - both move the origin these are relative to.
+ *
+ * IT IS THE SAME SIZE THE WHOLE WAY, AND THAT IS THE POINT OF THIS VERSION.
+ * It began life ballooning: 2.4x near the middle of the photograph, shrinking
+ * as it docked, on the argument that coming in large and settling small is what
+ * reads as ATTACHING. The argument was sound and the result was not - a marker
+ * that briefly fills a quarter of the square is an event that happens TO the
+ * photograph, and it pulled the eye off the picture at the exact moment the
+ * picture was opening. The two were competing.
+ *
+ * SO THE SCALE BARELY MOVES: 0.88 at the start, its true size by the waypoint,
+ * and a 1.07 tap on landing. What it does is TRAVEL - a small heart rising out
+ * of the photograph into the corner - and the size stays constant enough that
+ * the eye follows the path rather than the growth.
+ *
+ * THE OVERSHOOT SURVIVED BECAUSE IT IS SEVEN PERCENT. It arrives a fraction
+ * past its resting size and eases back - the same squash-and-stretch the rest
+ * of the gate uses, and the thing that makes a landing read as a landing rather
+ * than as a stop. That was never the part that ballooned.
+ *
+ * both, SO IT HOLDS. The last frame is translate(0, 0) scale(1), exactly where
+ * the resting rules put it; the fill is there so there is no frame between the
+ * animation ending and the cascade taking the properties back.
+ */
+@keyframes cg-lift-land {
+  /* Lifts off the middle of the photograph. */
+  0% {
+    opacity: 0;
+    transform: translate(34%, 54%) scale(0.88) rotate(-9deg);
+    animation-timing-function: cubic-bezier(0.45, 0, 0.7, 0.5);
+  }
+  16% {
+    opacity: 1;
+  }
+  /* Most of the rise done; slowing as the corner comes up. */
+  46% {
+    transform: translate(22%, 22%) scale(1) rotate(5deg);
+    animation-timing-function: cubic-bezier(0.25, 0.68, 0.35, 1);
+  }
+  /* A fraction past the mark. */
+  86% {
+    transform: translate(-2%, -2%) scale(1.07) rotate(-3deg);
+    animation-timing-function: cubic-bezier(0.4, 0, 0.35, 1);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1) rotate(0deg);
+  }
+}
+
 
 /*
  * THE VERIFY BUTTON GOES SQUARE TOO, AND ONLY THIS ONE.
@@ -6404,6 +7002,70 @@ export const CAPTCHA_GATE_CSS = `
 }
 
 /*
+ * -- AND WHEN THE ROUND IS WON, IT STOPS IDLING AND STARTS ASKING -----------
+ *
+ * THE BUTTON WAS ALREADY ALIVE, WHICH IS WHY THIS REPLACES RATHER THAN ADDS.
+ * The bob above is this gate's "here is the way out" signal and the note on it
+ * argues at length for keeping it - but it says the same thing whether nothing
+ * is selected or everything is. The one moment it should be saying something
+ * DIFFERENT is the moment there is nothing left to do but press it.
+ *
+ * So the idle bob is replaced, not layered: a heartbeat, faster and shorter
+ * than the drift it takes over from, in the same language as the heart in the
+ * checkbox and the hearts in the grid. Same property, same layer, no second
+ * animation competing for the transform.
+ *
+ * THE GLOW IS A PSEUDO-ELEMENT, NOT A box-shadow TRANSITION. Animating a
+ * shadow repaints the button every frame; a ring that already exists and only
+ * changes opacity and scale is composited. .cg-btn had both pseudo-elements
+ * free, so this costs no markup.
+ *
+ * IT KEEPS THE HOVER PAUSE. Same reasoning as the bob: the moment a pointer
+ * arrives this is a target being aimed at, and a moving target is a worse one.
+ */
+.cg-is-challenge .cg-btn-love.is-ready {
+  animation: cg-verify-ready 1.15s cubic-bezier(0.3, 0.9, 0.4, 1) infinite;
+  position: relative;
+}
+
+.cg-is-challenge .cg-btn-love.is-ready::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 999px;
+  border: 2px solid var(--cg-pink-hot, #ff2e9a);
+  opacity: 0;
+  pointer-events: none;
+  animation: cg-verify-halo 1.15s cubic-bezier(0.3, 0.9, 0.4, 1) infinite;
+  will-change: transform, opacity;
+}
+
+.cg-is-challenge .cg-btn-love.is-ready:hover,
+.cg-is-challenge .cg-btn-love.is-ready:focus-visible {
+  animation-play-state: paused;
+}
+
+.cg-is-challenge .cg-btn-love.is-ready:hover::after,
+.cg-is-challenge .cg-btn-love.is-ready:focus-visible::after {
+  animation-play-state: paused;
+}
+
+@keyframes cg-verify-ready {
+  0% { transform: translateY(0) scale(1); }
+  10% { transform: translateY(-3px) scale(1.045); }
+  22% { transform: translateY(0) scale(1); }
+  32% { transform: translateY(-2px) scale(1.03); }
+  46% { transform: translateY(0) scale(1); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+@keyframes cg-verify-halo {
+  0% { opacity: 0.55; transform: scale(1); }
+  40% { opacity: 0; transform: scale(1.14); }
+  100% { opacity: 0; transform: scale(1.14); }
+}
+
+/*
  * Reduced motion: every hop, drift, bob, sway, shimmer, wiggle, burst and
  * wobble stops. EVERY BEAT SURVIVES — it still buffers, still breaks, still
  * turns, still ticks green, and a correct tap still swaps the crop for the
@@ -6412,7 +7074,6 @@ export const CAPTCHA_GATE_CSS = `
 @media (prefers-reduced-motion: reduce) {
   .cg-crop,
   .cg-full,
-  .cg-tick,
   .cg-scan,
   .cg-page,
   .cg-widget,
@@ -6422,6 +7083,13 @@ export const CAPTCHA_GATE_CSS = `
     transition: none;
   }
 
+  /*
+   * THE SHIMMER IS NOTHING BUT MOTION, SO IT GOES ENTIRELY - and it has to be
+   * hidden rather than merely stopped. animation: none alone would leave it
+   * parked at its resting transform, which is a white diagonal sitting just
+   * off the left edge of the fill; on a bar with any progress at all, part of
+   * that band is inside the clip and shows as a permanent bright streak.
+   */
   /*
    * THE SWAP BECOMES A CUT. With no transition each pane jumps straight to its
    * parked or shown position and the visibility flips with it, so the grid is
@@ -6458,7 +7126,16 @@ export const CAPTCHA_GATE_CSS = `
   .cg-shake,
   .cg-bounce,
   .cg-mini,
-  .cg-mini-hop,
+  .cg-orbit i,
+  .cg-orbit-arm,
+  .cg-orbit-heart,
+  .cg-orbit.is-meeting,
+  .cg-grid.is-solved .cg-cell.is-lifted,
+  .cg-is-challenge .cg-btn-love.is-ready,
+  .cg-is-challenge .cg-btn-love.is-ready::after,
+  .cg-ring,
+  .cg-check.is-popped,
+  .cg-waitdots i,
   .cg-dots i,
   .cg-dream,
   .cg-bounce-wrap::after,
@@ -6481,10 +7158,15 @@ export const CAPTCHA_GATE_CSS = `
    * The heart is nothing BUT motion, so it is removed outright below rather
    * than left hanging in the middle of a photograph.
    */
-  .cg-tile.is-open,
-  .cg-tile.is-open::after,
-  .cg-tile.is-open::before,
-  .cg-pop,
+  /*
+   * .cg-tile.is-open USED TO BE LISTED HERE, for the squish. The squish is
+   * gone and the tile carries no animation at all now, so the entry was
+   * switching off something that no longer exists. The chosen ring it also
+   * named is gone from the file entirely. What actually needs silencing on a
+   * correct tap is
+   * .cg-tile.is-open .cg-full, which is named further down because a
+   * descendant selector is not reached by this list.
+   */
   .cg-is-passed .cg-bloom,
   .cg-msg,
   .cg-lower,
@@ -6515,7 +7197,6 @@ export const CAPTCHA_GATE_CSS = `
    * the warm bloom on the payoff: it is a colour, and it is the one piece of
    * celebration that survives having its movement taken away.
    */
-  .cg-tile.is-open::before,
   .cg-dreamies,
   .cg-room,
   .cg-burst,
@@ -6537,19 +7218,54 @@ export const CAPTCHA_GATE_CSS = `
   }
 
   /*
-   * THE HEART APPEARS AND DOES NOT TRAVEL. The brief is glow plus a static
-   * heart: so the element is still mounted and still visible, it simply sits at
-   * the top of its own square for the length of POP_MS instead of flying. The
-   * bloom behind it is a colour rather than a motion and survives as one - see
-   * .cg-tile.is-open::before, which keeps its opacity and loses its animation.
+   * THE REVEAL BECOMES A CUT, AND IT ONLY TAKES ONE LINE.
+   *
+   * Everything the correct tap does here is motion rather than state: the
+   * widening, the light coming up, the twelve sparks. None of it is how the
+   * board is READ - that is the ring and the chip, and both are untouched - so
+   * all of it can go and nothing is lost from the puzzle.
+   *
+   * THE SPARKS ARE NOT LISTED HERE AND THAT IS DELIBERATE. They are never
+   * mounted under reduced motion at all; the condition sits in the markup
+   * beside isOn, so there is no animation to switch off and no ring of twelve
+   * little stars left parked on a photograph.
+   *
+   * ONE LINE, BECAUSE .cg-full CARRIES NO INLINE TRANSFORM. Killing the
+   * animation is enough: with it gone the element falls back to the cascade,
+   * where there is no transform and no filter - scale(1), full brightness, the
+   * whole frame. The reveal simply arrives already finished. Note that the
+   * animation is declared on .cg-tile.is-open .cg-full, a DIFFERENT selector
+   * from the .cg-tile.is-open in the animation: none list above, so that list
+   * never reaches it and this rule has to exist.
    */
-  .cg-pop {
-    opacity: 1;
-    transform: translate(-50%, 0);
+  /*
+   * THE HEART IS STILL HERE, ALREADY ATTACHED. It is the marker now rather than
+   * a flourish, so hiding it would take the answer off the board - which square
+   * is chosen has to be readable however the motion preference is set.
+   *
+   * ONE LINE, AND ONLY BECAUSE OF HOW IT IS BUILT. .cg-lift is laid out at its
+   * landing place and animated FROM a displacement, so switching the animation
+   * off leaves it exactly where it belongs. Laid out where the flight begins,
+   * this rule would have to restate the entire resting geometry.
+   */
+  .cg-lift {
+    animation: none;
   }
 
-  .cg-tile.is-open::before {
-    opacity: 0.85;
+  /*
+   * THE SQUARE IS STILL LIT - THAT IS STATE, NOT MOTION. What goes is the
+   * opening and the rise; what stays is the level they settle at, because it
+   * is the only thing marking which squares are chosen.
+   *
+   * IT HAS TO BE RESTATED BY HAND. Killing the animation hands filter back to
+   * the cascade, where .cg-full has none at all - so a chosen square would sit
+   * at exactly its neighbours' brightness and the grid would become unreadable.
+   * The transform needs nothing: with no inline scale, no animation means
+   * scale(1), which is the full frame the reveal was heading for anyway.
+   */
+  .cg-tile.is-open .cg-full {
+    animation: none;
+    filter: brightness(1.15);
   }
 
   /* The mended heart simply sits whole. */
